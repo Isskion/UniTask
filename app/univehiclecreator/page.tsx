@@ -10,6 +10,7 @@ import { getAllFields } from '@/app/univehiclecreator/_src/data/schema';
 import { generateValidationReport, type ValidationReport } from '@/app/univehiclecreator/_src/utils/validation';
 import { buildXml, type BuildXmlContext } from '@/app/univehiclecreator/_src/services/xmlBuilder';
 import { type ProgressLog } from '@/app/univehiclecreator/_src/components/Modals/ProgressModal';
+import { postSoapProxy } from '@/lib/soapProxy';
 
 import Header from '@/app/univehiclecreator/_src/components/Header/Header';
 import MasterTable from '@/app/univehiclecreator/_src/components/DataPanel/MasterTable';
@@ -173,16 +174,12 @@ function UnigisVehicleCreatorPageInner() {
                 const xml = buildXml(row, ctx);
 
                 // Fetch through proxy function
-                const res = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        url: serviceUrl,
-                        action: 'http://unisolutions.com.ar/CrearVehiculos',
-                        version: '1.1',
-                        body: xml,
-                        timeoutMs: 30000,
-                    }),
+                const res = await postSoapProxy({
+                    url: serviceUrl,
+                    action: 'http://unisolutions.com.ar/CrearVehiculos',
+                    version: '1.1',
+                    body: xml,
+                    timeoutMs: 30000,
                 });
 
                 const response = await res.json();

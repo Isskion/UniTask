@@ -364,6 +364,20 @@
     }
   },
   {
+    "id": "2EyNvB5fIuR3pvj5x4VJ",
+    "taskId": "0N45KaPlXXE7tEHVEXKg",
+    "tenantId": "18",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "userEmail": "securedroutes@gmail.com",
+    "userName": "Daniel del Amo",
+    "type": "status_change",
+    "details": "Estado cambiado de En Curso a Aprobación Final",
+    "createdAt": {
+      "_seconds": 1786949818,
+      "_nanoseconds": 235000000
+    }
+  },
+  {
     "id": "2NAUKNN4bseSA1dtKPTw",
     "taskId": "317NAmdAhUO5uYgQUMgs",
     "tenantId": "3",
@@ -2954,6 +2968,20 @@
     }
   },
   {
+    "id": "Jo3wo5CJTt1utyJ4YqVY",
+    "taskId": "L7cKanzSDLj3Bra9EXb4",
+    "tenantId": "18",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "userEmail": "securedroutes@gmail.com",
+    "userName": "Daniel del Amo",
+    "type": "status_change",
+    "details": "Estado cambiado de Pendiente a En Curso",
+    "createdAt": {
+      "_seconds": 1786949832,
+      "_nanoseconds": 787000000
+    }
+  },
+  {
     "id": "JpGdO54W7a4fUlL9k4EO",
     "taskId": "VqEqQlkD8FuZXpCxiE93",
     "tenantId": "3",
@@ -5387,6 +5415,20 @@
     "createdAt": {
       "_seconds": 1770018342,
       "_nanoseconds": 249000000
+    }
+  },
+  {
+    "id": "Zs1dM3uffGKfyU4tF7wM",
+    "taskId": "1hXCtJVOJiCfDGwUyOQa",
+    "tenantId": "18",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "userEmail": "securedroutes@gmail.com",
+    "userName": "Daniel del Amo",
+    "type": "status_change",
+    "details": "Estado cambiado de Pendiente a Aprobación Final",
+    "createdAt": {
+      "_seconds": 1786949843,
+      "_nanoseconds": 533000000
     }
   },
   {

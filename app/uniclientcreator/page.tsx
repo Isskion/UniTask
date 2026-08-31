@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
@@ -7,6 +7,7 @@ import { parseExcelFile } from '@/app/uniclientcreator/_src/utils/excelParser';
 import { generateValidationReport, type ValidationReport } from '@/app/uniclientcreator/_src/utils/validation';
 import { buildXml, type BuildXmlContext } from '@/app/uniclientcreator/_src/services/xmlBuilder';
 import { type ProgressLog } from '@/app/uniclientcreator/_src/components/Modals/ProgressModal';
+import { postSoapProxy } from '@/lib/soapProxy';
 
 import Header from '@/app/uniclientcreator/_src/components/Header/Header';
 import MasterTable from '@/app/uniclientcreator/_src/components/DataPanel/MasterTable';
@@ -31,7 +32,6 @@ import '@/app/uniclientcreator/_src/App.css';
 
 const SESSION_KEY = 'ucc_session';
 const SOAP_ACTION = 'http://unisolutions.com.ar/CrearClientesOrden';
-const PROXY_URL = 'https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy';
 
 function UniClientCreatorPageInner({ tenantId }: { tenantId: string }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -156,10 +156,7 @@ function UniClientCreatorPageInner({ tenantId }: { tenantId: string }) {
             try {
                 logs.push({ ref: 'UNIGIS', status: 'info', msg: 'Verificando conectividad...' });
                 setProgressLogs([...logs]);
-                const pingRes = await fetch(PROXY_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: orderUrl, action: SOAP_ACTION, version: '1.1', body: '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body/></soapenv:Envelope>', timeoutMs: 10000 }),
-                });
+                const pingRes = await postSoapProxy({ url: orderUrl, action: SOAP_ACTION, version: '1.1', body: '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body/></soapenv:Envelope>', timeoutMs: 10000 });
                 if (pingRes.status === 404) throw new Error('Servidor no encontrado (HTTP 404)');
                 const pingData = await pingRes.json();
                 if (!pingData.ok && pingData.status !== 500) throw new Error(`Servidor inaccesible: HTTP ${pingData.status}`);
@@ -198,10 +195,7 @@ function UniClientCreatorPageInner({ tenantId }: { tenantId: string }) {
                             await new Promise(r => setTimeout(r, 200));
                             res = { json: async () => ({ ok: true, status: 200, text: `<Envelope><Body><CrearClientesOrdenResult>true</CrearClientesOrdenResult></Body></Envelope>` }) };
                         } else {
-                            res = await fetch(PROXY_URL, {
-                                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ url: orderUrl, action: SOAP_ACTION, version: '1.1', body: xml, timeoutMs: 30000 }),
-                            });
+                            res = await postSoapProxy({ url: orderUrl, action: SOAP_ACTION, version: '1.1', body: xml, timeoutMs: 30000 });
                         }
                         if ([502, 503, 504].includes(res.status)) throw new Error(`Error temporal HTTP ${res.status}`);
                         fetchError = null; break;

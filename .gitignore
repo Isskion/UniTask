@@ -35,15 +35,13 @@ yarn-error.log*
 
 # vercel
 .vercel
+.env*.local
+fix-env.js
+repair-env.js
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-.vercel
-.env*.local
-fix-env.js
-repair-env.js
 
 # backups
 backup_*/
@@ -52,16 +50,6 @@ serviceAccountKey.json.json
 
 # Firebase Admin Keys
 minuta-f75a4-firebase-adminsdk-fbsvc-b6ad547134.json
-*.json
-!package.json
-!package-lock.json
-!tsconfig.json
-!next.config.js
-!vercel.json
-!firebase.json
-!app/uniordercreator/_src/i18n/locales/*.json
-!app/univehiclecreator/_src/i18n/locales/*.json
-
 
 # Nested projects
 /unigis-order-creator-web/
@@ -75,5 +63,4 @@ minuta-f75a4-firebase-adminsdk-fbsvc-b6ad547134.json
 # KML map files (non-project assets)
 mapa_logistico_exacto.kml
 *.kml
-
 

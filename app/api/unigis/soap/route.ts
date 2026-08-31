@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 
+// Ensure Node 18+ fetch accepts UNIGIS self-signed certificates
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 /**
  * SOAP Proxy API Route — Replaces the old Express proxy
  * Forwards SOAP requests from the browser to UNIGIS endpoints,
  * bypassing CORS restrictions and handling SSL certificates.
- *
- * NODE_TLS_REJECT_UNAUTHORIZED=0 is set in .env.local to handle
- * UNIGIS endpoints with self-signed certificates.
  */
 export async function POST(req: Request) {
     try {

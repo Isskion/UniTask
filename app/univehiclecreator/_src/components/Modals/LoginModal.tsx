@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
+import { postSoapProxy } from '@/lib/soapProxy';
 
 interface LoginModalProps {
     isOpen: boolean;
@@ -56,16 +57,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   </soap:Body>
 </soap:Envelope>`;
 
-            // Use same CORS SOAP proxy
-            const apiRes = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    url: authServiceUrl,
-                    action: 'http://unisolutions.com.ar/Login',
-                    version: '1.2',
-                    body: body,
-                }),
+            // Use resilient SOAP proxy with dual-route fallback
+            const apiRes = await postSoapProxy({
+                url: authServiceUrl,
+                action: 'http://unisolutions.com.ar/Login',
+                version: '1.2',
+                body: body,
             });
             const res = await apiRes.json();
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { auth, db } from '../lib/firebase'; // Fixed path to lib/firebase
@@ -101,10 +101,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             return;
                         }
                         console.warn("[AuthContext] ⚠️ User has no Firestore profile. UI will be restricted.");
-                        // [STABILITY] Don't signOut() yet, let NoTenantBlocker handle the orphan state.
-                        // This prevents "falling out" if the snapshot is just missing momentarily.
                         setIdentity(prev => prev ? { ...prev, realRole: 0 as RoleLevel, realTenantId: "unknown" } : null);
-                        setViewContext(null); // Triggers loading/blocker
+                        setViewContext({ activeRole: 0 as RoleLevel, activeTenantId: "unknown", isMasquerading: false });
+                        setLoading(false);
                         return;
                     }
 
@@ -118,23 +117,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             return;
                         }
                         console.warn("[AuthContext] ⚠️ User has invalid tenantId. UI will be restricted.");
-                        // [STABILITY] Don't signOut(), just restrict identity to trigger blocker
                         setIdentity(prev => prev ? { ...prev, realTenantId: "unknown" } : null);
-                        setViewContext(null);
+                        setViewContext({ activeRole: (Number(data.roleLevel) || 0) as RoleLevel, activeTenantId: "unknown", isMasquerading: false });
+                        setLoading(false);
                         return;
                     }
 
                     const latestSyncId = Number(data.syncId) || 0;
                     const currentSyncId = Number(claims.syncId) || 0;
 
-                    // Logic: If backend says "I updated claims at X" and token says "I have claims from < X", refresh.
-                    // Also refresh if roleLevel/tenantId mismatches critically.
-                    // [HARDEN] Increase threshold to 2s to allow for propagation skew
-                    const syncStale = latestSyncId > (currentSyncId + 2000);
-                    const roleMismatch = Number(data.roleLevel) !== Number(claims.roleLevel);
-                    const tenantMismatch = String(data.tenantId) !== String(claims.tenantId);
+                    // Safely parse claims roleLevel to avoid NaN comparisons
+                    let tokenRoleLevel: number | undefined = claims.roleLevel !== undefined
+                        ? Number(claims.roleLevel)
+                        : (claims.role ? getRoleLevel(claims.role as string) : undefined);
 
-                    // [FIX] syncStale alone should NOT trigger a refresh if role and tenant already match.
+                    // Only flag mismatch if token claims are explicitly defined AND conflict with Firestore profile
+                    const roleMismatch = tokenRoleLevel !== undefined && !isNaN(tokenRoleLevel) && Number(data.roleLevel) !== tokenRoleLevel;
+                    const tenantMismatch = claims.tenantId !== undefined && claims.tenantId !== null && String(data.tenantId) !== String(claims.tenantId);
+
+                    const syncStale = latestSyncId > (currentSyncId + 2000);
                     const needsRefresh = roleMismatch || tenantMismatch;
 
                     if (syncStale && !needsRefresh) {
@@ -679,7 +680,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             requestRegistration,
             logout
         }}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 };
