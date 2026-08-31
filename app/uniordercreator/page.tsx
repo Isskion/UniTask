@@ -9,6 +9,7 @@ import { generateValidationReport, type ValidationReport } from '@/app/uniorderc
 import { buildXml, type BuildXmlContext } from '@/app/uniordercreator/_src/services/xmlBuilder';
 // IMPORTANTE: Ya no llamamos a soapService (Express), usaremos fetch a nuestra propia API Route Next.js
 // import { soapCall } from '@/app/uniordercreator/_src/services/soapService';
+import { UNIGIS_ERROR_CODES } from '@/app/uniordercreator/_src/data/errorCodes';
 import { type ProgressLog } from '@/app/uniordercreator/_src/components/Modals/ProgressModal';
 import { postSoapProxy } from '@/lib/soapProxy';
 
