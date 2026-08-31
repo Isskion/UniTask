@@ -2054,6 +2054,22 @@
     }
   },
   {
+    "id": "YxxvcYiYiWI672Pzlpkg",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isInternal": true,
+    "folderId": null,
+    "isPublic": false,
+    "title": "Seguimiento con el equipo",
+    "createdAt": null,
+    "content": "<ul data-list-type=\"disc\"><li><p>Será necesario SSO? Solicitar credenciales de conexión.</p></li><li><p>Doble factor necesario? Solicitar vía de autenticación.</p></li><li><p>Hablar con Eric. </p><ul data-list-type=\"disc\"><li><p>Montar los tipos de sensor en Webfleet.</p></li></ul></li><li><p>Portic, cerrarlo esta semana.</p><ul data-list-type=\"disc\"><li><p>¿que campos son necesarios?</p></li><li><p>Solicitar a producto estos campos para estandarizar el producto.</p></li></ul></li><li><p>Transporeon</p><ul data-list-type=\"disc\"><li><p>Asigned transport funciona? No en proyecto</p></li><li><p>El envío del POD? No en proyecto</p></li></ul></li><li><p>Movimientos entre almacenes</p><ul data-list-type=\"disc\"><li><p>Quien lo genera? entendemos que lo hace Generix</p></li></ul></li><li><p>Generix</p><ul data-list-type=\"disc\"><li><p>¿Que interfaces hacen falta?</p><ul data-list-type=\"disc\"><li><p>alta de pedido Generix consume el api expuesta por unigis</p></li><li><p>Planificación del los pedidos - Unigis consume el Api de Generix</p></li></ul></li></ul></li><li><p>Interfaces</p><ul data-list-type=\"disc\"><li><p>Generar el diagrama de cada operación para cumplir con uniplan</p></li></ul></li></ul><p></p>",
+    "updatedAt": {
+      "_seconds": 1788174622,
+      "_nanoseconds": 785000000
+    }
+  },
+  {
     "id": "YyuLaSv3xJDR62BC6law",
     "title": "20260112 -- Interfaces",
     "projectId": "9iqygviz3AGJnbJOLc8E",
