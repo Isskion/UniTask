@@ -115,7 +115,7 @@ function DonutChart({ success, errors, pending }: { success: number; errors: num
 function ErrorRow({ row, index, onRetry }: { row: any; index: number; onRetry: (i: number) => void }) {
     const [expanded, setExpanded] = useState(false);
     const mapping = useAppStore((s) => s.mapping);
-    const refCol = mapping['Orden.RefDocumento'];
+    const refCol = mapping['Root.Cliente.RefCliente'];
     const ref = row[refCol] || `Fila ${index + 1}`;
 
     const errorCode = row._errorCode || '';
@@ -184,15 +184,34 @@ function ErrorRow({ row, index, onRetry }: { row: any; index: number; onRetry: (
 
 function SuccessRow({ row, index }: { row: any; index: number }) {
     const mapping = useAppStore((s) => s.mapping);
-    const refCol = mapping['Orden.RefDocumento'];
+    const refCol = mapping['Root.Cliente.RefCliente'];
     const ref = row[refCol] || `Fila ${index + 1}`;
     const unigisId = row._UnigisId || '—';
+    const [expanded, setExpanded] = useState(false);
 
     return (
-        <div className="flex items-center gap-3 px-4 py-2.5 border border-emerald-100 rounded-xl bg-gradient-to-r from-emerald-50/50 to-white hover:from-emerald-50 transition-all">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)] shrink-0" />
-            <span className="text-xs font-bold text-slate-800 font-mono min-w-[100px]">{ref}</span>
-            <span className="text-xs text-emerald-600 font-mono font-bold">ID: {unigisId}</span>
+        <div className="group border border-emerald-100 rounded-xl bg-gradient-to-r from-emerald-50/50 to-white hover:from-emerald-50 transition-all">
+            <div className="flex items-center gap-3 px-4 py-2.5">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)] shrink-0" />
+                <span className="text-xs font-bold text-slate-800 font-mono min-w-[100px]">{ref}</span>
+                <span className="text-xs text-emerald-600 font-mono font-bold flex-1">ID: {unigisId}</span>
+                {row._serverResponse && (
+                    <button
+                        onClick={() => setExpanded(!expanded)}
+                        className="shrink-0 px-2 py-1 text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-200 transition-all opacity-0 group-hover:opacity-100"
+                        title="Ver respuesta SOAP cruda de UNIGIS"
+                    >
+                        {expanded ? '▲' : '▼'} SOAP
+                    </button>
+                )}
+            </div>
+            {expanded && row._serverResponse && (
+                <div className="px-4 pb-3">
+                    <pre className="text-[10px] text-slate-500 bg-slate-900 text-slate-300 rounded-lg p-3 overflow-auto max-h-32 whitespace-pre-wrap break-all border border-slate-700 font-mono leading-relaxed">
+                        {row._serverResponse.substring(0, 2000)}
+                    </pre>
+                </div>
+            )}
         </div>
     );
 }
@@ -250,7 +269,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
             const q = searchQuery.toLowerCase();
             filtered = filtered.filter(({ row }) => {
                 const mapping = useAppStore.getState().mapping;
-                const refCol = mapping['Orden.RefDocumento'];
+                const refCol = mapping['Root.Cliente.RefCliente'];
                 const ref = row[refCol] || '';
                 return (
                     String(ref).toLowerCase().includes(q) ||
@@ -266,7 +285,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
     // ─── Copy Error Report ────────────────────────────────────────────────
     const handleCopyReport = useCallback(() => {
         const mapping = useAppStore.getState().mapping;
-        const refCol = mapping['Orden.RefDocumento'];
+        const refCol = mapping['Root.Cliente.RefCliente'];
 
         const lines = [
             `📋 REPORTE DE ERRORES — uniclientcreator`,
@@ -303,7 +322,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
     // ─── Export to Excel ──────────────────────────────────────────────────
     const handleExportExcel = useCallback(() => {
         const mapping = useAppStore.getState().mapping;
-        const refCol = mapping['Orden.RefDocumento'];
+        const refCol = mapping['Root.Cliente.RefCliente'];
 
         const data = stats.errorRows.map(r => ({
             Referencia: r[refCol] || '',

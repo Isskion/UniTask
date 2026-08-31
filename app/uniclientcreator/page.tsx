@@ -236,6 +236,24 @@ function UniClientCreatorPageInner({ tenantId }: { tenantId: string }) {
 
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(lastRawResponse, 'text/xml');
+
+                // ── #1: SOAP Fault check FIRST ──────────────────────────────
+                // A <soap:Fault> has no CrearClientesOrdenResult tag at all, so it
+                // used to fall into the "no resultNode → assume success" branch
+                // below whenever UNIGIS answered HTTP 200 with a fault body (common
+                // for this ASMX endpoint) — silently reporting success for a
+                // client that was NEVER created. Detect it explicitly, unconditionally.
+                const faultNode =
+                    doc.getElementsByTagName('soap:Fault')[0] ||
+                    doc.getElementsByTagName('SOAP-ENV:Fault')[0] ||
+                    doc.getElementsByTagName('Fault')[0];
+                if (faultNode) {
+                    const faultString = doc.getElementsByTagName('faultstring')[0]?.textContent
+                        || doc.getElementsByTagName('faultcode')[0]?.textContent
+                        || 'SOAP Fault sin descripción';
+                    throw new Error(`Fault UNIGIS: ${faultString}`);
+                }
+
                 const resultNode =
                     doc.getElementsByTagName('CrearClientesOrdenResult')[0] ||
                     doc.getElementsByTagName('unis:CrearClientesOrdenResult')[0] ||
@@ -243,11 +261,16 @@ function UniClientCreatorPageInner({ tenantId }: { tenantId: string }) {
                 const resultText = resultNode ? (resultNode.textContent ?? '') : '';
                 const isSuccess = resultText.toLowerCase() === 'true' || (parseInt(resultText) > 0);
 
-                if (isSuccess || (!resultNode && response.ok && !lastRawResponse.includes('false') && !lastRawResponse.includes('Error'))) {
+                // ── #2: fail-closed when the expected result tag is missing ──
+                // Previously this fell back to "assume success unless the raw
+                // text contains the literal (case-sensitive) words 'false' or
+                // 'Error'" — too permissive, and the real cause of clients
+                // silently not being created while the UI reported OK.
+                if (isSuccess) {
                     success++;
                     setRowStatus(index, 'success', undefined, lastRawResponse);
-                    updateRowData(index, '_UnigisResult', resultText || 'OK');
-                    logs.push({ ref, status: 'success', msg: `Cliente creado (${resultText || 'OK'})` });
+                    updateRowData(index, '_UnigisId', resultText || 'OK');
+                    logs.push({ ref, status: 'success', msg: `Cliente creado (${resultText || 'OK'})`, detail: lastRawResponse.slice(0, 2000) });
                 } else {
                     const errorPatterns = [
                         /faultstring[^>]*>([^<]*)/i, /Descripcion[^>]*>([^<]*)/i,
@@ -255,6 +278,7 @@ function UniClientCreatorPageInner({ tenantId }: { tenantId: string }) {
                     ];
                     let msg = '';
                     for (const p of errorPatterns) { const m = lastRawResponse.match(p); if (m) { msg = m[1].trim(); break; } }
+                    if (!msg && !resultNode) msg = `No se encontró CrearClientesOrdenResult en la respuesta (¿tag/namespace inesperado?)`;
                     throw new Error(msg || `Respuesta inesperada: "${resultText}"`);
                 }
             } catch (err: any) {
