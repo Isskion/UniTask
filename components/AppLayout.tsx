@@ -352,7 +352,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
                             )}
                             {can('uniordercreator', 'views') && (
-                                <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator" />
+                                <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator (ClienteOrden)" />
                             )}
                             {can('univehiclecreator', 'views') && (
                                 <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
@@ -584,7 +584,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
                                 )}
                                 {can('uniordercreator', 'views') && (
-                                    <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator" />
+                                    <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator (ClienteOrden)" />
                                 )}
                                 {can('univehiclecreator', 'views') && (
                                     <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
