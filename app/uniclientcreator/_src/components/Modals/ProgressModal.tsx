@@ -84,7 +84,7 @@ function LogRow({ log }: { log: ProgressLog }) {
                             className="text-[10px] px-1.5 py-0.5 rounded bg-red-900/50 text-red-300 hover:bg-red-800/50 transition-colors"
                             title="Descargar XML fallido"
                         >
-                            ðŸ’¾ XML
+                            💾 XML
                         </button>
                     )}
                     {log.detail && (
@@ -92,7 +92,7 @@ function LogRow({ log }: { log: ProgressLog }) {
                             onClick={() => setOpen(o => !o)}
                             className="text-[10px] px-1 py-0.5 rounded bg-slate-700 text-slate-400 hover:bg-slate-600"
                         >
-                            {open ? 'â–²' : 'â–¼'}
+                            {open ? '▲' : '▼'}
                         </button>
                     )}
                 </div>
@@ -167,11 +167,11 @@ export default function ProgressModal({
         if (errorLogs.length === 0) return;
 
         const report = [
-            `ðŸ“‹ REPORTE DE ERRORES â€” uniclientcreator`,
+            `📋 REPORTE DE ERRORES — uniclientcreator`,
             `Fecha: ${new Date().toLocaleString()}`,
             `Total: ${total} | OK: ${successCount} | Errores: ${errorCount}`,
             `Tiempo: ${formatTime(elapsed)}`,
-            `${'â”€'.repeat(50)}`,
+            `${'─'.repeat(50)}`,
             ...errorLogs.map((l, i) =>
                 `${i + 1}. [${l.ref}] ${l.msg}${l.detail ? `\n   Detalle: ${l.detail.substring(0, 200)}` : ''}`
             ),
@@ -217,7 +217,7 @@ export default function ProgressModal({
     const pct = total > 0 ? Math.round((current / total) * 100) : 0;
 
     // #26: Speed stats
-    const speed = elapsed > 0 ? (current / elapsed * 60).toFixed(1) : 'â€”';
+    const speed = elapsed > 0 ? (current / elapsed * 60).toFixed(1) : '—';
     const eta = elapsed > 0 && current > 0 ? Math.round(((total - current) / (current / elapsed))) : 0;
 
     return (
@@ -226,11 +226,11 @@ export default function ProgressModal({
                 {/* Header */}
                 <div className={`px-6 py-4 ${isComplete ? 'bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-800' : 'bg-gradient-to-r from-[#0f172a] via-[#1e1b4b] to-[#0f172a]'}`}>
                     <h2 className="text-lg font-bold text-white tracking-tight">
-                        {isComplete ? 'âœ… EnvÃ­o Completado' : 'â³ Enviando Pedidos'}
+                        {isComplete ? '✅ Envío Completado' : '⏳ Enviando Pedidos'}
                     </h2>
                     {!isComplete && (
                         <p className="text-[11px] text-white/50 mt-0.5 font-medium">
-                            {speed} pedidos/min Â· ETA: {formatTime(eta)}
+                            {speed} pedidos/min · ETA: {formatTime(eta)}
                         </p>
                     )}
                 </div>
@@ -244,11 +244,11 @@ export default function ProgressModal({
                         </div>
                         <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-center shadow-sm">
                             <div className="text-xl font-black text-emerald-600 tabular-nums">{successCount}</div>
-                            <div className="text-[9px] text-emerald-500 font-semibold uppercase tracking-wider mt-0.5">âœ“ OK</div>
+                            <div className="text-[9px] text-emerald-500 font-semibold uppercase tracking-wider mt-0.5">✓ OK</div>
                         </div>
                         <div className="p-3 bg-red-50 rounded-xl border border-red-100 text-center shadow-sm">
                             <div className="text-xl font-black text-red-600 tabular-nums">{errorCount}</div>
-                            <div className="text-[9px] text-red-500 font-semibold uppercase tracking-wider mt-0.5">âœ— Error</div>
+                            <div className="text-[9px] text-red-500 font-semibold uppercase tracking-wider mt-0.5">✗ Error</div>
                         </div>
                         <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100 text-center shadow-sm">
                             <div className="text-base font-black text-indigo-600 font-mono">{formatTime(elapsed)}</div>
@@ -294,14 +294,14 @@ export default function ProgressModal({
                                     }`}
                                     onClick={handleCopyReport}
                                 >
-                                    {copiedReport ? 'âœ… Copiado' : 'ðŸ“‹ Copiar errores'}
+                                    {copiedReport ? '✅ Copiado' : '📋 Copiar errores'}
                                 </button>
                             )}
                             <button
                                 className="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all"
                                 onClick={handleExportResults}
                             >
-                                ðŸ“Š Export Excel
+                                📊 Export Excel
                             </button>
                         </div>
                     )}
@@ -311,7 +311,7 @@ export default function ProgressModal({
                             className="px-5 py-2 text-sm font-bold bg-red-600 text-white rounded-xl hover:bg-red-500 transition-colors shadow-lg shadow-red-500/25"
                             onClick={onCancel}
                         >
-                            â›” Cancelar EnvÃ­o
+                            ⛔ Cancelar Envío
                         </button>
                     ) : (
                         <button

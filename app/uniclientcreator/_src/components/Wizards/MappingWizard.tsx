@@ -20,7 +20,7 @@ import {
     type IndexedField,
 } from '../../utils/fieldSearchEngine';
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Types ──────────────────────────────────────────────────────────────────────
 
 interface HeaderMapping {
     header: string;
@@ -42,13 +42,13 @@ interface Props {
     tenantId: string;
 }
 
-// â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Constants ──────────────────────────────────────────────────────────────────
 
 const BOOLEAN_SET = new Set(KNOWN_BOOLEAN_PATHS);
 const AUTO_CONFIRM_THRESHOLD = 95;
-const STEPS = ['Resumen', 'Mapeo', 'ConfirmaciÃ³n'] as const;
+const STEPS = ['Resumen', 'Mapeo', 'Confirmación'] as const;
 
-// â”€â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Component ──────────────────────────────────────────────────────────────────
 
 export default function MappingWizard({ isOpen, headers, onComplete, onClose, tenantId }: Props) {
     const [step, setStep] = useState(0);
@@ -84,7 +84,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
     const searchInputRef = useRef<HTMLInputElement>(null);
     const wizardRef = useRef<HTMLDivElement>(null);
 
-    // â”€â”€â”€ Initialize â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Initialize ────────────────────────────────────────────────────────
 
     useEffect(() => {
         if (isOpen && headers.length > 0) {
@@ -135,7 +135,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
         }
     }, [isOpen, headers]);
 
-    // â”€â”€â”€ Search results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Search results ────────────────────────────────────────────────────
 
     const searchResults = useMemo(() => {
         if (!searchQuery.trim()) return [];
@@ -156,7 +156,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
         setShowMultiAdd(false);
     }, [currentHeaderIdx]);
 
-    // â”€â”€â”€ Keyboard shortcuts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Keyboard shortcuts ────────────────────────────────────────────────
 
     useEffect(() => {
         if (!isOpen || step !== 1 || viewMode !== 'guided') return;
@@ -207,7 +207,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
         return () => window.removeEventListener('keydown', handler);
     }, [isOpen, step, viewMode, searchQuery, searchResults, suggestions, selectedSuggestionIdx, currentHeader]);
 
-    // â”€â”€â”€ Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Handlers ──────────────────────────────────────────────────────────
 
     const addFieldToCurrent = useCallback((field: string) => {
         setHeaderMappings((prev) => {
@@ -347,19 +347,19 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                     relations: [],
                 },
             });
-            setFeedback({ type: 'success', msg: 'âœ… Plantilla guardada' });
+            setFeedback({ type: 'success', msg: '✅ Plantilla guardada' });
             setShowSaveForm(false);
             setSaveName('');
             setSaveDesc('');
         } catch (err: any) {
-            setFeedback({ type: 'error', msg: `âŒ ${err.message}` });
+            setFeedback({ type: 'error', msg: `❌ ${err.message}` });
         } finally {
             setSaving(false);
             setTimeout(() => setFeedback(null), 3000);
         }
     }, [saveName, saveDesc, buildFinalMapping, currentUser, dynamicFieldCounts]);
 
-    // â”€â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Stats ─────────────────────────────────────────────────────────────
 
     const confirmedCount = headerMappings.filter((h) => h.confirmed).length;
     const skippedCount = headerMappings.filter((h) => h.skipped).length;
@@ -369,7 +369,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
 
     if (!isOpen || headers.length === 0) return null;
 
-    // â”€â”€â”€ Field Result Item (reused in guided + search) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Field Result Item (reused in guided + search) ─────────────────────
 
     const FieldItem = ({ result, selected, onSelect }: { result: SearchResult; selected: boolean; onSelect: () => void }) => {
         const groupColor = GROUP_COLORS[result.field.group] || '#64748b';
@@ -383,7 +383,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                 title={result.field.path}
             >
                 <span className={`text-sm font-black transition-colors ${selected ? 'text-indigo-600' : 'text-slate-300'}`}>
-                    {selected ? 'â—' : 'â—‹'}
+                    {selected ? '●' : '○'}
                 </span>
                 <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold text-slate-700 truncate flex items-center gap-1.5">
@@ -412,7 +412,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
         );
     };
 
-    // â”€â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Render ─────────────────────────────────────────────────────────────
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md" onClick={onClose}>
@@ -421,20 +421,20 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                 className="w-full max-w-4xl max-h-[92vh] bg-white rounded-2xl shadow-2xl shadow-slate-900/30 border border-slate-100 overflow-hidden flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* â”€â”€ Header â”€â”€ */}
+                {/* ── Header ── */}
                 <div className="px-6 py-3.5 bg-gradient-to-r from-indigo-700 to-violet-600 shrink-0">
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                ðŸ—ºï¸ Wizard de Mapeo
+                                🗺️ Wizard de Mapeo
                                 {step === 1 && (
                                     <span className="text-[10px] font-mono bg-white/20 text-white/80 px-2 py-0.5 rounded-full">
-                                        Enter=Confirmar Â· Tab=Omitir Â· â†‘â†“=Navegar Â· Esc=Cerrar
+                                        Enter=Confirmar · Tab=Omitir · ↑↓=Navegar · Esc=Cerrar
                                     </span>
                                 )}
                             </h2>
                             <p className="text-sm text-indigo-200 mt-0.5">
-                                {STEPS[step]} â€” {confirmedCount} mapeados, {skippedCount} omitidos, {pendingCount} pendientes
+                                {STEPS[step]} — {confirmedCount} mapeados, {skippedCount} omitidos, {pendingCount} pendientes
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -457,15 +457,15 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                     </div>
                 </div>
 
-                {/* â”€â”€ Body â”€â”€ */}
+                {/* ── Body ── */}
                 <div className="flex-1 overflow-auto p-5">
-                    {/* â•â•â• STEP 0: Summary â•â•â• */}
+                    {/* ═══ STEP 0: Summary ═══ */}
                     {step === 0 && (
                         <div className="space-y-4">
                             {/* Detection summary + auto-match results */}
                             <div className="p-5 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl border border-indigo-100">
                                 <div className="text-center mb-3">
-                                    <div className="text-3xl mb-1">ðŸ“Š</div>
+                                    <div className="text-3xl mb-1">📊</div>
                                     <h3 className="text-lg font-black text-slate-800">
                                         {headers.length} cabeceras detectadas
                                     </h3>
@@ -497,7 +497,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                 {autoConfirmedCount > 0 && (
                                     <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-center mb-3">
                                         <span className="text-sm font-bold text-emerald-700">
-                                            âš¡ {autoConfirmedCount} campos auto-confirmados (score â‰¥ {AUTO_CONFIRM_THRESHOLD}%)
+                                            ⚡ {autoConfirmedCount} campos auto-confirmados (score ≥ {AUTO_CONFIRM_THRESHOLD}%)
                                         </span>
                                         <p className="text-xs text-emerald-600 mt-0.5">Puedes revisarlos en el paso de Mapeo</p>
                                     </div>
@@ -516,7 +516,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                                         ? 'bg-orange-50 text-orange-700 border-orange-200'
                                                         : 'bg-white text-slate-500 border-slate-200'
                                                 }`}
-                                            title={m.bestMatch ? `â†’ ${m.bestMatch.path} (${m.score}%)` : 'Sin match'}
+                                            title={m.bestMatch ? `→ ${m.bestMatch.path} (${m.score}%)` : 'Sin match'}
                                         >
                                             {m.header}
                                         </span>
@@ -528,7 +528,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                             {isFirebaseConfigured() && (
                                 <div className="space-y-2">
                                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                                        â˜ï¸ Plantillas guardadas
+                                        ☁️ Plantillas guardadas
                                     </h4>
                                     {loadingTemplates && (
                                         <p className="text-xs text-slate-400 animate-pulse">Cargando...</p>
@@ -541,7 +541,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                                     className="w-full flex items-center gap-3 p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-indigo-50 hover:border-indigo-200 transition-all text-left group"
                                                     onClick={() => applyTemplate(tpl)}
                                                 >
-                                                    <span className="text-lg">ðŸ“‹</span>
+                                                    <span className="text-lg">📋</span>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="text-sm font-bold text-slate-700 truncate">{tpl.name}</div>
                                                         {tpl.description && (
@@ -549,7 +549,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                                         )}
                                                     </div>
                                                     <span className="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        Aplicar â†’
+                                                        Aplicar →
                                                     </span>
                                                 </button>
                                             ))}
@@ -570,12 +570,12 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                     if (firstPending >= 0) setCurrentHeaderIdx(firstPending);
                                 }}
                             >
-                                ðŸ—ºï¸ Mapear ({pendingCount} pendientes de {headers.length})
+                                🗺️ Mapear ({pendingCount} pendientes de {headers.length})
                             </button>
                         </div>
                     )}
 
-                    {/* â•â•â• STEP 1: Mapping â•â•â• */}
+                    {/* ═══ STEP 1: Mapping ═══ */}
                     {step === 1 && (
                         <div className="space-y-3">
                             {/* Progress + mode toggle */}
@@ -605,7 +605,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                 </div>
                             </div>
 
-                            {/* â”€â”€ GUIDED MODE â”€â”€ */}
+                            {/* ── GUIDED MODE ── */}
                             {viewMode === 'guided' && currentHeader && (
                                 <>
                                     {/* Header navigation pills */}
@@ -632,16 +632,16 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                     <div className="grid grid-cols-2 gap-3">
                                         {/* LEFT: Excel header */}
                                         <div className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200">
-                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">ðŸ“Š Cabecera Excel</div>
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">📊 Cabecera Excel</div>
                                             <div className="text-xl font-black text-slate-800 break-all">{currentHeader.header}</div>
                                             <div className="text-xs text-slate-500 mt-1.5">
                                                 {currentHeaderIdx + 1} de {headers.length}
                                             </div>
                                             {currentHeader.confirmed && (
-                                                <div className="mt-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg inline-block">âœ… Confirmado</div>
+                                                <div className="mt-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg inline-block">✅ Confirmado</div>
                                             )}
                                             {currentHeader.skipped && (
-                                                <div className="mt-2 text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-lg inline-block">â­ï¸ Omitido</div>
+                                                <div className="mt-2 text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-lg inline-block">⏭️ Omitido</div>
                                             )}
 
                                             {/* Selected fields (multi-mapping) */}
@@ -656,7 +656,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                                                 className="text-red-400 hover:text-red-600 font-black text-sm leading-none"
                                                                 onClick={() => removeFieldFromCurrent(f)}
                                                                 title="Quitar"
-                                                            >Ã—</button>
+                                                            >×</button>
                                                         </div>
                                                     ))}
                                                     {/* Add more button */}
@@ -674,7 +674,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
 
                                         {/* RIGHT: Suggestions + Search */}
                                         <div className="p-4 bg-gradient-to-br from-indigo-50/50 to-violet-50/50 rounded-2xl border border-indigo-100">
-                                            <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1.5">ðŸ›ï¸ Campo UNIGIS</div>
+                                            <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1.5">🏛️ Campo UNIGIS</div>
 
                                             {/* Suggestions */}
                                             {!searchQuery && suggestions.length > 0 && (
@@ -690,7 +690,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                                 </div>
                                             )}
                                             {!searchQuery && suggestions.length === 0 && (
-                                                <p className="text-xs text-slate-400 italic mb-2">Sin sugerencias â€” usa el buscador â†“</p>
+                                                <p className="text-xs text-slate-400 italic mb-2">Sin sugerencias — usa el buscador ↓</p>
                                             )}
 
                                             {/* Search */}
@@ -699,7 +699,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                                     ref={searchInputRef}
                                                     type="text"
                                                     className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300"
-                                                    placeholder="ðŸ” Buscar campo por nombre, sinÃ³nimo o ruta..."
+                                                    placeholder="🔍 Buscar campo por nombre, sinónimo o ruta..."
                                                     value={searchQuery}
                                                     onChange={(e) => { setSearchQuery(e.target.value); setSelectedSuggestionIdx(0); }}
                                                 />
@@ -738,7 +738,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                             disabled={currentHeaderIdx === 0}
                                             onClick={() => goToHeader(currentHeaderIdx - 1)}
                                         >
-                                            â† Anterior
+                                            ← Anterior
                                         </button>
 
                                         <div className="flex gap-2">
@@ -746,14 +746,14 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                                 className="px-4 py-2 text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors"
                                                 onClick={skipCurrent}
                                             >
-                                                â­ï¸ Omitir
+                                                ⏭️ Omitir
                                             </button>
                                             <button
                                                 className="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 rounded-xl hover:from-indigo-500 hover:to-violet-500 shadow-md shadow-indigo-500/20 transition-all disabled:opacity-40"
                                                 disabled={currentHeader.selectedFields.length === 0}
                                                 onClick={confirmCurrent}
                                             >
-                                                âœ… Confirmar{currentHeader.selectedFields.length > 1 ? ` (${currentHeader.selectedFields.length} campos)` : ''} â†’
+                                                ✅ Confirmar{currentHeader.selectedFields.length > 1 ? ` (${currentHeader.selectedFields.length} campos)` : ''} →
                                             </button>
                                         </div>
                                     </div>
@@ -770,7 +770,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                 </>
                             )}
 
-                            {/* â”€â”€ TABLE MODE â”€â”€ */}
+                            {/* ── TABLE MODE ── */}
                             {viewMode === 'table' && (
                                 <div className="space-y-2">
                                     {/* Group filter */}
@@ -799,7 +799,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                             <thead className="bg-slate-50 sticky top-0 z-10">
                                                 <tr>
                                                     <th className="px-3 py-2 text-left font-bold text-slate-500 w-1/4">Cabecera Excel</th>
-                                                    <th className="px-3 py-2 text-center font-bold text-slate-500 w-8">â†’</th>
+                                                    <th className="px-3 py-2 text-center font-bold text-slate-500 w-8">→</th>
                                                     <th className="px-3 py-2 text-left font-bold text-slate-500">Campo UNIGIS (buscar)</th>
                                                     <th className="px-3 py-2 text-center font-bold text-slate-500 w-16">Score</th>
                                                 </tr>
@@ -808,7 +808,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                                 {headerMappings.map((hm, idx) => (
                                                     <tr key={hm.header} className={`border-t border-slate-100 ${hm.confirmed ? 'bg-emerald-50/30' : hm.skipped ? 'bg-slate-50/50' : ''}`}>
                                                         <td className="px-3 py-1.5 font-semibold text-slate-700">{hm.header}</td>
-                                                        <td className="px-3 py-1.5 text-slate-300 text-center">â†’</td>
+                                                        <td className="px-3 py-1.5 text-slate-300 text-center">→</td>
                                                         <td className="px-3 py-1.5">
                                                             <TableFieldSelector
                                                                 headerIdx={idx}
@@ -834,7 +834,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                         </div>
                     )}
 
-                    {/* â•â•â• STEP 2: Confirmation â•â•â• */}
+                    {/* ═══ STEP 2: Confirmation ═══ */}
                     {step === 2 && (
                         <div className="space-y-4">
                             {/* Stats */}
@@ -865,7 +865,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                     <thead className="bg-slate-50 sticky top-0">
                                         <tr>
                                             <th className="px-3 py-2 text-left font-bold text-slate-500">Cabecera Excel</th>
-                                            <th className="px-3 py-2 text-left font-bold text-slate-500">â†’</th>
+                                            <th className="px-3 py-2 text-left font-bold text-slate-500">→</th>
                                             <th className="px-3 py-2 text-left font-bold text-slate-500">Campo(s) UNIGIS</th>
                                             <th className="px-3 py-2 text-center font-bold text-slate-500">Estado</th>
                                             <th className="px-3 py-2 text-center font-bold text-slate-500"></th>
@@ -875,7 +875,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                         {headerMappings.map((hm, idx) => (
                                             <tr key={hm.header} className={`border-t border-slate-100 ${hm.confirmed ? 'bg-emerald-50/30' : hm.skipped ? 'bg-slate-50/50' : 'bg-amber-50/20'}`}>
                                                 <td className="px-3 py-2 font-semibold text-slate-700">{hm.header}</td>
-                                                <td className="px-3 py-2 text-slate-300">â†’</td>
+                                                <td className="px-3 py-2 text-slate-300">→</td>
                                                 <td className="px-3 py-2">
                                                     {hm.selectedFields.length > 0
                                                         ? hm.selectedFields.map((f, i) => (
@@ -884,13 +884,13 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                                                 {f.split('.').slice(1).join('.')}
                                                             </span>
                                                         ))
-                                                        : <span className="text-slate-400">â€”</span>
+                                                        : <span className="text-slate-400">—</span>
                                                     }
                                                 </td>
                                                 <td className="px-3 py-2 text-center">
-                                                    {hm.confirmed && <span className="text-emerald-500 font-bold">âœ…</span>}
-                                                    {hm.skipped && <span className="text-slate-400">â­ï¸</span>}
-                                                    {!hm.confirmed && !hm.skipped && <span className="text-amber-500">â³</span>}
+                                                    {hm.confirmed && <span className="text-emerald-500 font-bold">✅</span>}
+                                                    {hm.skipped && <span className="text-slate-400">⏭️</span>}
+                                                    {!hm.confirmed && !hm.skipped && <span className="text-amber-500">⏳</span>}
                                                 </td>
                                                 <td className="px-3 py-2 text-center">
                                                     <button
@@ -912,7 +912,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                     className="w-full py-2.5 text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors"
                                     onClick={() => setShowSaveForm(true)}
                                 >
-                                    ðŸ’¾ Guardar como plantilla
+                                    💾 Guardar como plantilla
                                 </button>
                             )}
 
@@ -929,7 +929,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                     <input
                                         type="text"
                                         className="w-full px-3 py-2 bg-white border border-amber-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                                        placeholder="DescripciÃ³n (opcional)"
+                                        placeholder="Descripción (opcional)"
                                         value={saveDesc}
                                         onChange={(e) => setSaveDesc(e.target.value)}
                                     />
@@ -943,7 +943,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                                             onClick={handleSaveTemplate}
                                             disabled={saving || !saveName.trim()}
                                         >
-                                            {saving ? 'â³...' : 'ðŸ’¾ Guardar'}
+                                            {saving ? '⏳...' : '💾 Guardar'}
                                         </button>
                                     </div>
                                 </div>
@@ -961,7 +961,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                     )}
                 </div>
 
-                {/* â”€â”€ Footer â”€â”€ */}
+                {/* ── Footer ── */}
                 <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
                     <button
                         className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 transition-colors"
@@ -976,7 +976,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                             onClick={handleApply}
                             disabled={confirmedCount === 0}
                         >
-                            âœ… Aplicar Mapeo ({confirmedCount} campos)
+                            ✅ Aplicar Mapeo ({confirmedCount} campos)
                         </button>
                     )}
                 </div>
@@ -985,7 +985,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
     );
 }
 
-// â”€â”€â”€ Table Field Selector (inline dropdown for table mode) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Table Field Selector (inline dropdown for table mode) ──────────────────────
 
 function TableFieldSelector({ headerIdx, currentField, groupFilter, onSelect }: {
     headerIdx: number;

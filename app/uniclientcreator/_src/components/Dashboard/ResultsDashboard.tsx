@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 import { useAppStore } from '../../store/appStore';
 import { UNIGIS_ERROR_CODES } from '../../data/errorCodes';
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ResultsDashboardProps {
     isOpen: boolean;
@@ -15,7 +15,7 @@ interface ResultsDashboardProps {
 
 type TabId = 'overview' | 'errors' | 'success';
 
-// â”€â”€â”€ Animated Donut Chart (Pure SVG) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Animated Donut Chart (Pure SVG) ──────────────────────────────────────────
 
 function DonutChart({ success, errors, pending }: { success: number; errors: number; pending: number }) {
     const total = success + errors + pending;
@@ -104,13 +104,13 @@ function DonutChart({ success, errors, pending }: { success: number; errors: num
             {/* Center label */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-3xl font-black text-slate-800 tabular-nums tracking-tight">{rate}%</span>
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Ã‰xito</span>
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Éxito</span>
             </div>
         </div>
     );
 }
 
-// â”€â”€â”€ Error Row (expandable) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Error Row (expandable) ───────────────────────────────────────────────────
 
 function ErrorRow({ row, index, onRetry }: { row: any; index: number; onRetry: (i: number) => void }) {
     const [expanded, setExpanded] = useState(false);
@@ -155,14 +155,14 @@ function ErrorRow({ row, index, onRetry }: { row: any; index: number; onRetry: (
                         className="px-2.5 py-1 text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-100 hover:border-indigo-300 transition-all active:scale-95"
                         title="Reintentar este pedido"
                     >
-                        ðŸ”„ Retry
+                        🔄 Retry
                     </button>
                     {row._serverResponse && (
                         <button
                             onClick={() => setExpanded(!expanded)}
                             className="px-2 py-1 text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-200 transition-all"
                         >
-                            {expanded ? 'â–²' : 'â–¼'} SOAP
+                            {expanded ? '▲' : '▼'} SOAP
                         </button>
                     )}
                 </div>
@@ -180,13 +180,13 @@ function ErrorRow({ row, index, onRetry }: { row: any; index: number; onRetry: (
     );
 }
 
-// â”€â”€â”€ Success Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Success Row ──────────────────────────────────────────────────────────────
 
 function SuccessRow({ row, index }: { row: any; index: number }) {
     const mapping = useAppStore((s) => s.mapping);
     const refCol = mapping['Orden.RefDocumento'];
     const ref = row[refCol] || `Fila ${index + 1}`;
-    const unigisId = row._UnigisId || 'â€”';
+    const unigisId = row._UnigisId || '—';
 
     return (
         <div className="flex items-center gap-3 px-4 py-2.5 border border-emerald-100 rounded-xl bg-gradient-to-r from-emerald-50/50 to-white hover:from-emerald-50 transition-all">
@@ -197,7 +197,7 @@ function SuccessRow({ row, index }: { row: any; index: number }) {
     );
 }
 
-// â”€â”€â”€ Main Dashboard Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Main Dashboard Component ─────────────────────────────────────────────────
 
 export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryAll }: ResultsDashboardProps) {
     const rows = useAppStore((s) => s.rows);
@@ -206,7 +206,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
     const [searchQuery, setSearchQuery] = useState('');
     const [copiedReport, setCopiedReport] = useState(false);
 
-    // â”€â”€â”€ Computed Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Computed Data ────────────────────────────────────────────────────
     const stats = useMemo(() => {
         const successRows = rows.filter(r => r._status === 'success');
         const errorRows = rows.filter(r => r._status === 'error');
@@ -235,7 +235,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
         };
     }, [rows]);
 
-    // â”€â”€â”€ Filtered Error Rows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Filtered Error Rows ──────────────────────────────────────────────
     const filteredErrorRows = useMemo(() => {
         let filtered = stats.errorRows.map((row, _) => ({
             row,
@@ -263,17 +263,17 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
         return filtered;
     }, [stats.errorRows, errorFilter, searchQuery, rows]);
 
-    // â”€â”€â”€ Copy Error Report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Copy Error Report ────────────────────────────────────────────────
     const handleCopyReport = useCallback(() => {
         const mapping = useAppStore.getState().mapping;
         const refCol = mapping['Orden.RefDocumento'];
 
         const lines = [
-            `ðŸ“‹ REPORTE DE ERRORES â€” uniclientcreator`,
-            `ðŸ“… ${new Date().toLocaleString()}`,
-            `ðŸ“¦ Total: ${stats.total} | âœ… OK: ${stats.success} | âŒ Errores: ${stats.errors}`,
-            `ðŸ“ˆ Tasa de Ã©xito: ${stats.rate}%`,
-            `${'â”€'.repeat(60)}`,
+            `📋 REPORTE DE ERRORES — uniclientcreator`,
+            `📅 ${new Date().toLocaleString()}`,
+            `📦 Total: ${stats.total} | ✅ OK: ${stats.success} | ❌ Errores: ${stats.errors}`,
+            `📈 Tasa de éxito: ${stats.rate}%`,
+            `${'─'.repeat(60)}`,
             '',
         ];
 
@@ -287,9 +287,9 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
 
         for (const [code, rowGroup] of Object.entries(grouped)) {
             const desc = UNIGIS_ERROR_CODES[code] || 'Error no catalogado';
-            lines.push(`\nâ–  CÃ³digo ${code}: ${desc} (${rowGroup.length} pedido${rowGroup.length > 1 ? 's' : ''})`);
+            lines.push(`\n■ Código ${code}: ${desc} (${rowGroup.length} pedido${rowGroup.length > 1 ? 's' : ''})`);
             rowGroup.forEach((r, i) => {
-                const ref = r[refCol] || 'â€”';
+                const ref = r[refCol] || '—';
                 lines.push(`  ${i + 1}. [${ref}] ${r._error || ''}`);
             });
         }
@@ -300,7 +300,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
         });
     }, [stats]);
 
-    // â”€â”€â”€ Export to Excel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Export to Excel ──────────────────────────────────────────────────
     const handleExportExcel = useCallback(() => {
         const mapping = useAppStore.getState().mapping;
         const refCol = mapping['Orden.RefDocumento'];
@@ -308,8 +308,8 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
         const data = stats.errorRows.map(r => ({
             Referencia: r[refCol] || '',
             Estado: 'ERROR',
-            'CÃ³digo Error': r._errorCode || '',
-            'DescripciÃ³n UNIGIS': r._errorCode ? (UNIGIS_ERROR_CODES[r._errorCode] || 'No catalogado') : '',
+            'Código Error': r._errorCode || '',
+            'Descripción UNIGIS': r._errorCode ? (UNIGIS_ERROR_CODES[r._errorCode] || 'No catalogado') : '',
             'Detalle Error': r._error || '',
         }));
 
@@ -319,13 +319,13 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
         XLSX.writeFile(wb, `UniTask_Errores_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }, [stats]);
 
-    // â”€â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Render ───────────────────────────────────────────────────────────
     if (!isOpen) return null;
 
     const tabs: { id: TabId; label: string; icon: string; count?: number }[] = [
-        { id: 'overview', label: 'Resumen', icon: 'ðŸ“Š' },
-        { id: 'errors', label: 'Errores', icon: 'âŒ', count: stats.errors },
-        { id: 'success', label: 'Exitosos', icon: 'âœ…', count: stats.success },
+        { id: 'overview', label: 'Resumen', icon: '📊' },
+        { id: 'errors', label: 'Errores', icon: '❌', count: stats.errors },
+        { id: 'success', label: 'Exitosos', icon: '✅', count: stats.success },
     ];
 
     return (
@@ -335,23 +335,23 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                 onClick={(e) => e.stopPropagation()}
                 style={{ animation: 'dashboardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1)' }}
             >
-                {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Header ─────────────────────────────────────────────── */}
                 <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-lg font-black text-white tracking-tight flex items-center gap-2">
-                                <span className="text-xl">ðŸ“Š</span>
+                                <span className="text-xl">📊</span>
                                 Dashboard de Resultados
                             </h2>
                             <p className="text-[11px] text-white/50 mt-0.5 font-medium">
-                                {stats.total} pedidos procesados Â· Tasa de Ã©xito: {stats.rate}%
+                                {stats.total} pedidos procesados · Tasa de éxito: {stats.rate}%
                             </p>
                         </div>
                         <button
                             onClick={onClose}
                             className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all text-sm"
                         >
-                            âœ•
+                            ✕
                         </button>
                     </div>
 
@@ -383,7 +383,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                     </div>
                 </div>
 
-                {/* â”€â”€ Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Content ────────────────────────────────────────────── */}
                 <div className="flex-1 overflow-auto p-6">
                     {/* OVERVIEW TAB */}
                     {activeTab === 'overview' && (
@@ -395,27 +395,27 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                                     <KpiCard
                                         label="Total Pedidos"
                                         value={stats.total}
-                                        icon="ðŸ“¦"
+                                        icon="📦"
                                         color="slate"
                                     />
                                     <KpiCard
                                         label="Exitosos"
                                         value={stats.success}
-                                        icon="âœ…"
+                                        icon="✅"
                                         color="emerald"
                                         subtitle={stats.success > 0 ? `${stats.rate}% del total` : undefined}
                                     />
                                     <KpiCard
                                         label="Fallidos"
                                         value={stats.errors}
-                                        icon="âŒ"
+                                        icon="❌"
                                         color="red"
-                                        subtitle={stats.errors > 0 ? `${Object.keys(stats.errorCodes).length} cÃ³digo${Object.keys(stats.errorCodes).length !== 1 ? 's' : ''} distintos` : undefined}
+                                        subtitle={stats.errors > 0 ? `${Object.keys(stats.errorCodes).length} código${Object.keys(stats.errorCodes).length !== 1 ? 's' : ''} distintos` : undefined}
                                     />
                                     <KpiCard
                                         label="Pendientes"
                                         value={stats.pending}
-                                        icon="â³"
+                                        icon="⏳"
                                         color="amber"
                                     />
                                 </div>
@@ -428,7 +428,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                                         pending={stats.pending}
                                     />
                                     <div className="flex gap-3 text-[10px] font-semibold">
-                                        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Ã‰xito</span>
+                                        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Éxito</span>
                                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Error</span>
                                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-300" /> Pendiente</span>
                                     </div>
@@ -440,7 +440,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                                 <div>
                                     <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
                                         <span className="w-1 h-4 bg-red-500 rounded-full" />
-                                        Desglose por CÃ³digo de Error
+                                        Desglose por Código de Error
                                     </h3>
                                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
                                         {Object.entries(stats.errorCodes)
@@ -460,7 +460,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                                                     </p>
                                                 </div>
                                                 <span className="text-xs font-black text-red-500 tabular-nums">
-                                                    Ã—{count}
+                                                    ×{count}
                                                 </span>
                                             </div>
                                         ))}
@@ -471,9 +471,9 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                             {/* Empty state */}
                             {stats.total === 0 && (
                                 <div className="text-center py-12">
-                                    <div className="text-5xl mb-3 opacity-30">ðŸ“Š</div>
-                                    <p className="text-sm text-slate-400 font-semibold">No hay resultados aÃºn</p>
-                                    <p className="text-xs text-slate-300 mt-1">EnvÃ­a pedidos para ver las estadÃ­sticas</p>
+                                    <div className="text-5xl mb-3 opacity-30">📊</div>
+                                    <p className="text-sm text-slate-400 font-semibold">No hay resultados aún</p>
+                                    <p className="text-xs text-slate-300 mt-1">Envía pedidos para ver las estadísticas</p>
                                 </div>
                             )}
                         </div>
@@ -492,14 +492,14 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                     />
-                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">ðŸ”</span>
+                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
                                 </div>
                                 <select
                                     className="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/20 font-semibold text-slate-600 cursor-pointer"
                                     value={errorFilter}
                                     onChange={(e) => setErrorFilter(e.target.value)}
                                 >
-                                    <option value="">Todos los cÃ³digos</option>
+                                    <option value="">Todos los códigos</option>
                                     {Object.entries(stats.errorCodes).map(([code, count]) => (
                                         <option key={code} value={code}>
                                             {code}: {UNIGIS_ERROR_CODES[code] || 'N/A'} ({count})
@@ -525,7 +525,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                                 ))}
                                 {filteredErrorRows.length === 0 && (
                                     <div className="text-center py-8 text-slate-400">
-                                        <div className="text-3xl mb-2 opacity-40">ðŸŽ‰</div>
+                                        <div className="text-3xl mb-2 opacity-40">🎉</div>
                                         <p className="text-sm font-semibold">Sin errores{errorFilter ? ' con ese filtro' : ''}</p>
                                     </div>
                                 )}
@@ -542,15 +542,15 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                             })}
                             {stats.successRows.length === 0 && (
                                 <div className="text-center py-8 text-slate-400">
-                                    <div className="text-3xl mb-2 opacity-40">ðŸ“­</div>
-                                    <p className="text-sm font-semibold">No hay pedidos exitosos aÃºn</p>
+                                    <div className="text-3xl mb-2 opacity-40">📭</div>
+                                    <p className="text-sm font-semibold">No hay pedidos exitosos aún</p>
                                 </div>
                             )}
                         </div>
                     )}
                 </div>
 
-                {/* â”€â”€ Footer Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Footer Actions ─────────────────────────────────────── */}
                 <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         {stats.errors > 0 && (
@@ -563,19 +563,19 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                                     }`}
                                     onClick={handleCopyReport}
                                 >
-                                    {copiedReport ? 'âœ… Copiado' : 'ðŸ“‹ Copiar Reporte'}
+                                    {copiedReport ? '✅ Copiado' : '📋 Copiar Reporte'}
                                 </button>
                                 <button
                                     className="px-3 py-1.5 text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 rounded-lg transition-all"
                                     onClick={handleExportExcel}
                                 >
-                                    ðŸ“Š Excel
+                                    📊 Excel
                                 </button>
                                 <button
                                     className="px-3 py-1.5 text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-all"
                                     onClick={onRetryAll}
                                 >
-                                    ðŸ”„ Reintentar Todos ({stats.errors})
+                                    🔄 Reintentar Todos ({stats.errors})
                                 </button>
                             </>
                         )}
@@ -592,7 +592,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
     );
 }
 
-// â”€â”€â”€ KPI Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── KPI Card ─────────────────────────────────────────────────────────────────
 
 function KpiCard({ label, value, icon, color, subtitle }: {
     label: string;

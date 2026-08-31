@@ -54,8 +54,8 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
             setFeedback({ 
                 type: 'error', 
                 msg: isPermission 
-                    ? 'ðŸš« Error de permisos (Posible retraso en la sincronizaciÃ³n). Si acabas de cambiar de rol, prueba a recargar la pÃ¡gina (Ctrl+R).' 
-                    : 'âŒ Error al cargar plantillas.',
+                    ? '🚫 Error de permisos (Posible retraso en la sincronización). Si acabas de cambiar de rol, prueba a recargar la página (Ctrl+R).' 
+                    : '❌ Error al cargar plantillas.',
                 isPermission
             });
         } finally {
@@ -68,9 +68,9 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
         setRepairing(true);
         try {
             await syncUserClaimsAction(userUid || '');
-            setFeedback({ type: 'success', msg: 'â³ Sincronizando permisos... Por favor, recarga la pÃ¡gina en unos segundos.' });
+            setFeedback({ type: 'success', msg: '⏳ Sincronizando permisos... Por favor, recarga la página en unos segundos.' });
         } catch (err) {
-            setFeedback({ type: 'error', msg: 'âŒ Error al intentar reparar.' });
+            setFeedback({ type: 'error', msg: '❌ Error al intentar reparar.' });
         } finally {
             setRepairing(false);
         }
@@ -104,7 +104,7 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                     relations: [],
                 },
             });
-            setFeedback({ type: 'success', msg: 'âœ… Plantilla guardada exitosamente' });
+            setFeedback({ type: 'success', msg: '✅ Plantilla guardada exitosamente' });
             setSaveName('');
             setSaveDesc('');
             setShowSaveForm(false);
@@ -113,7 +113,7 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
             const isPermission = err.message?.includes('permission') || err.code === 'permission-denied';
             setFeedback({ 
                 type: 'error', 
-                msg: isPermission ? 'ðŸš« Permiso denegado al guardar.' : `âŒ ${err.message || 'Error al guardar'}`,
+                msg: isPermission ? '🚫 Permiso denegado al guardar.' : `❌ ${err.message || 'Error al guardar'}`,
                 isPermission
             });
         } finally {
@@ -137,18 +137,18 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
             }
         }
         // Restore Multi-Sheet configuration if it exists (not used in UniClientCreator)
-        setFeedback({ type: 'success', msg: `âœ… Plantilla "${tpl.name}" cargada` });
+        setFeedback({ type: 'success', msg: `✅ Plantilla "${tpl.name}" cargada` });
         setTimeout(() => setFeedback(null), 3000);
     };
 
     const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`Â¿Eliminar la plantilla "${name}"?`)) return;
+        if (!confirm(`¿Eliminar la plantilla "${name}"?`)) return;
         try {
             await deleteTemplate(id);
-            setFeedback({ type: 'success', msg: 'ðŸ—‘ï¸ Plantilla eliminada' });
+            setFeedback({ type: 'success', msg: '🗑️ Plantilla eliminada' });
             await refresh();
         } catch (err) {
-            setFeedback({ type: 'error', msg: `âŒ ${err instanceof Error ? err.message : 'Error'}` });
+            setFeedback({ type: 'error', msg: `❌ ${err instanceof Error ? err.message : 'Error'}` });
         }
         setTimeout(() => setFeedback(null), 3000);
     };
@@ -156,7 +156,7 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
     const mappedCount = Object.values(mapping).filter(Boolean).length;
 
     const formatDate = (ts: { seconds: number } | null) => {
-        if (!ts) return 'â€”';
+        if (!ts) return '—';
         return new Date(ts.seconds * 1000).toLocaleDateString('es-ES', {
             day: '2-digit',
             month: 'short',
@@ -171,7 +171,7 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
             <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-100 overflow-hidden" onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
                 <div className="px-6 py-4 bg-gradient-to-r from-amber-600 to-orange-500">
-                    <h2 className="text-lg font-bold text-white">â˜ï¸ Plantillas en la Nube</h2>
+                    <h2 className="text-lg font-bold text-white">☁️ Plantillas en la Nube</h2>
                     <p className="text-sm text-amber-100 mt-0.5">Guarda y reutiliza tus configuraciones de mapeo</p>
                 </div>
 
@@ -179,10 +179,10 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                     {/* Firebase not configured */}
                     {!firebaseReady && (
                         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                            <h3 className="text-sm font-bold text-amber-800 mb-1">âš ï¸ Firebase no configurado</h3>
+                            <h3 className="text-sm font-bold text-amber-800 mb-1">⚠️ Firebase no configurado</h3>
                             <p className="text-xs text-amber-700">
                                 Para guardar plantillas en la nube, copia <code className="px-1 bg-amber-100 rounded">.env.example</code> a{' '}
-                                <code className="px-1 bg-amber-100 rounded">.env.local</code> y aÃ±ade tus credenciales Firebase.
+                                <code className="px-1 bg-amber-100 rounded">.env.local</code> y añade tus credenciales Firebase.
                             </p>
                             <p className="text-xs text-amber-600 mt-2">
                                 Mientras tanto, puedes usar <strong>Exportar/Importar JSON</strong> desde &quot;Acciones de Mapeo&quot;.
@@ -198,7 +198,7 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                                     className="w-full flex items-center justify-center gap-2 py-3 text-sm font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:from-amber-400 hover:to-orange-400 shadow-lg shadow-amber-500/25 transition-all"
                                     onClick={() => setShowSaveForm(true)}
                                 >
-                                    ðŸ’¾ Guardar Mapeo Actual ({mappedCount} campos)
+                                    💾 Guardar Mapeo Actual ({mappedCount} campos)
                                 </button>
                             ) : (
                                 <div className="space-y-3 p-4 bg-amber-50/50 rounded-xl border border-amber-200">
@@ -213,7 +213,7 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                                     <input
                                         type="text"
                                         className="w-full px-3 py-2 bg-white border border-amber-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                                        placeholder="DescripciÃ³n (opcional)"
+                                        placeholder="Descripción (opcional)"
                                         value={saveDesc}
                                         onChange={(e) => setSaveDesc(e.target.value)}
                                     />
@@ -229,7 +229,7 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                                             onClick={handleSave}
                                             disabled={saving || !saveName.trim()}
                                         >
-                                            {saving ? 'â³...' : 'ðŸ’¾ Guardar'}
+                                            {saving ? '⏳...' : '💾 Guardar'}
                                         </button>
                                     </div>
                                 </div>
@@ -247,7 +247,7 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
 
                             {templates.length === 0 && !loading && (
                                 <div className="p-6 text-center text-sm text-slate-400 italic">
-                                    No hay plantillas guardadas aÃºn
+                                    No hay plantillas guardadas aún
                                 </div>
                             )}
 
@@ -272,8 +272,8 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                                                     <div className="text-xs text-slate-500 truncate">{tpl.description}</div>
                                                 )}
                                                 <div className="flex items-center gap-3 mt-1 text-[10px] text-slate-400">
-                                                    <span>ðŸ‘¤ {tpl.createdBy}</span>
-                                                    <span>ðŸ“… {formatDate(tpl.updatedAt as { seconds: number } | null)}</span>
+                                                    <span>👤 {tpl.createdBy}</span>
+                                                    <span>📅 {formatDate(tpl.updatedAt as { seconds: number } | null)}</span>
                                                     <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 rounded-md font-bold">
                                                         {Object.values(tpl.mapping || {}).filter(Boolean).length} campos
                                                     </span>
@@ -282,9 +282,9 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                                                 {/* #45: Diff visual */}
                                                 {headers.length > 0 && (
                                                     <div className="flex gap-2 mt-1.5 text-[9px] font-bold">
-                                                        <span className="text-emerald-600 bg-emerald-50 px-1 rounded">âœ… {matches} coinciden</span>
-                                                        {missing > 0 && <span className="text-red-500 bg-red-50 px-1 rounded">âŒ {missing} faltan</span>}
-                                                        {newHeaders > 0 && <span className="text-amber-600 bg-amber-50 px-1 rounded">âš ï¸ {newHeaders} nuevos en Excel</span>}
+                                                        <span className="text-emerald-600 bg-emerald-50 px-1 rounded">✅ {matches} coinciden</span>
+                                                        {missing > 0 && <span className="text-red-500 bg-red-50 px-1 rounded">❌ {missing} faltan</span>}
+                                                        {newHeaders > 0 && <span className="text-amber-600 bg-amber-50 px-1 rounded">⚠️ {newHeaders} nuevos en Excel</span>}
                                                     </div>
                                                 )}
                                             </div>
@@ -293,14 +293,14 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                                                     className="px-3 py-1.5 text-xs font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-400 shadow-sm transition-colors"
                                                     onClick={() => handleLoad(tpl)}
                                                 >
-                                                    ðŸ“‚ Cargar
+                                                    📂 Cargar
                                                 </button>
                                                 <button
                                                     className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                     onClick={() => handleDelete(tpl.id, tpl.name)}
                                                     title="Eliminar"
                                                 >
-                                                    ðŸ—‘ï¸
+                                                    🗑️
                                                 </button>
                                             </div>
                                         </div>
@@ -325,7 +325,7 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                                     onClick={handleRepair}
                                     className="mt-2 text-xs font-bold underline decoration-red-300 hover:text-red-900"
                                 >
-                                    {repairing ? 'Reparando...' : 'ðŸ› ï¸ Reparar permisos en el servidor'}
+                                    {repairing ? 'Reparando...' : '🛠️ Reparar permisos en el servidor'}
                                 </button>
                             )}
                         </div>

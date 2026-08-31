@@ -71,56 +71,74 @@ function UnigisVehicleCreatorPageInner() {
         fileInputRef.current?.click();
     }, []);
 
+    // ─── Shared Excel Async Loader (Paints spinner FIRST before parsing) ───
+    // Ported from uniordercreator (857d6392): a single requestAnimationFrame
+    // doesn't guarantee the browser has actually painted the loading overlay
+    // before the synchronous (CPU-heavy) parse + auto-mapping starts, so the
+    // UI appeared frozen/stuck on large files. Double setTimeout forces a
+    // real repaint first.
+    const processExcelData = useCallback((arrayBuffer: ArrayBuffer) => {
+        setTimeout(() => {
+            setTimeout(() => {
+                try {
+                    const { sheet } = parseExcelFile(arrayBuffer);
+
+                    if (sheet.headers.length === 0) {
+                        throw new Error('El archivo Excel no parece tener cabeceras válidas.');
+                    }
+
+                    setHeaders(sheet.headers);
+                    setRows(sheet.rows);
+
+                    // Auto-mapping on load
+                    const allFields = getAllFields();
+                    const newMapping: Record<string, string> = {};
+                    for (const field of allFields) {
+                        const shortName = field.split('.').pop()?.toLowerCase() || '';
+                        let bestMatch = '';
+                        let bestDist = Infinity;
+                        for (const header of sheet.headers) {
+                            const dist = levenshtein(shortName, header.toLowerCase());
+                            if (dist < bestDist) {
+                                bestDist = dist;
+                                bestMatch = header;
+                            }
+                        }
+                        if (bestDist <= Math.max(2, Math.floor(shortName.length * 0.4))) {
+                            newMapping[field] = bestMatch;
+                        }
+                    }
+                    setMapping(newMapping);
+                } catch (err: any) {
+                    console.error('[ExcelLoadError]', err);
+                    alert(`Error cargando el archivo: ${err.message || err}`);
+                } finally {
+                    setIsLoadingExcel(false);
+                }
+            }, 50);
+        }, 50);
+    }, [setHeaders, setRows, setMapping]);
+
     const handleFileChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
             if (!file) return;
-            const reader = new FileReader();
             setIsLoadingExcel(true);
+            const reader = new FileReader();
             reader.onload = (evt) => {
-                requestAnimationFrame(() => {
-                    try {
-                        const data = evt.target?.result as ArrayBuffer;
-                        const { sheet } = parseExcelFile(data);
-
-                        if (sheet.headers.length === 0) {
-                            throw new Error('El archivo Excel no parece tener cabeceras válidas.');
-                        }
-
-                        setHeaders(sheet.headers);
-                        setRows(sheet.rows);
-
-                        // Auto-mapping on load
-                        const allFields = getAllFields();
-                        const newMapping: Record<string, string> = {};
-                        for (const field of allFields) {
-                            const shortName = field.split('.').pop()?.toLowerCase() || '';
-                            let bestMatch = '';
-                            let bestDist = Infinity;
-                            for (const header of sheet.headers) {
-                                const dist = levenshtein(shortName, header.toLowerCase());
-                                if (dist < bestDist) {
-                                    bestDist = dist;
-                                    bestMatch = header;
-                                }
-                            }
-                            if (bestDist <= Math.max(2, Math.floor(shortName.length * 0.4))) {
-                                newMapping[field] = bestMatch;
-                            }
-                        }
-                        setMapping(newMapping);
-                    } catch (err: any) {
-                        console.error('[ExcelLoadError]', err);
-                        alert(`Error cargando el archivo: ${err.message}`);
-                    } finally {
-                        setIsLoadingExcel(false);
-                    }
-                });
+                const data = evt.target?.result as ArrayBuffer;
+                if (data) processExcelData(data);
+                else setIsLoadingExcel(false);
+            };
+            reader.onerror = (err) => {
+                console.error('[FileReaderError]', err);
+                setIsLoadingExcel(false);
+                alert('Error al leer el archivo desde el disco.');
             };
             reader.readAsArrayBuffer(file);
             e.target.value = '';
         },
-        [setHeaders, setRows, setMapping],
+        [processExcelData],
     );
 
     // ─── Validation ─────────────────────────────────────────────────────
@@ -335,7 +353,7 @@ function UnigisVehicleCreatorPageInner() {
                         </div>
                     </div>
                     {/* MasterTable — fills remaining space above detail */}
-                    <div className="overflow-auto" style={{ flex: `1 1 ${100 - detailHeight}%` }}><MasterTable /></div>
+                    <div className="overflow-auto min-h-0" style={{ flex: `1 1 ${100 - detailHeight}%` }}><MasterTable /></div>
                     {/* Vertical drag handle (table ↔ detail) */}
                     <div
                         className="h-1.5 cursor-row-resize bg-slate-800 hover:bg-indigo-500 active:bg-indigo-600 transition-colors shrink-0 flex items-center justify-center"
@@ -344,7 +362,7 @@ function UnigisVehicleCreatorPageInner() {
                         <div className="w-8 h-0.5 bg-slate-600 rounded-full" />
                     </div>
                     {/* DetailPanel */}
-                    <div className="overflow-auto" style={{ flex: `0 0 ${detailHeight}%` }}><DetailPanel /></div>
+                    <div className="overflow-auto min-h-0" style={{ flex: `0 0 ${detailHeight}%` }}><DetailPanel /></div>
                 </div>
 
                 {/* Horizontal drag handle (left ↔ right) */}

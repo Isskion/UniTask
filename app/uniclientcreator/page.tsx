@@ -106,30 +106,48 @@ function UniClientCreatorPageInner({ tenantId }: { tenantId: string }) {
 
     const handleLoadExcel = useCallback(() => { fileInputRef.current?.click(); }, []);
 
-    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        setIsLoadingExcel(true);
-        reader.onload = (evt) => {
-            requestAnimationFrame(() => {
+    // ─── Shared Excel Async Loader (Paints spinner FIRST before parsing) ───
+    // Ported from uniordercreator (857d6392): a single requestAnimationFrame
+    // doesn't guarantee the browser has actually painted the loading overlay
+    // before the synchronous (CPU-heavy) parse starts, so the UI appeared
+    // frozen/stuck on large files. Double setTimeout forces a real repaint first.
+    const processExcelData = useCallback((arrayBuffer: ArrayBuffer) => {
+        setTimeout(() => {
+            setTimeout(() => {
                 try {
-                    const data = evt.target?.result as ArrayBuffer;
-                    const { sheet } = parseExcelFile(data);
+                    const { sheet } = parseExcelFile(arrayBuffer);
                     if (sheet.headers.length === 0) throw new Error('El archivo Excel no tiene cabeceras válidas.');
                     setHeaders(sheet.headers);
                     setRows(sheet.rows);
                     setMappingWizardOpen(true);
                 } catch (err: any) {
-                    alert(`Error cargando el archivo: ${err.message}`);
+                    console.error('[ExcelLoadError]', err);
+                    alert(`Error cargando el archivo: ${err.message || err}`);
                 } finally {
                     setIsLoadingExcel(false);
                 }
-            });
+            }, 50);
+        }, 50);
+    }, [setHeaders, setRows]);
+
+    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setIsLoadingExcel(true);
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            const data = evt.target?.result as ArrayBuffer;
+            if (data) processExcelData(data);
+            else setIsLoadingExcel(false);
+        };
+        reader.onerror = (err) => {
+            console.error('[FileReaderError]', err);
+            setIsLoadingExcel(false);
+            alert('Error al leer el archivo desde el disco.');
         };
         reader.readAsArrayBuffer(file);
         e.target.value = '';
-    }, [setHeaders, setRows]);
+    }, [processExcelData]);
 
     const handleValidate = useCallback(() => {
         const report = generateValidationReport(rows, mapping);
@@ -327,11 +345,11 @@ function UniClientCreatorPageInner({ tenantId }: { tenantId: string }) {
                             <span className="text-[10px] text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-full">{rows.length} filas</span>
                         </div>
                     </div>
-                    <div className="overflow-auto" style={{ flex: `1 1 ${100 - detailHeight}%` }}><MasterTable /></div>
+                    <div className="overflow-auto min-h-0" style={{ flex: `1 1 ${100 - detailHeight}%` }}><MasterTable /></div>
                     <div className="h-1.5 cursor-row-resize bg-slate-200 hover:bg-indigo-400 active:bg-indigo-500 transition-colors shrink-0 flex items-center justify-center" onMouseDown={() => handleMouseDown('v')}>
                         <div className="w-8 h-0.5 bg-slate-400 rounded-full" />
                     </div>
-                    <div className="overflow-auto" style={{ flex: `0 0 ${detailHeight}%` }}><DetailPanel /></div>
+                    <div className="overflow-auto min-h-0" style={{ flex: `0 0 ${detailHeight}%` }}><DetailPanel /></div>
                 </div>
                 <div className="w-2 cursor-col-resize hover:bg-indigo-400 active:bg-indigo-500 transition-colors shrink-0 flex items-center justify-center mx-1 rounded-full" onMouseDown={() => handleMouseDown('h')}>
                     <div className="h-12 w-0.5 bg-slate-300 rounded-full" />
