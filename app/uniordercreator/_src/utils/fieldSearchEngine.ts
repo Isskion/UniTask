@@ -154,6 +154,23 @@ for (const [canonical, aliases] of Object.entries(SYNONYMS)) {
     }
 }
 
+// ─── Priority Field Aliases ─────────────────────────────────────────────────────
+// El WSDL de UNIGIS reutiliza el nombre literal "ReferenciaExterna" en varias
+// sub-entidades (ClienteDador, Contenedor, TurnoPedido, Recursos, Items.Producto...),
+// que ganan por coincidencia exacta de nombre (score 95) al campo de pedido
+// equivalente (Orden.RefDocumento, sinónimo score 90). Sin este piso, una búsqueda
+// de "ReferenciaExterna" entierra el campo correcto bajo referencias de otras
+// entidades que no son las que el usuario busca. Estos alias fuerzan que el campo
+// de pedido siempre rankee primero para esta búsqueda concreta.
+const PRIORITY_ALIASES: Record<string, string[]> = {
+    'Orden.RefDocumento': ['referenciaexterna', 'referencia externa', 'refexterna', 'external reference', 'externalreference'],
+};
+
+const PRIORITY_ALIAS_NORM = new Map<string, Set<string>>();
+for (const [path, aliases] of Object.entries(PRIORITY_ALIASES)) {
+    PRIORITY_ALIAS_NORM.set(path, new Set(aliases.map(normalize)));
+}
+
 // ─── Group Colors (for UI) ─────────────────────────────────────────────────────
 
 export const GROUP_COLORS: Record<string, string> = {
@@ -422,6 +439,14 @@ export function searchFields(query: string, options: SearchOptions = {}): Search
                     matchedOn = `≈${field.shortName}`;
                 }
             }
+        }
+
+        // ── Priority override: campos de pedido eclipsados por nombres duplicados en sub-entidades ──
+        const priorityAliases = PRIORITY_ALIAS_NORM.get(field.path);
+        if (priorityAliases && priorityAliases.has(queryNorm)) {
+            score = Math.max(score, 97);
+            matchType = 'alias';
+            matchedOn = `⭐ ${field.shortName} (campo del pedido)`;
         }
 
         // Boolean boost

@@ -1,6 +1,6 @@
 // Field tooltip descriptions for the mapper UI
 export const FIELD_DESCRIPTIONS: Record<string, string> = {
-    'Orden.RefDocumento': 'Identificador único del pedido (ej. número de factura o pedido).',
+    'Orden.RefDocumento': 'Identificador único del pedido (ej. número de factura o pedido). Se guarda en la BD como Pedido.ReferenciaExterna — es el campo correcto para mapear una columna Excel de "referencia externa".',
     'Orden.Fecha': 'Fecha de creación del pedido. Formato recomendado: YYYY-MM-DD.',
     'Orden.Cliente.RefCliente': 'Código único del cliente en el sistema.',
     'Orden.Cliente.RazonSocial': 'Nombre o razón social del cliente.',
