@@ -770,6 +770,16 @@
     }
   },
   {
+    "id": "DVdJ2YAMSoyVBsV3RcNq",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "word": "generix",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1788174622,
+      "_nanoseconds": 847000000
+    }
+  },
+  {
     "id": "DXzedz7KVhV5Pc9ZDuoO",
     "tenantId": "3",
     "word": "mensajes_y_errores",
@@ -1607,6 +1617,16 @@
     "createdAt": {
       "_seconds": 1772792650,
       "_nanoseconds": 509000000
+    }
+  },
+  {
+    "id": "SF79jXAEWCm5d62lQLjj",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "word": "asigned",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1788173652,
+      "_nanoseconds": 934000000
     }
   },
   {
@@ -2647,6 +2667,16 @@
     "createdAt": {
       "_seconds": 1778150860,
       "_nanoseconds": 770000000
+    }
+  },
+  {
+    "id": "iJrq5HdduWFDvF3HuRL9",
+    "tenantId": "3",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "word": "¿que",
+    "createdAt": {
+      "_seconds": 1788174251,
+      "_nanoseconds": 807000000
     }
   },
   {
