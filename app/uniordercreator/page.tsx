@@ -650,7 +650,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                         </div>
                     </div>
                     {/* MasterTable — fills remaining space above detail */}
-                    <div className="overflow-auto" style={{ flex: `1 1 ${100 - detailHeight}%` }}><MasterTable /></div>
+                    <div className="overflow-auto min-h-0" style={{ flex: `1 1 ${100 - detailHeight}%` }}><MasterTable /></div>
                     {/* Vertical drag handle (table ↔ detail) */}
                     <div
                         className="h-1.5 cursor-row-resize bg-slate-200 hover:bg-indigo-400 active:bg-indigo-500 transition-colors shrink-0 flex items-center justify-center"
@@ -659,7 +659,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                         <div className="w-8 h-0.5 bg-slate-400 rounded-full" />
                     </div>
                     {/* DetailPanel */}
-                    <div className="overflow-auto" style={{ flex: `0 0 ${detailHeight}%` }}><DetailPanel /></div>
+                    <div className="overflow-auto min-h-0" style={{ flex: `0 0 ${detailHeight}%` }}><DetailPanel /></div>
                 </div>
 
                 {/* Horizontal drag handle (left ↔ right) */}

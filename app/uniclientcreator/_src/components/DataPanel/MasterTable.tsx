@@ -251,7 +251,7 @@ export default function MasterTable() {
 
     return (
         <div
-            className="overflow-auto flex-1 relative"
+            className="flex-1 relative"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}

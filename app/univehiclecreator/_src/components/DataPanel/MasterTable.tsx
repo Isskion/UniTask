@@ -106,7 +106,7 @@ export default function MasterTable() {
     }
 
     return (
-        <div className="overflow-auto flex-1 h-full">
+        <div className="flex-1 h-full">
             <table className="w-full border-collapse">
                 <thead className="sticky top-0 z-10 bg-slate-900 text-slate-200">
                     <tr className="border-b border-slate-700">
