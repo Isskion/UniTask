@@ -1,6 +1,15 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo, useCallback, useState, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAppStore } from '../../store/appStore';
+
+// Alto de fila FIJO (px) para el virtualizador. Medido empíricamente en un test aislado
+// contra este mismo markup: ~33px (padding py-1 + texto text-[11px] + borde). Se probó
+// también con medición dinámica (measureElement) pero un salto de scroll abrupto (arrastrar
+// la barra de scroll, saltar a una fila lejana) dejaba filas ya medidas desincronizadas de
+// las que aún no, produciendo una banda vacía sin filas — con las filas realmente uniformes
+// (una sola línea, truncada, sin wrap), una altura fija es más robusta que medir.
+const ROW_HEIGHT_PX = 33;
 
 // ─── Memoized Row ──────────────────────────────────────────────────────────────
 
@@ -123,6 +132,8 @@ export default function MasterTable() {
     // #6: Drag & Drop
     const [isDragOver, setIsDragOver] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    // Virtualización: contenedor con scroll real de la tabla
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     const reverseMap = useMemo(() => {
         const map: Record<string, { short: string; full: string }[]> = {};
@@ -170,6 +181,17 @@ export default function MasterTable() {
         );
         // eslint-disable-next-line react-hooks/exhaustive-deps -- mapping/duplicateMap excluidos a propósito: ver comentario arriba
     }, [rows, headers, filterQuery]);
+
+    // Virtualización: con Excels grandes (miles de filas), montar TODAS como <tr> reales
+    // congelaba el navegador en cuanto se pintaban (carga inicial, filtrado, cualquier
+    // cambio de `rows`). Solo se montan las filas visibles + un margen (overscan).
+    const rowVirtualizer = useVirtualizer({
+        count: filteredRows.length,
+        getScrollElement: () => scrollRef.current,
+        estimateSize: () => ROW_HEIGHT_PX,
+        overscan: 12,
+    });
+    const virtualItems = rowVirtualizer.getVirtualItems();
 
     const handleRowClick = useCallback((index: number, e: React.MouseEvent) => {
         if ((e.target as HTMLElement).tagName === 'INPUT') return;
@@ -257,7 +279,8 @@ export default function MasterTable() {
 
     return (
         <div
-            className="flex-1 relative"
+            ref={scrollRef}
+            className="overflow-auto flex-1 relative"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -327,19 +350,35 @@ export default function MasterTable() {
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredRows.map(({ row, originalIndex }) => (
-                        <TableRow
-                            key={originalIndex}
-                            row={row}
-                            index={originalIndex}
-                            headers={headers}
-                            isSelected={selectedRow === originalIndex}
-                            isChecked={selectedIndices.has(originalIndex)}
-                            onRowClick={handleRowClick}
-                            onToggle={toggleSelection}
-                            onDoubleClick={handleCellDoubleClick}
-                        />
-                    ))}
+                    {virtualItems.length > 0 && (
+                        <tr style={{ height: virtualItems[0].start }} aria-hidden="true">
+                            <td colSpan={headers.length + 2} style={{ padding: 0, border: 'none' }} />
+                        </tr>
+                    )}
+                    {virtualItems.map((virtualRow) => {
+                        const { row, originalIndex } = filteredRows[virtualRow.index];
+                        return (
+                            <TableRow
+                                key={originalIndex}
+                                row={row}
+                                index={originalIndex}
+                                headers={headers}
+                                isSelected={selectedRow === originalIndex}
+                                isChecked={selectedIndices.has(originalIndex)}
+                                onRowClick={handleRowClick}
+                                onToggle={toggleSelection}
+                                onDoubleClick={handleCellDoubleClick}
+                            />
+                        );
+                    })}
+                    {virtualItems.length > 0 && (
+                        <tr
+                            style={{ height: rowVirtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end }}
+                            aria-hidden="true"
+                        >
+                            <td colSpan={headers.length + 2} style={{ padding: 0, border: 'none' }} />
+                        </tr>
+                    )}
                 </tbody>
             </table>
         </div>

@@ -1,5 +1,11 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAppStore } from '../../store/appStore';
+
+// Alto de fila FIJO (px) para el virtualizador. Medido empíricamente (ver
+// uniordercreator/uniclientcreator/uniclientedadorcreator, mismo tipo de celda de una sola
+// línea truncada) — una altura fija es más robusta ante saltos de scroll que medir en vivo.
+const ROW_HEIGHT_PX = 33;
 
 /* Memoized row component — prevents re-rendering ALL rows when only one changes */
 const TableRow = React.memo(function TableRow({
@@ -66,6 +72,8 @@ export default function MasterTable() {
     const toggleSelection = useAppStore((s) => s.toggleSelection);
     const toggleSelectAll = useAppStore((s) => s.toggleSelectAll);
     const updateRowData = useAppStore((s) => s.updateRowData);
+    // Virtualización: contenedor con scroll real de la tabla
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     const handleRowClick = useCallback((index: number, e: React.MouseEvent) => {
         if ((e.target as HTMLElement).tagName === 'INPUT') return;
@@ -96,6 +104,16 @@ export default function MasterTable() {
         };
     }, [rows, updateRowData]);
 
+    // Virtualización: con Excels grandes (miles de filas), montar TODAS como <tr> reales
+    // congelaba el navegador al pintarlas. Solo se montan las visibles + un margen (overscan).
+    const rowVirtualizer = useVirtualizer({
+        count: rows.length,
+        getScrollElement: () => scrollRef.current,
+        estimateSize: () => ROW_HEIGHT_PX,
+        overscan: 12,
+    });
+    const virtualItems = rowVirtualizer.getVirtualItems();
+
     if (rows.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center h-full p-6 text-center">
@@ -106,7 +124,7 @@ export default function MasterTable() {
     }
 
     return (
-        <div className="flex-1 h-full">
+        <div ref={scrollRef} className="flex-1 h-full overflow-auto">
             <table className="w-full border-collapse">
                 <thead className="sticky top-0 z-10 bg-slate-900 text-slate-200">
                     <tr className="border-b border-slate-700">
@@ -130,19 +148,36 @@ export default function MasterTable() {
                     </tr>
                 </thead>
                 <tbody>
-                    {rows.map((row, i) => (
-                        <TableRow
-                            key={i}
-                            row={row}
-                            index={i}
-                            headers={headers}
-                            isSelected={selectedRow === i}
-                            isChecked={selectedIndices.has(i)}
-                            onRowClick={handleRowClick}
-                            onToggle={toggleSelection}
-                            onDoubleClick={handleCellDoubleClick}
-                        />
-                    ))}
+                    {virtualItems.length > 0 && (
+                        <tr style={{ height: virtualItems[0].start }} aria-hidden="true">
+                            <td colSpan={headers.length + 2} style={{ padding: 0, border: 'none' }} />
+                        </tr>
+                    )}
+                    {virtualItems.map((virtualRow) => {
+                        const i = virtualRow.index;
+                        const row = rows[i];
+                        return (
+                            <TableRow
+                                key={i}
+                                row={row}
+                                index={i}
+                                headers={headers}
+                                isSelected={selectedRow === i}
+                                isChecked={selectedIndices.has(i)}
+                                onRowClick={handleRowClick}
+                                onToggle={toggleSelection}
+                                onDoubleClick={handleCellDoubleClick}
+                            />
+                        );
+                    })}
+                    {virtualItems.length > 0 && (
+                        <tr
+                            style={{ height: rowVirtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end }}
+                            aria-hidden="true"
+                        >
+                            <td colSpan={headers.length + 2} style={{ padding: 0, border: 'none' }} />
+                        </tr>
+                    )}
                 </tbody>
             </table>
         </div>
