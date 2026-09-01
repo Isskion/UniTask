@@ -33,6 +33,28 @@ import '@/app/uniclientedadorcreator/_src/App.css';
 const SESSION_KEY = 'ucdc_session';
 const SOAP_ACTION = 'http://unisolutions.com.ar/CrearClientesDadores';
 
+// Registro persistente de CUIT ya enviados con éxito a UNIGIS. Independiente de SESSION_KEY
+// (que trunca a 500 filas) y de _status en memoria (que se pierde al recargar el Excel) —
+// así "Enviar Resto (CUIT único)" sigue sabiendo qué CUIT ya existen aunque haya habido
+// una recarga completa entremedias.
+const SENT_CUITS_KEY = 'ucdc_sent_cuits';
+
+function loadSentCuits(): Set<string> {
+    try {
+        const raw = localStorage.getItem(SENT_CUITS_KEY);
+        return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    } catch { return new Set(); }
+}
+
+function recordSentCuit(cuit: string) {
+    if (!cuit) return;
+    try {
+        const set = loadSentCuits();
+        set.add(cuit);
+        localStorage.setItem(SENT_CUITS_KEY, JSON.stringify(Array.from(set)));
+    } catch { /* quota */ }
+}
+
 function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isLoadingExcel, setIsLoadingExcel] = useState(false);
@@ -76,9 +98,18 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
     useEffect(() => {
         if (rows.length === 0 && Object.keys(mapping).length === 0) return;
         const timeout = setTimeout(() => {
+            // localStorage tiene un límite de tamaño (~5-10MB). Antes se truncaba SIEMPRE a 500
+            // filas de entrada, incluso cuando el Excel entero cabía de sobra — se intenta
+            // guardar todo primero, y solo se trunca si realmente no cabe (QuotaExceededError).
+            // Se guarda `totalRows` (conteo real) para poder avisar al restaurar si la
+            // recuperación quedó incompleta.
             try {
-                localStorage.setItem(SESSION_KEY, JSON.stringify({ rows: rows.slice(0, 500), headers, mapping, booleanOverrides, timestamp: Date.now() }));
-            } catch { /* quota */ }
+                localStorage.setItem(SESSION_KEY, JSON.stringify({ rows, totalRows: rows.length, headers, mapping, booleanOverrides, timestamp: Date.now() }));
+            } catch {
+                try {
+                    localStorage.setItem(SESSION_KEY, JSON.stringify({ rows: rows.slice(0, 500), totalRows: rows.length, headers, mapping, booleanOverrides, timestamp: Date.now() }));
+                } catch { /* ni siquiera 500 caben — se deja sin guardar */ }
+            }
         }, 2000);
         return () => clearTimeout(timeout);
     }, [rows, headers, mapping, booleanOverrides]);
@@ -92,6 +123,17 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
             if (session.rows?.length > 0 && rows.length === 0) {
                 setRows(session.rows); setHeaders(session.headers || []);
                 if (session.mapping) setMapping(session.mapping);
+                // Aviso explícito si la sesión recuperada es una versión truncada del Excel
+                // original (session.totalRows es el conteo real; puede faltar en sesiones
+                // guardadas antes de este fix, de ahí el fallback a session.rows.length).
+                const originalTotal = session.totalRows ?? session.rows.length;
+                if (originalTotal > session.rows.length) {
+                    alert(
+                        `⚠️ Sesión recuperada incompleta: se restauraron ${session.rows.length} de las ${originalTotal} filas originales ` +
+                        `(límite de almacenamiento local del navegador). El estado de envío (éxito/error) de esas filas se conserva, ` +
+                        `pero las ${originalTotal - session.rows.length} filas restantes NO están disponibles — vuelve a cargar el Excel para recuperarlas.`
+                    );
+                }
             }
         } catch { /* ignore */ }
     }, []); // eslint-disable-line
@@ -232,6 +274,8 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
                     setRowStatus(index, 'success', undefined, lastRawResponse);
                     updateRowData(index, '_UnigisResult', resultText || 'OK');
                     logs.push({ ref, status: 'success', msg: `Cliente Dador creado (${resultText || 'OK'})` });
+                    const cuitCol = mapping['Root.ClienteDador.Cuit'];
+                    if (cuitCol) recordSentCuit(String(row[cuitCol] ?? '').trim().toUpperCase());
                 } else {
                     // Antes había aquí un fallback que marcaba ÉXITO por defecto cuando no se
                     // reconocía ninguna etiqueta de resultado (con tal de que la respuesta no
@@ -263,6 +307,49 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
 
     const handleSendAll = useCallback(() => sendBatch(rows.map((row, index) => ({ row, index }))), [rows, sendBatch]);
     const handleSendSelected = useCallback(() => sendBatch(Array.from(selectedIndices).map(index => ({ row: rows[index], index }))), [rows, selectedIndices, sendBatch]);
+
+    // Envía solo las filas pendientes, sin duplicar por CUIT: excluye filas ya importadas
+    // con éxito (_status === 'success') y, dentro de las restantes, solo la primera
+    // aparición de cada CUIT (el mismo CUIT puede repetirse varias veces en el Excel).
+    const handleSendRemainingUnique = useCallback(() => {
+        const cuitCol = mapping['Root.ClienteDador.Cuit'];
+        if (!cuitCol) {
+            alert('La columna CUIT no está mapeada — no se puede deduplicar sin ella. Mapéala en el panel "Cliente Dador" antes de usar este botón.');
+            return;
+        }
+        // Los CUIT ya importados con éxito cuentan como "ya existen" en UNIGIS — se combinan
+        // dos fuentes: el _status en memoria de las filas actuales (rápido, cubre la sesión
+        // en curso) y el registro persistente en localStorage (sobrevive a una recarga del
+        // Excel, que resetea _status a cero en todas las filas).
+        const seenCuits = loadSentCuits();
+        for (const row of rows) {
+            if (row._status === 'success') {
+                const cuit = String(row[cuitCol] ?? '').trim().toUpperCase();
+                if (cuit) seenCuits.add(cuit);
+            }
+        }
+        let alreadyImported = 0, duplicateCuit = 0, noCuit = 0;
+        const batch: { row: any; index: number }[] = [];
+        rows.forEach((row, index) => {
+            if (row._status === 'success') { alreadyImported++; return; }
+            const cuit = String(row[cuitCol] ?? '').trim().toUpperCase();
+            if (!cuit) { noCuit++; batch.push({ row, index }); return; } // sin CUIT: no se puede deduplicar, se incluye igualmente
+            if (seenCuits.has(cuit)) { duplicateCuit++; return; }
+            seenCuits.add(cuit);
+            batch.push({ row, index });
+        });
+
+        if (batch.length === 0) {
+            alert('No hay filas pendientes: todas ya están importadas o tienen un CUIT duplicado.');
+            return;
+        }
+        const proceed = confirm(
+            `Se enviarán ${batch.length} filas nuevas (${noCuit} sin CUIT, incluidas igualmente).\n` +
+            `Se omiten ${alreadyImported} ya importadas y ${duplicateCuit} con CUIT duplicado.\n\n¿Continuar?`
+        );
+        if (!proceed) return;
+        sendBatch(batch);
+    }, [rows, mapping, sendBatch]);
     const handleRetryFailed = useCallback(() => sendBatch(rows.map((row, index) => ({ row, index })).filter(({ row }) => row._status === 'error')), [rows, sendBatch]);
     const handleRetryRow = useCallback((index: number) => { const row = rows[index]; if (!row) return; setDashboardOpen(false); sendBatch([{ row, index }]); }, [rows, sendBatch]);
     const handleCancelSend = useCallback(() => setSendCancelled(true), [setSendCancelled]);
@@ -318,6 +405,7 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
                 onValidate={handleValidate}
                 onSendAll={handleSendAll}
                 onSendSelected={handleSendSelected}
+                onSendRemainingUnique={handleSendRemainingUnique}
                 onRetryFailed={handleRetryFailed}
                 onLogout={() => useAppStore.getState().setToken(null)}
                 onManageUsers={() => {}}

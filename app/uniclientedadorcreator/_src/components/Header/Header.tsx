@@ -5,13 +5,14 @@ interface HeaderProps {
     onShowLogin: () => void; onLoadExcel: () => void;
     onMassEdit: () => void; onValidate: () => void;
     onSendAll: () => void; onSendSelected: () => void;
+    onSendRemainingUnique: () => void;
     onRetryFailed: () => void; onLogout: () => void;
     onManageUsers: () => void; onShowHelp: () => void;
     onSaveTemplate: () => void; onShowDashboard: () => void;
     isLoadingExcel?: boolean;
 }
 
-export default function Header({ onShowLogin, onLoadExcel, onMassEdit, onValidate, onSendAll, onSendSelected, onRetryFailed, onLogout, onManageUsers, onShowHelp, onSaveTemplate, onShowDashboard, isLoadingExcel}: HeaderProps) {
+export default function Header({ onShowLogin, onLoadExcel, onMassEdit, onValidate, onSendAll, onSendSelected, onSendRemainingUnique, onRetryFailed, onLogout, onManageUsers, onShowHelp, onSaveTemplate, onShowDashboard, isLoadingExcel}: HeaderProps) {
     const { t } = useTranslation();
     const token = useAppStore((s) => s.token);
     const rows = useAppStore((s) => s.rows);
@@ -110,6 +111,10 @@ export default function Header({ onShowLogin, onLoadExcel, onMassEdit, onValidat
                         <button className={`${btnBase} font-bold bg-gradient-to-r from-emerald-600 to-teal-500 text-white hover:from-emerald-500 hover:to-teal-400 shadow-lg shadow-emerald-950/30 border border-emerald-400/25`} onClick={onSendAll} disabled={!hasData || !token}>
                             <span className="text-xs">🚀</span>
                             <span className="hidden xl:inline">{t('buttons.sendAll')}</span>
+                        </button>
+                        <button className={`${btnBase} bg-amber-500/15 text-amber-300 border border-amber-400/25 hover:bg-amber-500/25`} onClick={onSendRemainingUnique} disabled={!hasData || !token} title="Envía solo las filas no importadas todavía, sin duplicar CUIT ya existentes">
+                            <span className="text-xs">📦</span>
+                            <span className="hidden xl:inline">Resto (CUIT único)</span>
                         </button>
                         {failedCount > 0 && (
                             <button className={`${btnBase} bg-red-500/15 text-red-300 border border-red-500/25 hover:bg-red-500/25`} onClick={onRetryFailed}>
