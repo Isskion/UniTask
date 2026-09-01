@@ -1221,6 +1221,53 @@
     }
   },
   {
+    "id": "4wNGOQtXK2gfwbstEUlB",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": null,
+    "techDescription": "Solicitar información del SSO + MFA",
+    "creationSource": "manual_main",
+    "ancestorIds": [],
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "dependencies": [],
+    "progress": 0,
+    "isActive": true,
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "type": "task",
+    "order": 1788275654.803,
+    "title": "Solicitar información del SSO + MFA",
+    "projectCode": "TSP",
+    "status": "pending",
+    "endDate": "2026-09-29T22:00:00.000Z",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "taskNumber": 45,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "friendlyId": "TRA-45",
+    "createdAt": {
+      "_seconds": 1788275670,
+      "_nanoseconds": 857000000
+    },
+    "updatedAt": {
+      "_seconds": 1788275670,
+      "_nanoseconds": 857000000
+    }
+  },
+  {
     "id": "4wSuWCA5la6L9GTnxnEd",
     "title": "Setup Repo",
     "projectId": "mockup-product-2026",
@@ -5910,7 +5957,6 @@
   {
     "id": "L2lJ8WQUI341U4prg9pj",
     "title": "Trabajar documento de Distribución para construcción",
-    "status": "pending",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -5939,7 +5985,6 @@
     "projectCode": "TSP",
     "endDate": "2026-08-12T22:00:00.000Z",
     "techDescription": "Documento aprobado. Empezar analisis para construcción y crear estados y transiciones para distribución.",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-39",
     "taskNumber": 39,
@@ -5948,9 +5993,17 @@
       "_seconds": 1785742991,
       "_nanoseconds": 254000000
     },
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 50,
+    "attributes": {},
+    "closedAt": {
+      "_seconds": 1788262764,
+      "_nanoseconds": 784000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1785742991,
-      "_nanoseconds": 254000000
+      "_seconds": 1788262764,
+      "_nanoseconds": 784000000
     }
   },
   {
@@ -12134,6 +12187,54 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "kzS8nrRgB8H2TZuYnaQD",
+    "projectId": "sZDav2CndgdmhfYc8BTt",
+    "techDescription": "Crear documento de interfacs con mapeo y explicación para IT De heus\n\nCrearOrdenPedido\nCrearClienteOrden\nCrearConductores\nCrearVehiculos\nCrearViajeCompleto\nCrearTransportes",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "creationSource": "manual_main",
+    "actualEffort": null,
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
+    "progress": 0,
+    "projectCode": "DHE",
+    "type": "task",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "ancestorIds": [],
+    "endDate": "2026-09-01T22:00:00.000Z",
+    "tenantId": "3",
+    "order": 1788262244.347,
+    "taskNumber": 1,
+    "friendlyId": "DEX-1",
+    "title": "Crear documento de interfacs con mapeo y explicación para IT De heus",
+    "createdAt": {
+      "_seconds": 1788262663,
+      "_nanoseconds": 780000000
+    },
+    "attributes": {},
+    "status": "in_progress",
+    "updatedAt": {
+      "_seconds": 1788262694,
+      "_nanoseconds": 154000000
     }
   },
   {
