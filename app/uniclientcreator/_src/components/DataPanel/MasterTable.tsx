@@ -137,6 +137,11 @@ export default function MasterTable() {
     }, [mapping]);
 
     // #23, #32, #53: Inline row validation
+    // validateOrderRow/buildDuplicateMap están desactivados (stub constante, ver arriba) —
+    // NO dependen realmente de `mapping`. Antes sí figuraba en las deps de abajo y provocaba
+    // reconstruir + re-renderizar TODAS las filas (sin virtualizar) en cada click del
+    // Mapeador, congelando la UI con Excels grandes. Se recalcula solo si cambian
+    // rows/duplicateMap para que, si algún día se reactiva la validación real, siga siendo correcto.
     const duplicateMap = useMemo(() => buildDuplicateMap(rows as Record<string, string>[], mapping), [rows, mapping]);
 
     // Filtered rows with injected validation info
@@ -145,8 +150,8 @@ export default function MasterTable() {
             const validation = validateOrderRow(r as Record<string, string>, i, mapping, duplicateMap);
             const errors = validation.issues.filter(iss => iss.severity === 'error').length;
             const warnings = validation.issues.filter(iss => iss.severity === 'warning').length;
-            
-            // We mutate a shallow copy or inject directly if allowed. To avoid React state mutation issues, we clone IF needed, 
+
+            // We mutate a shallow copy or inject directly if allowed. To avoid React state mutation issues, we clone IF needed,
             // but we can just pass an enriched object to the view logic.
             return {
                 originalIndex: i,
@@ -158,12 +163,13 @@ export default function MasterTable() {
         });
 
         if (!filterQuery.trim()) return baseRows;
-        
+
         const q = filterQuery.toLowerCase();
         return baseRows.filter(({ row }) =>
             headers.some((h) => String((row as Record<string, any>)[h] ?? '').toLowerCase().includes(q))
         );
-    }, [rows, headers, filterQuery, mapping, duplicateMap]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- mapping/duplicateMap excluidos a propósito: ver comentario arriba
+    }, [rows, headers, filterQuery]);
 
     const handleRowClick = useCallback((index: number, e: React.MouseEvent) => {
         if ((e.target as HTMLElement).tagName === 'INPUT') return;
