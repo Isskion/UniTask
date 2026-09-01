@@ -227,19 +227,29 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
                 const resultText = resultNode ? (resultNode.textContent ?? '') : '';
                 const isSuccess = resultText.toLowerCase() === 'true' || (parseInt(resultText) > 0);
 
-                if (isSuccess || (!resultNode && response.ok && !lastRawResponse.includes('false') && !lastRawResponse.includes('Error'))) {
+                if (isSuccess) {
                     success++;
                     setRowStatus(index, 'success', undefined, lastRawResponse);
                     updateRowData(index, '_UnigisResult', resultText || 'OK');
                     logs.push({ ref, status: 'success', msg: `Cliente Dador creado (${resultText || 'OK'})` });
                 } else {
+                    // Antes había aquí un fallback que marcaba ÉXITO por defecto cuando no se
+                    // reconocía ninguna etiqueta de resultado (con tal de que la respuesta no
+                    // contuviera literalmente "false"/"Error") — daba falsos positivos: UNIGIS
+                    // devolvía HTTP 200 sin crear el Cliente Dador (confirmado con datos reales:
+                    // de 500 filas marcadas "éxito" solo 9-14 existían en la tabla Cliente).
+                    // Nunca se debe asumir éxito sin evidencia positiva — si no reconocemos la
+                    // respuesta, se trata como error para que "Ver XML" en el Dashboard permita
+                    // inspeccionar la respuesta real de UNIGIS y así ajustar el parser con datos
+                    // reales en vez de adivinar.
                     const errorPatterns = [
                         /faultstring[^>]*>([^<]*)/i, /Descripcion[^>]*>([^<]*)/i,
                         /Mensaje[^>]*>([^<]*)/i, /Error[^>]*>([^<]*)/i,
                     ];
                     let msg = '';
                     for (const p of errorPatterns) { const m = lastRawResponse.match(p); if (m) { msg = m[1].trim(); break; } }
-                    throw new Error(msg || `Respuesta inesperada: "${resultText}"`);
+                    if (!msg) msg = resultNode ? `Respuesta inesperada: "${resultText}"` : 'Respuesta sin etiqueta de resultado reconocida — revisar XML de respuesta.';
+                    throw new Error(msg);
                 }
             } catch (err: any) {
                 errors++;
