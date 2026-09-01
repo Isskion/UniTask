@@ -126,17 +126,28 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
     const [copiedReport, setCopiedReport] = useState(false);
 
     // ─── Computed Data ──────────────────────────────────────────────────────────────
+    // Se guarda originalIndex junto con cada fila desde el principio — antes se recuperaba
+    // después con `rows.indexOf(row)` por cada fila de la pestaña Éxitos/Errores, un scan O(n)
+    // repetido n veces (O(n²): con ~1900 éxitos, hasta ~3.6M comparaciones) que se disparaba
+    // cada vez que se abría el Dashboard tras un envío grande — el freeze "por ratos" que
+    // aparecía justo ahí, no durante el envío. Ver [[project_uniclientedador]].
     const stats = useMemo(() => {
-        const successRows = rows.filter(r => r._status === 'success');
-        const errorRows = rows.filter(r => r._status === 'error');
-        const pendingRows = rows.filter(r => !r._status || r._status === 'pending');
-        const sendingRows = rows.filter(r => r._status === 'sending');
+        const successRows: { row: typeof rows[number]; originalIndex: number }[] = [];
+        const errorRows: { row: typeof rows[number]; originalIndex: number }[] = [];
+        let pending = 0;
+
+        rows.forEach((r, originalIndex) => {
+            if (r._status === 'success') successRows.push({ row: r, originalIndex });
+            else if (r._status === 'error') errorRows.push({ row: r, originalIndex });
+            else pending++; // sin status, 'pending' o 'sending' cuentan igual aquí
+        });
+
         const total = rows.length;
         const rate = total > 0 ? Math.round((successRows.length / total) * 100) : 0;
 
         // Error code frequency
         const errorCodes: Record<string, number> = {};
-        errorRows.forEach(r => {
+        errorRows.forEach(({ row: r }) => {
             const code = r._errorCode || 'unknown';
             errorCodes[code] = (errorCodes[code] || 0) + 1;
         });
@@ -145,7 +156,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
             total,
             success: successRows.length,
             errors: errorRows.length,
-            pending: pendingRows.length + sendingRows.length,
+            pending,
             rate,
             successRows,
             errorRows,
@@ -153,24 +164,27 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
         };
     }, [rows]);
 
-    // Filtered error rows
+    // Filtered error rows — ya traen originalIndex desde `stats`, sin indexOf.
     const filteredErrorRows = useMemo(() => {
-        return stats.errorRows
-            .map((r) => ({ row: r, originalIndex: rows.indexOf(r) }))
-            .filter(({ row }) => {
-                if (errorFilter !== 'all') {
-                    if (errorFilter === 'unknown' && row._errorCode) return false;
-                    if (errorFilter !== 'unknown' && row._errorCode !== errorFilter) return false;
-                }
-                if (searchQuery) {
-                    const q = searchQuery.toLowerCase();
-                    const matchRef = Object.values(row).some(v => String(v).toLowerCase().includes(q));
-                    const matchErr = (row._error || '').toLowerCase().includes(q);
-                    return matchRef || matchErr;
-                }
-                return true;
-            });
-    }, [stats.errorRows, rows, errorFilter, searchQuery]);
+        return stats.errorRows.filter(({ row }) => {
+            if (errorFilter !== 'all') {
+                if (errorFilter === 'unknown' && row._errorCode) return false;
+                if (errorFilter !== 'unknown' && row._errorCode !== errorFilter) return false;
+            }
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                const matchRef = Object.values(row).some(v => String(v).toLowerCase().includes(q));
+                const matchErr = (row._error || '').toLowerCase().includes(q);
+                return matchRef || matchErr;
+            }
+            return true;
+        });
+    }, [stats.errorRows, errorFilter, searchQuery]);
+
+    // Techo de filas realmente montadas en las pestañas Éxitos/Errores — con miles de filas,
+    // montar todos los <SuccessRow>/<ErrorRow> de una vez (cada uno con su propia suscripción
+    // a Zustand) es un segundo punto de freeze independiente del indexOf ya corregido arriba.
+    const MAX_VISIBLE_RESULT_ROWS = 300;
 
     // ─── Copy Full Diagnostic Report ────────────────────────────────────────────────
     const handleCopyReport = useCallback(() => {
@@ -192,19 +206,19 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
         ];
 
         // Group errors by code
-        const grouped: Record<string, typeof stats.errorRows> = {};
-        stats.errorRows.forEach(r => {
-            const code = r._errorCode || 'UNKNOWN';
+        const grouped: Record<string, typeof rows> = {};
+        stats.errorRows.forEach(({ row }) => {
+            const code = row._errorCode || 'UNKNOWN';
             if (!grouped[code]) grouped[code] = [];
-            grouped[code].push(r);
+            grouped[code].push(row);
         });
 
         for (const [code, rowGroup] of Object.entries(grouped)) {
             const desc = UNIGIS_ERROR_CODES[code] || 'Error no catalogado';
             lines.push(`\n📌 Código ${code}: ${desc} (${rowGroup.length} cliente${rowGroup.length > 1 ? 's' : ''})`);
-            rowGroup.forEach((r, i) => {
-                const ref = (refCol && r[refCol]) || '—';
-                lines.push(`  ${i + 1}. [${ref}] ${r._error || ''}`);
+            rowGroup.forEach((row, i) => {
+                const ref = (refCol && row[refCol]) || '—';
+                lines.push(`  ${i + 1}. [${ref}] ${row._error || ''}`);
             });
         }
 
@@ -219,7 +233,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
         const mapping = useAppStore.getState().mapping;
         const refCol = mapping['Root.ClienteDador.ReferenciaExterna'] || mapping['Root.ClienteDador.RazonSocial'];
 
-        const data = stats.errorRows.map(r => ({
+        const data = stats.errorRows.map(({ row: r }) => ({
             Referencia: (refCol && r[refCol]) || '',
             Estado: 'ERROR',
             'Código Error': r._errorCode || '',
@@ -384,7 +398,12 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
 
                             {/* Error List */}
                             <div className="space-y-2 max-h-[50vh] overflow-auto pr-1">
-                                {filteredErrorRows.map(({ row, originalIndex }) => (
+                                {filteredErrorRows.length > MAX_VISIBLE_RESULT_ROWS && (
+                                    <div className="text-[11px] text-slate-400 italic text-center pb-1">
+                                        Mostrando los primeros {MAX_VISIBLE_RESULT_ROWS} de {filteredErrorRows.length} — usa el buscador para acotar
+                                    </div>
+                                )}
+                                {filteredErrorRows.slice(0, MAX_VISIBLE_RESULT_ROWS).map(({ row, originalIndex }) => (
                                     <ErrorRow
                                         key={originalIndex}
                                         row={row}
@@ -405,10 +424,14 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                     {/* SUCCESS TAB */}
                     {activeTab === 'success' && (
                         <div className="space-y-2 max-h-[60vh] overflow-auto pr-1">
-                            {stats.successRows.map((row) => {
-                                const originalIndex = rows.indexOf(row);
-                                return <SuccessRow key={originalIndex} row={row} index={originalIndex} />;
-                            })}
+                            {stats.successRows.length > MAX_VISIBLE_RESULT_ROWS && (
+                                <div className="text-[11px] text-slate-400 italic text-center pb-1">
+                                    Mostrando los primeros {MAX_VISIBLE_RESULT_ROWS} de {stats.successRows.length} — usa &quot;Export Excel&quot; para el listado completo
+                                </div>
+                            )}
+                            {stats.successRows.slice(0, MAX_VISIBLE_RESULT_ROWS).map(({ row, originalIndex }) => (
+                                <SuccessRow key={originalIndex} row={row} index={originalIndex} />
+                            ))}
                             {stats.successRows.length === 0 && (
                                 <div className="text-center py-8 text-slate-400">
                                     <div className="text-3xl mb-2 opacity-40">📦</div>

@@ -71,6 +71,12 @@ export interface AppState {
     sendCancelled: boolean;
     highlightedField: string;
     isDryRun: boolean; // #72: Modo Simulación
+    /** Se incrementa solo cuando cambian los DATOS reales (carga de Excel, edición de celda),
+     * nunca en actualizaciones de _status/_error durante un envío masivo. Permite a componentes
+     * costosos (p.ej. detección de columnas vacías en MapperPanel) recalcular solo cuando hace
+     * falta, en vez de en cada una de las miles de actualizaciones de estado que dispara un
+     * envío grande — ver la misma corrección aplicada primero en uniclientedadorcreator. */
+    dataVersion: number;
 
     // --- Actions ---
     setToken: (token: string | null) => void;
@@ -105,6 +111,15 @@ export interface AppState {
 
     // Bulk updates
     updateRowData: (index: number, header: string, value: any) => void;
+    /** Edición masiva en UNA sola pasada/notificación — usar en vez de llamar a updateRowData
+     * en bucle por cada índice (eso clona el array `rows` completo por cada fila afectada). */
+    applyBulkEdit: (indices: number[], header: string, value: any) => void;
+    /** Vacía datos/mapeo para empezar de cero (nuevo Excel, nuevo mapeo) SIN cerrar la sesión
+     * UNIGIS (token/orderUrl/role/currentUser quedan intactos) — a diferencia de `resetState`,
+     * que resetea también la conexión y por eso no es lo que hace falta para este caso. Quien
+     * la llama debe además limpiar la sesión guardada en localStorage (SESSION_KEY en
+     * page.tsx), si no la próxima carga de página la restaura igual. */
+    clearAllData: () => void;
     resetState: () => void;
 }
 
@@ -117,6 +132,14 @@ const initialMultiSheet: MultiSheetState = {
     sheets: {},
     sheetHeaders: {},
     config: { mainSheet: '', mainKey: '', relations: [] },
+};
+
+const initialDynamicFieldCounts: Record<string, number> = {
+    Orden: 0,
+    Cliente: 0,
+    ClienteDomicilio: 0,
+    Items: 0,
+    ItemsDomicilio: 0,
 };
 
 // ---------------------------------------------------------------------------
@@ -141,13 +164,7 @@ export const useAppStore = create<AppState>((set) => ({
     booleanOverrides: {},
     currentTab: 'pOrdenPedido',
     searchQuery: '',
-    dynamicFieldCounts: {
-        Orden: 0,
-        Cliente: 0,
-        ClienteDomicilio: 0,
-        Items: 0,
-        ItemsDomicilio: 0,
-    },
+    dynamicFieldCounts: { ...initialDynamicFieldCounts },
 
     // Multi-Sheet
     multiSheet: { ...initialMultiSheet },
@@ -160,6 +177,7 @@ export const useAppStore = create<AppState>((set) => ({
     sendCancelled: false,
     highlightedField: '',
     isDryRun: false,
+    dataVersion: 0,
 
     // --- Actions ---
     setToken: (token) => set({ token }),
@@ -168,7 +186,7 @@ export const useAppStore = create<AppState>((set) => ({
     setCurrentUser: (currentUser) => set({ currentUser }),
     setAllowedUsers: (allowedUsers) => set({ allowedUsers }),
 
-    setRows: (rows) => set({ rows }),
+    setRows: (rows) => set((state) => ({ rows, dataVersion: state.dataVersion + 1 })),
     setHeaders: (headers) => set({ headers }),
     setSelectedRow: (selectedRow) => set({ selectedRow }),
     toggleSelection: (index) =>
@@ -236,11 +254,37 @@ export const useAppStore = create<AppState>((set) => ({
             if (rows[index]) {
                 rows[index] = { ...rows[index], [header]: value };
             }
-            return { rows };
+            // Los campos internos (prefijo "_") los escribe el envío por cada fila enviada — no
+            // son edición real de datos, así que no deben contar como cambio de dataVersion.
+            const isRealEdit = !header.startsWith('_');
+            return { rows, dataVersion: isRealEdit ? state.dataVersion + 1 : state.dataVersion };
         }),
 
+    applyBulkEdit: (indices, header, value) =>
+        set((state) => {
+            const idxSet = new Set(indices);
+            const rows = state.rows.map((r, i) => (idxSet.has(i) ? { ...r, [header]: value } : r));
+            return { rows, dataVersion: state.dataVersion + 1 };
+        }),
+
+    clearAllData: () =>
+        set((state) => ({
+            rows: [],
+            headers: [],
+            selectedIndices: new Set<number>(),
+            selectedRow: -1,
+            mapping: {},
+            booleanOverrides: {},
+            currentTab: 'pOrdenPedido',
+            searchQuery: '',
+            dynamicFieldCounts: { ...initialDynamicFieldCounts },
+            multiSheet: { ...initialMultiSheet },
+            dataVersion: state.dataVersion + 1,
+            // token/orderUrl/role/currentUser NO se tocan — sigue conectado a UNIGIS.
+        })),
+
     resetState: () =>
-        set({
+        set((state) => ({
             token: null,
             orderUrl: '',
             role: 'admin',
@@ -255,5 +299,6 @@ export const useAppStore = create<AppState>((set) => ({
             multiSheet: { ...initialMultiSheet },
             isSending: false,
             sendCancelled: false,
-        }),
+            dataVersion: state.dataVersion + 1,
+        })),
 }));

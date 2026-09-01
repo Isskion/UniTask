@@ -366,6 +366,15 @@ function UniClientCreatorPageInner({ tenantId }: { tenantId: string }) {
                             <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setMappingActionsOpen(true)} title="Acciones de Mapeo">🗺️</button>
                             <button className="p-0.5 hover:bg-emerald-100 rounded transition-colors text-emerald-600 text-xs" onClick={() => { setLayoutExporterMode('export'); setLayoutExporterOpen(true); }} title="Exportar / Importar Layout">📋</button>
                             <button className="p-0.5 hover:bg-red-100 rounded transition-colors text-red-500 text-xs" onClick={() => { if (confirm('¿Limpiar todo el mapeo actual?')) setMapping({}); }} title="Limpiar Mapeo">🧹</button>
+                            <button
+                                className="p-0.5 hover:bg-red-100 rounded transition-colors text-red-600 text-xs"
+                                onClick={() => {
+                                    if (!confirm(`¿Vaciar todo (${rows.length} filas + mapeo) para empezar un mapeo nuevo? No se puede deshacer. La sesión conectada a UNIGIS no se cierra.`)) return;
+                                    useAppStore.getState().clearAllData();
+                                    localStorage.removeItem(SESSION_KEY);
+                                }}
+                                title="Nuevo Excel (vaciar todo)"
+                            >🗑️</button>
                             <span className="text-[10px] text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-full">{rows.length} filas</span>
                         </div>
                     </div>

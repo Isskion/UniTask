@@ -106,13 +106,6 @@ const TableRow = React.memo(function TableRow({
     );
 });
 
-// import { validateOrderRow, buildDuplicateMap } from '../../utils/validation'; // not used in UniClientCreator
-const validateOrderRow = (_row: any, _index: number, _mapping: any, _duplicateMap: any) => ({
-    isValid: true,
-    issues: [] as { severity: 'error' | 'warning'; message: string }[]
-});
-const buildDuplicateMap = (_rows: any[], _mapping: any) => new Map<string, number[]>();
-
 // ─── Main Component ─────────────────────────────────────────────────────────────
 
 export default function MasterTable() {
@@ -147,39 +140,27 @@ export default function MasterTable() {
         return map;
     }, [mapping]);
 
-    // #23, #32, #53: Inline row validation
-    // validateOrderRow/buildDuplicateMap están desactivados (stub constante, ver arriba) —
-    // NO dependen realmente de `mapping`. Antes sí figuraba en las deps de abajo y provocaba
-    // reconstruir + re-renderizar TODAS las filas (sin virtualizar) en cada click del
-    // Mapeador, congelando la UI con Excels grandes. Se recalcula solo si cambian
-    // rows/duplicateMap para que, si algún día se reactiva la validación real, siga siendo correcto.
-    const duplicateMap = useMemo(() => buildDuplicateMap(rows as Record<string, string>[], mapping), [rows, mapping]);
+    // #23, #32, #53: Inline row validation — desactivada; ya no se invoca ningún motor de
+    // validación aquí (antes había un stub que simulaba "todo válido", ahora eliminado).
 
-    // Filtered rows with injected validation info
+    // Filtered rows — SIN clonar cada fila. Antes se hacía `{...r, _validationInfo}` por fila
+    // en cada recomputo (validación ya desactivada, así que era puro gasto): con filas de
+    // decenas de columnas y un envío masivo cambiando `rows` de referencia en cada fila
+    // enviada, eso era un clon profundo de TODO el dataset en cada tick — el principal
+    // causante del freeze del navegador durante un envío grande. Se pasa la fila por
+    // referencia; TableRow ya trata `_validationInfo` ausente como "sin validar" (punto gris).
     const filteredRows = useMemo(() => {
-        let baseRows = rows.map((r, i) => {
-            const validation = validateOrderRow(r as Record<string, string>, i, mapping, duplicateMap);
-            const errors = validation.issues.filter(iss => iss.severity === 'error').length;
-            const warnings = validation.issues.filter(iss => iss.severity === 'warning').length;
-
-            // We mutate a shallow copy or inject directly if allowed. To avoid React state mutation issues, we clone IF needed,
-            // but we can just pass an enriched object to the view logic.
-            return {
-                originalIndex: i,
-                row: {
-                    ...r,
-                    _validationInfo: { isValid: validation.isValid, errors, warnings }
-                }
-            };
-        });
-
-        if (!filterQuery.trim()) return baseRows;
-
+        if (!filterQuery.trim()) {
+            return rows.map((row, originalIndex) => ({ row, originalIndex }));
+        }
         const q = filterQuery.toLowerCase();
-        return baseRows.filter(({ row }) =>
-            headers.some((h) => String((row as Record<string, any>)[h] ?? '').toLowerCase().includes(q))
-        );
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- mapping/duplicateMap excluidos a propósito: ver comentario arriba
+        const result: { row: Record<string, unknown>; originalIndex: number }[] = [];
+        rows.forEach((row, originalIndex) => {
+            if (headers.some((h) => String((row as Record<string, any>)[h] ?? '').toLowerCase().includes(q))) {
+                result.push({ row, originalIndex });
+            }
+        });
+        return result;
     }, [rows, headers, filterQuery]);
 
     // Virtualización: con Excels grandes (miles de filas), montar TODAS como <tr> reales

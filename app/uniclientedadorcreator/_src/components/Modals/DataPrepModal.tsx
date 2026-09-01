@@ -25,6 +25,10 @@ export default function DataPrepModal({ isOpen, onClose }: Props) {
     const [trParam2, setTrParam2] = useState('');
 
     const [feedback, setFeedback] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+    // Ver comentario equivalente en MassEditModal.tsx: se marca `busy` antes del trabajo pesado
+    // y se difiere el trabajo un frame (requestAnimationFrame) para que React alcance a pintar
+    // el spinner antes de que el hilo principal se ocupe recorriendo todas las filas.
+    const [busy, setBusy] = useState<false | 'calc' | 'transform'>(false);
 
     if (!isOpen) return null;
 
@@ -44,27 +48,32 @@ export default function DataPrepModal({ isOpen, onClose }: Props) {
             return;
         }
 
-        try {
-            const regex = /\{\{([^}]+)\}\}/g; // Matches {{ColumnName}}
-            const newRows = rows.map((r) => {
-                let val = calcFormula;
-                let match;
-                while ((match = regex.exec(calcFormula)) !== null) {
-                    const colName = match[1];
-                    const colVal = String(r[colName] ?? '');
-                    val = val.replace(`{{${colName}}}`, colVal);
-                }
-                return { ...r, [calcName.trim()]: val.trim() };
-            });
+        setBusy('calc');
+        requestAnimationFrame(() => {
+            try {
+                const regex = /\{\{([^}]+)\}\}/g; // Matches {{ColumnName}}
+                const newRows = rows.map((r) => {
+                    let val = calcFormula;
+                    let match;
+                    while ((match = regex.exec(calcFormula)) !== null) {
+                        const colName = match[1];
+                        const colVal = String(r[colName] ?? '');
+                        val = val.replace(`{{${colName}}}`, colVal);
+                    }
+                    return { ...r, [calcName.trim()]: val.trim() };
+                });
 
-            setHeaders([...headers, calcName.trim()]);
-            setRows(newRows);
-            setCalcName('');
-            setCalcFormula('');
-            showFeedback('Columna calculada añadida exitosamente', 'success');
-        } catch (err) {
-            showFeedback('Error al evaluar la fórmula', 'error');
-        }
+                setHeaders([...headers, calcName.trim()]);
+                setRows(newRows);
+                setCalcName('');
+                setCalcFormula('');
+                showFeedback('Columna calculada añadida exitosamente', 'success');
+            } catch (err) {
+                showFeedback('Error al evaluar la fórmula', 'error');
+            } finally {
+                setBusy(false);
+            }
+        });
     };
 
     const insertToFormula = (col: string) => {
@@ -77,37 +86,50 @@ export default function DataPrepModal({ isOpen, onClose }: Props) {
             showFeedback('Selecciona una columna', 'error');
             return;
         }
-        
-        try {
-            const newRows = rows.map(r => {
-                const row = { ...r };
-                let val = String(row[trCol] ?? '');
 
-                switch (trRule) {
-                    case 'uppercase': val = val.toUpperCase(); break;
-                    case 'lowercase': val = val.toLowerCase(); break;
-                    case 'trim': val = val.trim(); break;
-                    case 'replace': val = val.replace(new RegExp(trParam1, 'g'), trParam2); break;
-                    case 'multiply': 
-                        const num = parseFloat(val);
-                        const mult = parseFloat(trParam1);
-                        if (!isNaN(num) && !isNaN(mult)) val = String(num * mult);
-                        break;
-                }
-                row[trCol] = val;
-                return row;
-            });
-            setRows(newRows);
-            showFeedback(`Regla aplicada a ${rows.length} filas`, 'success');
-        } catch (err) {
-            showFeedback('Error al aplicar regla', 'error');
-        }
+        setBusy('transform');
+        requestAnimationFrame(() => {
+            try {
+                const newRows = rows.map(r => {
+                    const row = { ...r };
+                    let val = String(row[trCol] ?? '');
+
+                    switch (trRule) {
+                        case 'uppercase': val = val.toUpperCase(); break;
+                        case 'lowercase': val = val.toLowerCase(); break;
+                        case 'trim': val = val.trim(); break;
+                        case 'replace': val = val.replace(new RegExp(trParam1, 'g'), trParam2); break;
+                        case 'multiply':
+                            const num = parseFloat(val);
+                            const mult = parseFloat(trParam1);
+                            if (!isNaN(num) && !isNaN(mult)) val = String(num * mult);
+                            break;
+                    }
+                    row[trCol] = val;
+                    return row;
+                });
+                setRows(newRows);
+                showFeedback(`Regla aplicada a ${rows.length} filas`, 'success');
+            } catch (err) {
+                showFeedback('Error al aplicar regla', 'error');
+            } finally {
+                setBusy(false);
+            }
+        });
     };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
-            <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-                
+            <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative" onClick={e => e.stopPropagation()}>
+                {busy && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-white/80 backdrop-blur-[1px]">
+                        <div className="w-4 h-4 border-2 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
+                        <span className="text-sm font-semibold text-slate-600">
+                            {busy === 'calc' ? 'Calculando columna…' : 'Aplicando transformación…'}
+                        </span>
+                    </div>
+                )}
+
                 {/* Header */}
                 <div className="flex bg-slate-100">
                     <button

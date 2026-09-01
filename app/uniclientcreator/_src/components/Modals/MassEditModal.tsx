@@ -10,37 +10,46 @@ export default function MassEditModal({ isOpen, onClose }: MassEditModalProps) {
     const headers = useAppStore((s) => s.headers);
     const rows = useAppStore((s) => s.rows);
     const selectedIndices = useAppStore((s) => s.selectedIndices);
-    const updateRowData = useAppStore((s) => s.updateRowData);
+    const applyBulkEdit = useAppStore((s) => s.applyBulkEdit);
 
     const [selectedColumn, setSelectedColumn] = useState('');
     const [newValue, setNewValue] = useState('');
     const [applied, setApplied] = useState(false);
+    const [busy, setBusy] = useState(false);
 
     if (!isOpen) return null;
 
     const handleApply = () => {
         if (!selectedColumn) return;
-        const indices = Array.from(selectedIndices);
-        for (const idx of indices) {
-            updateRowData(idx, selectedColumn, newValue);
-        }
-        setApplied(true);
-        setTimeout(() => setApplied(false), 2000);
+        setBusy(true);
+        requestAnimationFrame(() => {
+            applyBulkEdit(Array.from(selectedIndices), selectedColumn, newValue);
+            setBusy(false);
+            setApplied(true);
+            setTimeout(() => setApplied(false), 2000);
+        });
     };
 
     const handleClear = () => {
         if (!selectedColumn) return;
-        const indices = Array.from(selectedIndices);
-        for (const idx of indices) {
-            updateRowData(idx, selectedColumn, '');
-        }
-        setApplied(true);
-        setTimeout(() => setApplied(false), 2000);
+        setBusy(true);
+        requestAnimationFrame(() => {
+            applyBulkEdit(Array.from(selectedIndices), selectedColumn, '');
+            setBusy(false);
+            setApplied(true);
+            setTimeout(() => setApplied(false), 2000);
+        });
     };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md" onClick={onClose}>
-            <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-100 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-100 overflow-hidden relative" onClick={(e) => e.stopPropagation()}>
+                {busy && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-white/80 backdrop-blur-[1px]">
+                        <div className="w-4 h-4 border-2 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
+                        <span className="text-sm font-semibold text-slate-600">Aplicando cambios…</span>
+                    </div>
+                )}
                 {/* Header */}
                 <div className="px-6 py-4 bg-gradient-to-r from-indigo-700 to-violet-600">
                     <h2 className="text-lg font-bold text-white">✏️ Edición Masiva</h2>

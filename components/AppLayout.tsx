@@ -354,7 +354,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             {can('uniordercreator', 'views') && (
                                 <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator (ClienteOrden)" />
                             )}
-                            {can('uniordercreator', 'views') && (
+                            {/* Escribe en la tabla Cliente de producción de UNIGIS/Europastry — restringido
+                                al Tenant 3 (Unigis) además del permiso, a pedido explícito de Daniel. */}
+                            {tenantId === '3' && can('uniordercreator', 'views') && (
                                 <NavLink href="/uniclientedadorcreator" target="_blank" icon={Building} label="UniClienteDadorCreator (ClienteDador)" />
                             )}
                             {can('univehiclecreator', 'views') && (
@@ -589,7 +591,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 {can('uniordercreator', 'views') && (
                                     <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator (ClienteOrden)" />
                                 )}
-                                {can('uniordercreator', 'views') && (
+                                {tenantId === '3' && can('uniordercreator', 'views') && (
                                     <NavLink href="/uniclientedadorcreator" target="_blank" icon={Building} label="UniClienteDadorCreator (ClienteDador)" />
                                 )}
                                 {can('univehiclecreator', 'views') && (

@@ -254,11 +254,21 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
         };
     }, [rows]);
 
+    // Fila → índice original, O(n) una sola vez por cambio de `rows` (ver misma corrección en
+    // uniclientedadorcreator / uniordercreator).
+    const rowIndexMap = useMemo(() => {
+        const map = new Map<typeof rows[number], number>();
+        rows.forEach((r, i) => map.set(r, i));
+        return map;
+    }, [rows]);
+
+    const MAX_VISIBLE_RESULT_ROWS = 300;
+
     // ─── Filtered Error Rows ──────────────────────────────────────────────
     const filteredErrorRows = useMemo(() => {
         let filtered = stats.errorRows.map((row, _) => ({
             row,
-            originalIndex: rows.indexOf(row),
+            originalIndex: rowIndexMap.get(row) ?? -1,
         }));
 
         if (errorFilter) {
@@ -280,7 +290,7 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
         }
 
         return filtered;
-    }, [stats.errorRows, errorFilter, searchQuery, rows]);
+    }, [stats.errorRows, errorFilter, searchQuery, rowIndexMap]);
 
     // ─── Copy Error Report ────────────────────────────────────────────────
     const handleCopyReport = useCallback(() => {
@@ -534,7 +544,12 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
 
                             {/* Error List */}
                             <div className="space-y-2 max-h-[50vh] overflow-auto pr-1">
-                                {filteredErrorRows.map(({ row, originalIndex }) => (
+                                {filteredErrorRows.length > MAX_VISIBLE_RESULT_ROWS && (
+                                    <div className="text-[11px] text-slate-400 italic text-center pb-1">
+                                        Mostrando los primeros {MAX_VISIBLE_RESULT_ROWS} de {filteredErrorRows.length} — usa el buscador para acotar
+                                    </div>
+                                )}
+                                {filteredErrorRows.slice(0, MAX_VISIBLE_RESULT_ROWS).map(({ row, originalIndex }) => (
                                     <ErrorRow
                                         key={originalIndex}
                                         row={row}
@@ -555,8 +570,13 @@ export default function ResultsDashboard({ isOpen, onClose, onRetryRow, onRetryA
                     {/* SUCCESS TAB */}
                     {activeTab === 'success' && (
                         <div className="space-y-2 max-h-[60vh] overflow-auto pr-1">
-                            {stats.successRows.map((row, i) => {
-                                const originalIndex = rows.indexOf(row);
+                            {stats.successRows.length > MAX_VISIBLE_RESULT_ROWS && (
+                                <div className="text-[11px] text-slate-400 italic text-center pb-1">
+                                    Mostrando los primeros {MAX_VISIBLE_RESULT_ROWS} de {stats.successRows.length} — usa &quot;Export Excel&quot; para el listado completo
+                                </div>
+                            )}
+                            {stats.successRows.slice(0, MAX_VISIBLE_RESULT_ROWS).map((row) => {
+                                const originalIndex = rowIndexMap.get(row) ?? -1;
                                 return <SuccessRow key={originalIndex} row={row} index={originalIndex} />;
                             })}
                             {stats.successRows.length === 0 && (

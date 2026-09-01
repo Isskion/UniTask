@@ -36,6 +36,7 @@ const REQUIRED_FIELDS_SET = new Set(REQUIRED_FIELDS);
 export default function MapperPanel() {
     const headers = useAppStore((s) => s.headers);
     const rows = useAppStore((s) => s.rows);
+    const dataVersion = useAppStore((s) => s.dataVersion);
     const mapping = useAppStore((s) => s.mapping);
     const booleanOverrides = useAppStore((s) => s.booleanOverrides);
     const currentTab = useAppStore((s) => s.currentTab);
@@ -62,20 +63,24 @@ export default function MapperPanel() {
     }, [highlightedField]);
 
     // #35: Detect empty columns  
+    // Recalculado solo con `dataVersion` (carga de Excel / edición real de celda), NO con
+    // `rows` directamente: durante un envío masivo, `rows` cambia de referencia por cada fila.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const emptyColumnSet = useMemo(() => {
+        const currentRows = useAppStore.getState().rows;
         const empty = new Set<string>();
-        if (rows.length === 0) return empty;
+        if (currentRows.length === 0) return empty;
         for (const h of headers) {
-            const filledCount = rows.filter(r => {
+            const filledCount = currentRows.filter(r => {
                 const v = r[h];
                 return v !== undefined && v !== null && String(v).trim() !== '';
             }).length;
-            if (filledCount / rows.length < 0.05) { // <5% filled = effectively empty
+            if (filledCount / currentRows.length < 0.05) { // <5% filled = effectively empty
                 empty.add(h);
             }
         }
         return empty;
-    }, [rows, headers]);
+    }, [headers, dataVersion]);
 
     // #20: Preview values for the selected row
     const previewRow = useMemo(() => {

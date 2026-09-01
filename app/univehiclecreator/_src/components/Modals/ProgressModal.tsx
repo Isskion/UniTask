@@ -39,10 +39,17 @@ export default function ProgressModal({
     }, [isOpen, isComplete]);
 
     useEffect(() => {
-        logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        logsEndRef.current?.scrollIntoView({ behavior: 'auto' });
     }, [logs]);
 
     if (!isOpen) return null;
+
+    // Techo de líneas realmente montadas en el DOM — con un envío grande, montar TODAS las
+    // líneas acumuladas sin virtualizar era miles de nodos DOM re-renderizados en cada línea
+    // nueva (causa de freeze confirmada en módulos hermanos con este mismo patrón).
+    const MAX_VISIBLE_LOGS = 200;
+    const visibleLogs = logs.length > MAX_VISIBLE_LOGS ? logs.slice(logs.length - MAX_VISIBLE_LOGS) : logs;
+    const hiddenLogCount = logs.length - visibleLogs.length;
 
     const pct = total > 0 ? Math.round((current / total) * 100) : 0;
     const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -96,8 +103,13 @@ export default function ProgressModal({
 
                     {/* Logs console */}
                     <div className="max-h-48 overflow-auto rounded-xl bg-slate-950 p-3 space-y-1.5 border border-slate-800">
-                        {logs.map((log, i) => (
-                            <div key={i} className="flex items-start gap-2 text-[11px] font-mono leading-relaxed">
+                        {hiddenLogCount > 0 && (
+                            <div className="text-[10px] text-slate-500 italic pb-1 text-center">
+                                … {hiddenLogCount} líneas anteriores ocultas
+                            </div>
+                        )}
+                        {visibleLogs.map((log, i) => (
+                            <div key={hiddenLogCount + i} className="flex items-start gap-2 text-[11px] font-mono leading-relaxed">
                                 <span className={`shrink-0 px-1 py-0.2 rounded font-bold text-[9px] ${log.status === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
                                         log.status === 'error' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
                                             log.status === 'warn' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :

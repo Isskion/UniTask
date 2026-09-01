@@ -131,8 +131,12 @@ export default function ProgressModal({
     }, [isOpen, isComplete]);
 
     useEffect(() => {
-        logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        logsEndRef.current?.scrollIntoView({ behavior: 'auto' });
     }, [logs]);
+
+    const MAX_VISIBLE_LOGS = 200;
+    const visibleLogs = logs.length > MAX_VISIBLE_LOGS ? logs.slice(logs.length - MAX_VISIBLE_LOGS) : logs;
+    const hiddenLogCount = logs.length - visibleLogs.length;
 
     // #41: Play sound on completion
     useEffect(() => {
@@ -274,8 +278,13 @@ export default function ProgressModal({
 
                     {/* Logs */}
                     <div className="max-h-48 overflow-auto rounded-xl bg-slate-900 p-3 space-y-1 border border-slate-700">
-                        {logs.map((log, i) => (
-                            <LogRow key={i} log={log} />
+                        {hiddenLogCount > 0 && (
+                            <div className="text-[10px] text-slate-500 italic pb-1 text-center">
+                                … {hiddenLogCount} líneas anteriores ocultas (se incluyen en &quot;Copiar errores&quot;)
+                            </div>
+                        )}
+                        {visibleLogs.map((log, i) => (
+                            <LogRow key={hiddenLogCount + i} log={log} />
                         ))}
                         <div ref={logsEndRef} />
                     </div>

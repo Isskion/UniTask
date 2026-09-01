@@ -21,6 +21,9 @@ export interface AppState {
   dynamicFieldCounts: Record<string, number>;
   currentLanguage: string;
   isSending: boolean; sendCancelled: boolean; highlightedField: string; isDryRun: boolean;
+  /** Se incrementa solo cuando cambian los DATOS reales (carga de Excel, edición de celda),
+   * nunca en actualizaciones de _status/_error durante un envío masivo. */
+  dataVersion: number;
 
   setToken: (token: string | null) => void;
   setOrderUrl: (url: string) => void;
@@ -46,6 +49,13 @@ export interface AppState {
   setIsDryRun: (v: boolean) => void;
   navigateToField: (fieldPath: string) => void;
   updateRowData: (index: number, header: string, value: any) => void;
+  /** Edición masiva en UNA sola pasada/notificación — usar en vez de llamar a updateRowData
+   * en bucle por cada índice. */
+  applyBulkEdit: (indices: number[], header: string, value: any) => void;
+  /** Vacía datos/mapeo para empezar de cero (nuevo Excel, nuevo mapeo) SIN cerrar la sesión
+   * UNIGIS — a diferencia de `resetState`, que también resetea token/orderUrl/role. Quien la
+   * llama debe además limpiar la sesión guardada en localStorage (SESSION_KEY en page.tsx). */
+  clearAllData: () => void;
   resetState: () => void;
 }
 
@@ -57,13 +67,14 @@ export const useAppStore = create<AppState>((set) => ({
   dynamicFieldCounts: { Cliente: 0, ClienteDomicilio: 0 },
   currentLanguage: 'es',
   isSending: false, sendCancelled: false, highlightedField: '', isDryRun: false,
+  dataVersion: 0,
 
   setToken: (token) => set({ token }),
   setOrderUrl: (orderUrl) => set({ orderUrl }),
   setRole: (role) => set({ role }),
   setCurrentUser: (currentUser) => set({ currentUser }),
   setAllowedUsers: (allowedUsers) => set({ allowedUsers }),
-  setRows: (rows) => set({ rows }),
+  setRows: (rows) => set((state) => ({ rows, dataVersion: state.dataVersion + 1 })),
   setHeaders: (headers) => set({ headers }),
   setSelectedRow: (selectedRow) => set({ selectedRow }),
   toggleSelection: (index) => set((state) => {
@@ -102,12 +113,25 @@ export const useAppStore = create<AppState>((set) => ({
   updateRowData: (index, header, value) => set((state) => {
     const rows = [...state.rows];
     if (rows[index]) rows[index] = { ...rows[index], [header]: value };
-    return { rows };
+    const isRealEdit = !header.startsWith('_');
+    return { rows, dataVersion: isRealEdit ? state.dataVersion + 1 : state.dataVersion };
   }),
-  resetState: () => set({
+  applyBulkEdit: (indices, header, value) => set((state) => {
+    const idxSet = new Set(indices);
+    const rows = state.rows.map((r, i) => (idxSet.has(i) ? { ...r, [header]: value } : r));
+    return { rows, dataVersion: state.dataVersion + 1 };
+  }),
+  clearAllData: () => set((state) => ({
+    rows: [], headers: [], selectedIndices: new Set<number>(), selectedRow: -1,
+    mapping: {}, booleanOverrides: {}, currentTab: 'pCliente', searchQuery: '',
+    dynamicFieldCounts: { Cliente: 0, ClienteDomicilio: 0 },
+    dataVersion: state.dataVersion + 1,
+    // token/orderUrl/role/currentUser NO se tocan — sigue conectado a UNIGIS.
+  })),
+  resetState: () => set((state) => ({
     token: null, orderUrl: '', role: 'admin',
     rows: [], headers: [], selectedIndices: new Set<number>(), selectedRow: -1,
     mapping: {}, booleanOverrides: {}, currentTab: 'pCliente', searchQuery: '',
-    isSending: false, sendCancelled: false,
-  }),
+    isSending: false, sendCancelled: false, dataVersion: state.dataVersion + 1,
+  })),
 }));

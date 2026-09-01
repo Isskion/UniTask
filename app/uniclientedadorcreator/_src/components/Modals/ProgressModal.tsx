@@ -130,9 +130,21 @@ export default function ProgressModal({
         return () => clearInterval(t);
     }, [isOpen, isComplete]);
 
+    // Autoscroll instantáneo, no 'smooth': con un envío grande esto se dispara varias veces
+    // por fila (miles de veces en total) y una animación smooth en cada una se pisa a sí misma
+    // y satura el hilo principal — visualmente indistinguible aquí, pero sin el costo.
     useEffect(() => {
-        logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        logsEndRef.current?.scrollIntoView({ behavior: 'auto' });
     }, [logs]);
+
+    // Techo de líneas realmente montadas en el DOM. `logs` completo (sin techo) se sigue
+    // usando para "Copiar errores" y queda íntegro en memoria — aquí solo se limita el render.
+    // Antes se montaban TODAS las líneas acumuladas sin virtualizar: en un envío de miles de
+    // filas (varias líneas de log por fila) esto era miles de nodos DOM re-renderizados en
+    // cada línea nueva — la causa más visible del freeze del navegador durante un envío grande.
+    const MAX_VISIBLE_LOGS = 200;
+    const visibleLogs = logs.length > MAX_VISIBLE_LOGS ? logs.slice(logs.length - MAX_VISIBLE_LOGS) : logs;
+    const hiddenLogCount = logs.length - visibleLogs.length;
 
     // #41: Play sound on completion
     useEffect(() => {
@@ -274,8 +286,13 @@ export default function ProgressModal({
 
                     {/* Logs */}
                     <div className="max-h-48 overflow-auto rounded-xl bg-slate-900 p-3 space-y-1 border border-slate-700">
-                        {logs.map((log, i) => (
-                            <LogRow key={i} log={log} />
+                        {hiddenLogCount > 0 && (
+                            <div className="text-[10px] text-slate-500 italic pb-1 text-center">
+                                … {hiddenLogCount} líneas anteriores ocultas (se incluyen en &quot;Copiar errores&quot;)
+                            </div>
+                        )}
+                        {visibleLogs.map((log, i) => (
+                            <LogRow key={hiddenLogCount + i} log={log} />
                         ))}
                         <div ref={logsEndRef} />
                     </div>

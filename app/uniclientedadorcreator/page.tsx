@@ -194,6 +194,17 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
         const logs: ProgressLog[] = [];
         const ctx = buildContext();
 
+        // Circuit breaker de lote: el reintento por fila (3 intentos, ~2-3s de espera) alcanza
+        // para un hipo puntual del servidor, pero no para una caída real de varios minutos —
+        // confirmado con datos reales el 2026-09-01 (45 filas SEGUIDAS con HTTP 503 en un envío
+        // de 3864). Sin esto, un lote entero "atraviesa" la caída fallando fila por fila y hay
+        // que reintentarlas todas a mano después. Con esto, tras varios fallos 502/503/504
+        // consecutivos se asume que el servidor está caído y se pausa el envío completo un rato
+        // más largo antes de seguir — el usuario puede cancelar durante la pausa si hace falta.
+        let consecutiveTransientFailures = 0;
+        const TRANSIENT_FAILURE_THRESHOLD = 5;
+        const TRANSIENT_COOLDOWN_MS = 45000;
+
         if (!isDryRun) {
             try {
                 logs.push({ ref: 'UNIGIS', status: 'info', msg: 'Verificando conectividad...' });
@@ -224,6 +235,7 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
             const refCol = mapping['Root.ClienteDador.ReferenciaExterna'] || mapping['Root.ClienteDador.RazonSocial'];
             const ref = (refCol && row[refCol]) ? row[refCol] : `Fila ${index + 1}`;
             let lastRawResponse = '', lastXml = '';
+            let wasTransientFailure = false; // 502/503/504 agotando los 3 intentos — servidor caído, no dato malo
             try {
                 const xml = buildXml(row, ctx);
                 lastXml = xml;
@@ -239,7 +251,8 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
                         } else {
                             res = await postSoapProxy({ url: orderUrl, action: SOAP_ACTION, version: '1.1', body: xml, timeoutMs: 30000 });
                         }
-                        if ([502, 503, 504].includes(res.status)) throw new Error(`Error temporal HTTP ${res.status}`);
+                        if ([502, 503, 504].includes(res.status)) { wasTransientFailure = true; throw new Error(`Error temporal HTTP ${res.status}`); }
+                        wasTransientFailure = false;
                         fetchError = null; break;
                     } catch (err: any) {
                         fetchError = err;
@@ -271,6 +284,7 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
 
                 if (isSuccess) {
                     success++;
+                    consecutiveTransientFailures = 0;
                     setRowStatus(index, 'success', undefined, lastRawResponse);
                     updateRowData(index, '_UnigisResult', resultText || 'OK');
                     logs.push({ ref, status: 'success', msg: `Cliente Dador creado (${resultText || 'OK'})` });
@@ -299,6 +313,25 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
                 errors++;
                 setRowStatus(index, 'error', err.message, lastRawResponse);
                 logs.push({ ref, status: 'error', msg: err.message, detail: lastRawResponse?.slice(0, 2000) || undefined, xml: lastXml || undefined });
+
+                if (wasTransientFailure) {
+                    consecutiveTransientFailures++;
+                    if (consecutiveTransientFailures >= TRANSIENT_FAILURE_THRESHOLD) {
+                        logs.push({
+                            ref: 'UNIGIS', status: 'warn',
+                            msg: `⏸️ ${consecutiveTransientFailures} fallos seguidos (502/503/504) — el servidor parece caído. Pausa de ${TRANSIENT_COOLDOWN_MS / 1000}s antes de seguir...`,
+                        });
+                        setProgressLogs([...logs]);
+                        // Espera en tramos cortos para poder abortar la pausa si el usuario cancela
+                        // el envío en vez de quedar bloqueados 45s sin poder reaccionar.
+                        for (let waited = 0; waited < TRANSIENT_COOLDOWN_MS && !useAppStore.getState().sendCancelled; waited += 1000) {
+                            await new Promise(r => setTimeout(r, 1000));
+                        }
+                        consecutiveTransientFailures = 0;
+                    }
+                } else {
+                    consecutiveTransientFailures = 0;
+                }
             }
             setProgressSuccess(success); setProgressError(errors); setProgressLogs([...logs]);
         }
@@ -424,6 +457,15 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
                             <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setMappingActionsOpen(true)} title="Acciones de Mapeo">🗺️</button>
                             <button className="p-0.5 hover:bg-emerald-100 rounded transition-colors text-emerald-600 text-xs" onClick={() => { setLayoutExporterMode('export'); setLayoutExporterOpen(true); }} title="Exportar / Importar Layout">📋</button>
                             <button className="p-0.5 hover:bg-red-100 rounded transition-colors text-red-500 text-xs" onClick={() => { if (confirm('¿Limpiar todo el mapeo actual?')) setMapping({}); }} title="Limpiar Mapeo">🧹</button>
+                            <button
+                                className="p-0.5 hover:bg-red-100 rounded transition-colors text-red-600 text-xs"
+                                onClick={() => {
+                                    if (!confirm(`¿Vaciar todo (${rows.length} filas + mapeo) para empezar un mapeo nuevo? No se puede deshacer. La sesión conectada a UNIGIS no se cierra.`)) return;
+                                    useAppStore.getState().clearAllData();
+                                    localStorage.removeItem(SESSION_KEY);
+                                }}
+                                title="Nuevo Excel (vaciar todo)"
+                            >🗑️</button>
                             <span className="text-[10px] text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-full">{rows.length} filas</span>
                         </div>
                     </div>

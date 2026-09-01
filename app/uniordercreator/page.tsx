@@ -646,6 +646,18 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                                 onClick={() => { if (confirm('¿Limpiar todo el mapeo actual?')) setMapping({}); }}
                                 title="Limpiar Mapeo"
                             >🧹</button>
+                            {/* No existía ninguna forma de vaciar el Excel/mapeo cargado para empezar de
+                                cero — "Limpiar Mapeo" solo borra el mapeo, no las filas, y recargar la
+                                página restaura la sesión guardada (localStorage) tal cual estaba. */}
+                            <button
+                                className="p-0.5 hover:bg-red-100 rounded transition-colors text-red-600 text-xs"
+                                onClick={() => {
+                                    if (!confirm(`¿Vaciar todo (${rows.length} filas + mapeo) para empezar un mapeo nuevo? No se puede deshacer. La sesión conectada a UNIGIS no se cierra.`)) return;
+                                    useAppStore.getState().clearAllData();
+                                    localStorage.removeItem(SESSION_KEY);
+                                }}
+                                title="Nuevo Excel (vaciar todo)"
+                            >🗑️</button>
                             <span className="text-[10px] text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-full">{rows.length} filas</span>
                         </div>
                     </div>

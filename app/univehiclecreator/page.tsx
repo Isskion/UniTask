@@ -349,6 +349,14 @@ function UnigisVehicleCreatorPageInner() {
                                 onClick={() => { if (confirm('¿Limpiar todo el mapeo actual?')) setMapping({}); }}
                                 title="Limpiar Mapeo"
                             >🧹 Limpiar</button>
+                            <button
+                                className="p-1 hover:bg-slate-800 rounded transition-colors text-red-500 text-xs cursor-pointer"
+                                onClick={() => {
+                                    if (!confirm(`¿Vaciar todo (${rows.length} filas + mapeo) para empezar un mapeo nuevo? No se puede deshacer. La sesión conectada a UNIGIS no se cierra.`)) return;
+                                    useAppStore.getState().clearAllData();
+                                }}
+                                title="Nuevo Excel (vaciar todo)"
+                            >🗑️ Nuevo</button>
                             <span className="text-[10px] text-slate-400 font-bold bg-slate-950 border border-slate-850 px-2 py-0.5 rounded-full">{rows.length} filas</span>
                         </div>
                     </div>
