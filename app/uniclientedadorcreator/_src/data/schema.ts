@@ -16,10 +16,6 @@ export const SCHEMA: { Root: SchemaNode } = {
       Localidad: '',
       eMailGestorDeFlota: '',
       CentroDeCosto: '',
-      IdEstado: '',
-      IdEstado_opcional: '',
-      IntegrarRNDC: 'bool',
-      IntegrarRNDC_Opcional: 'bool',
       operaciones: {
         _isArray: true,
         _itemTag: 'pOperacion',
@@ -36,13 +32,14 @@ export const SCHEMA: { Root: SchemaNode } = {
         _itemTag: 'CampoValor',
         _fields: { Campo: '', Valor: '' },
       },
+      IdEstado: '',
+      IntegrarRNDC: 'bool',
     },
   },
 };
 
 export const KNOWN_BOOLEAN_PATHS: string[] = [
   'Root.ClienteDador.IntegrarRNDC',
-  'Root.ClienteDador.IntegrarRNDC_Opcional',
 ];
 
 export const FIELD_GROUPS: Record<string, string[]> = {
@@ -58,9 +55,7 @@ export const FIELD_GROUPS: Record<string, string[]> = {
     'Root.ClienteDador.eMailGestorDeFlota',
     'Root.ClienteDador.CentroDeCosto',
     'Root.ClienteDador.IdEstado',
-    'Root.ClienteDador.IdEstado_opcional',
     'Root.ClienteDador.IntegrarRNDC',
-    'Root.ClienteDador.IntegrarRNDC_Opcional',
   ],
   Operaciones: [
     'Root.ClienteDador.operaciones.Descripcion',
