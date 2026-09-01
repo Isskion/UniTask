@@ -165,7 +165,14 @@ export default function MasterTable() {
     }, [rows, mapping]);
 
     // Refs for caching validation results per row to avoid redundant validations during sending status changes
-    const validationCacheRef = useRef<Map<number, { rowRef: any; result: { isValid: boolean; errors: number; warnings: number } }>>(new Map());
+    // Cachea también el wrapper {originalIndex, row} completo (no solo el resultado de
+    // validación): al mandar un lote, setRowStatus/updateRowData solo reemplazan el objeto
+    // de la fila TOCADA (ver appStore.ts) — las demás conservan la misma referencia `r`. Antes
+    // se reconstruía `{...r, _validationInfo}` como objeto NUEVO para las 100% de las filas en
+    // cada tick de progreso, así que React.memo en TableRow nunca podía evitar el re-render y
+    // la tabla entera (sin virtualizar) se repintaba en cada fila enviada. Reutilizando el mismo
+    // wrapper cuando el contenido no cambió, solo se re-renderiza la fila que realmente cambió.
+    const validationCacheRef = useRef<Map<number, { rowRef: any; result: { isValid: boolean; errors: number; warnings: number }; wrapper: { originalIndex: number; row: Record<string, any> } }>>(new Map());
     const prevMappingRef = useRef<any>(null);
     const prevDuplicateMapRef = useRef<any>(null);
     const prevRowsLengthRef = useRef<number>(0);
@@ -174,8 +181,8 @@ export default function MasterTable() {
     const filteredRows = useMemo(() => {
         // Clear cache if mapping, duplicateMap, or rows length changes
         if (
-            prevMappingRef.current !== mapping || 
-            prevDuplicateMapRef.current !== duplicateMap || 
+            prevMappingRef.current !== mapping ||
+            prevDuplicateMapRef.current !== duplicateMap ||
             prevRowsLengthRef.current !== rows.length
         ) {
             validationCacheRef.current.clear();
@@ -186,7 +193,7 @@ export default function MasterTable() {
 
         const baseRows = rows.map((r, i) => {
             const cached = validationCacheRef.current.get(i);
-            
+
             // Fast check: if row reference changed, compare content fields (ignoring private metadata starting with '_')
             let useCache = false;
             if (cached) {
@@ -201,29 +208,22 @@ export default function MasterTable() {
                 }
             }
 
-            let validationInfo;
             if (useCache && cached) {
                 cached.rowRef = r; // Update stored reference to newest shallow copy
-                validationInfo = cached.result;
-            } else {
-                const validation = validateOrderRow(r as Record<string, string>, i, mapping, duplicateMap);
-                const errors = validation.issues.filter(iss => iss.severity === 'error').length;
-                const warnings = validation.issues.filter(iss => iss.severity === 'warning').length;
-                validationInfo = { isValid: validation.isValid, errors, warnings };
-                validationCacheRef.current.set(i, { rowRef: r, result: validationInfo });
+                return cached.wrapper; // Contenido idéntico → misma referencia → TableRow no se re-renderiza
             }
 
-            return {
-                originalIndex: i,
-                row: {
-                    ...r,
-                    _validationInfo: validationInfo
-                }
-            };
+            const validation = validateOrderRow(r as Record<string, string>, i, mapping, duplicateMap);
+            const errors = validation.issues.filter(iss => iss.severity === 'error').length;
+            const warnings = validation.issues.filter(iss => iss.severity === 'warning').length;
+            const validationInfo = { isValid: validation.isValid, errors, warnings };
+            const wrapper = { originalIndex: i, row: { ...r, _validationInfo: validationInfo } };
+            validationCacheRef.current.set(i, { rowRef: r, result: validationInfo, wrapper });
+            return wrapper;
         });
 
         if (!filterQuery.trim()) return baseRows;
-        
+
         const q = filterQuery.toLowerCase();
         return baseRows.filter(({ row }) =>
             headers.some((h) => String((row as Record<string, any>)[h] ?? '').toLowerCase().includes(q))
