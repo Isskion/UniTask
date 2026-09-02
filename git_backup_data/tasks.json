@@ -3785,17 +3785,22 @@
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "techDescription": "Añadir nuevos casos al documento de tarifas, crear versión 3.0",
     "tenantId": "3",
-    "actualEffort": null,
     "isActive": true,
     "createdAt": {
       "_seconds": 1788348283,
       "_nanoseconds": 736000000
     },
     "attributes": {},
-    "status": "in_progress",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 5,
+    "closedAt": {
+      "_seconds": 1788362856,
+      "_nanoseconds": 698000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1788349146,
-      "_nanoseconds": 983000000
+      "_seconds": 1788362856,
+      "_nanoseconds": 698000000
     }
   },
   {
