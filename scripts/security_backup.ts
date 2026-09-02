@@ -75,6 +75,7 @@ const COLLECTIONS = [
     'unileaks_notes',
     'ai_corrections',
     'ai_performance_logs',
+    'uniswaggerCache',
 ];
 
 async function runBackup() {

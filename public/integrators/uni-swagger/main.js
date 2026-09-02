@@ -215,17 +215,19 @@ function init() {
 
         els.closePaste.addEventListener('click', () => els.pasteModal.classList.add('hidden'));
 
-        els.processPaste.addEventListener('click', () => {
+        els.processPaste.addEventListener('click', async () => {
+            let parsed;
             try {
-                const parsed = JSON.parse(els.jsonInputArea.value);
-                state.swagger = parsed;
-                saveSwaggerCache(els.swaggerUrl ? els.swaggerUrl.value : null, parsed);
-                renderMethods();
-                notify('Swagger cargado y guardado en cache local (no hace falta volver a pegarlo)', 'success');
-                els.pasteModal.classList.add('hidden');
+                parsed = JSON.parse(els.jsonInputArea.value);
             } catch (err) {
                 alert('JSON inválido. Asegúrate de copiar todo el contenido.');
+                return;
             }
+            state.swagger = parsed;
+            renderMethods();
+            els.pasteModal.classList.add('hidden');
+            await saveSwaggerCache(els.swaggerUrl ? els.swaggerUrl.value : null, parsed);
+            notify('Swagger cargado y guardado en Firestore (no hace falta volver a pegarlo)', 'success');
         });
     }
 
@@ -430,18 +432,18 @@ async function handleLogin() {
             els.loginScreenWrapper.classList.add('hidden');
             els.appContainer.classList.remove('hidden');
 
-            // Cargar Swagger: primero desde cache local (instantáneo, no depende de la
-            // sesión de sitio), y en segundo plano intentar refrescarlo desde la red
-            // sin pisar la lista si ese intento falla (ver loadSwagger silent:true).
+            // Cargar Swagger: primero desde Firestore (instantáneo, no depende de la
+            // sesión de sitio ni del navegador), y en segundo plano intentar refrescarlo
+            // desde la red sin pisar la lista si ese intento falla (loadSwagger silent:true).
             const swaggerUrl = `${baseUrl}/swagger/docs/v1`;
             els.swaggerUrl.value = swaggerUrl;
 
-            const cached = loadSwaggerCache();
+            const cached = await loadSwaggerCache(swaggerUrl);
             if (cached && cached.json) {
                 state.swagger = cached.json;
                 renderMethods();
                 const savedDate = cached.savedAt ? new Date(cached.savedAt).toLocaleString() : 'fecha desconocida';
-                notify(`Swagger cargado desde cache local (guardado ${savedDate})`, 'success');
+                notify(`Swagger cargado desde Firestore (guardado ${savedDate})`, 'success');
                 loadSwagger(swaggerUrl, { silent: true });
             } else {
                 loadSwagger(swaggerUrl);
@@ -489,29 +491,31 @@ function handleLogout() {
 }
 
 // --- Swagger Logic ---
-// --- Cache local del Swagger (para no depender del fetch automático cada vez) ---
-const SWAGGER_CACHE_KEY = 'unigis_swagger_cache';
-
-function saveSwaggerCache(url, swaggerJson) {
+// --- Cache del Swagger en Firestore (para no depender del fetch automático
+// cada vez, y para que quede compartido entre navegadores/usuarios) ---
+async function saveSwaggerCache(url, swaggerJson) {
     try {
-        localStorage.setItem(SWAGGER_CACHE_KEY, JSON.stringify({
-            url: url || null,
-            json: swaggerJson,
-            savedAt: Date.now()
-        }));
+        const res = await fetch('/api/uniswagger/cache', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url || null, json: swaggerJson })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
     } catch (e) {
-        console.warn('[UniSwagger] No se pudo guardar el cache local del Swagger:', e);
+        console.warn('[UniSwagger] No se pudo guardar el cache en Firestore:', e);
     }
 }
 
-function loadSwaggerCache() {
+async function loadSwaggerCache(url) {
     try {
-        const raw = localStorage.getItem(SWAGGER_CACHE_KEY);
-        if (!raw) return null;
-        return JSON.parse(raw);
+        const qs = url ? `?url=${encodeURIComponent(url)}` : '';
+        const res = await fetch(`/api/uniswagger/cache${qs}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data.found) return null;
+        return { url: data.url, json: data.json, savedAt: data.savedAt };
     } catch (e) {
-        console.warn('[UniSwagger] Cache local de Swagger corrupto, se descarta:', e);
-        localStorage.removeItem(SWAGGER_CACHE_KEY);
+        console.warn('[UniSwagger] No se pudo leer el cache de Firestore:', e);
         return null;
     }
 }
@@ -576,7 +580,7 @@ async function loadSwagger(url, opts = {}) {
         }
 
         state.swagger = parsed;
-        saveSwaggerCache(finalUrl, parsed);
+        await saveSwaggerCache(finalUrl, parsed);
         renderMethods();
         notify(silent ? 'Swagger actualizado en segundo plano' : 'Swagger cargado automáticamente (vía Proxy local)', 'success');
     } catch (err) {

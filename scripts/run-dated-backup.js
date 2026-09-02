@@ -78,6 +78,7 @@ const COLLECTIONS = [
     'unileaks_notes',
     'ai_corrections',
     'ai_performance_logs',
+    'uniswaggerCache',
     // Cuando exista kpiDefinitions (feature de KPIs dinámicos, ver docs/kpi-builder-design.md), añadirla aquí también.
 ];
 
