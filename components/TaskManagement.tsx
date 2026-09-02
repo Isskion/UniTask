@@ -822,6 +822,11 @@ export default function TaskManagement({
                         updatedAt: serverTimestamp()
                     });
 
+                    // [FIX] La tarea YA se guardó (updateDoc de arriba). Todo lo que sigue es
+                    // bitácora/notificaciones "best-effort": si algo de esto explota (ej. una
+                    // fecha inválida rompiendo format()), no debe mostrar "Error al guardar"
+                    // ni saltarse el toast de éxito — el cambio real ya está en Firestore.
+                    try {
                     // AUDIT LOG (Deadline Change)
                     if (selectedTask.endDate !== formData.endDate && user) {
                         const oldDate = selectedTask.endDate ? format(new Date(selectedTask.endDate), 'dd/MM/yy') : 'Sin fecha';
@@ -851,7 +856,7 @@ export default function TaskManagement({
                                 type: 'status_change',
                                 details: `Estado cambiado de ${getStatusLabel(selectedTask.status)} a ${getStatusLabel(formData.status)}`,
                                 createdAt: serverTimestamp()
-                            });
+                            }).catch(e => console.error("Audit Log Error (status_change)", e));
 
                             // CROSS-TRIGGER: Dependency Release
                             if (['completed', 'discarded', 'out_of_scope'].includes(formData.status || '')) {
@@ -868,9 +873,9 @@ export default function TaskManagement({
                                             type: 'dependency_released',
                                             details: `Dependencia liberada: "${selectedTask.title}" ha sido ${statusWord}.`,
                                             createdAt: serverTimestamp()
-                                        });
+                                        }).catch(e => console.error("Audit Log Error (dependency_released)", e));
                                     });
-                                });
+                                }).catch(e => console.error("Audit Log Error (dependency release query)", e));
                             }
                         }
 
@@ -887,7 +892,7 @@ export default function TaskManagement({
                                 type: 'assignment_change',
                                 details: `Responsable cambiado de ${oldUser} a ${newUser}`,
                                 createdAt: serverTimestamp()
-                            });
+                            }).catch(e => console.error("Audit Log Error (assignment_change)", e));
                         }
 
                         // 3. Hierarchy Change [NEW V3]
@@ -937,7 +942,7 @@ export default function TaskManagement({
                                     // @ts-ignore
                                     details: `${field.charAt(0).toUpperCase() + field.slice(1)} cambiado de "${selectedTask[field] || '-'}" a "${formData[field] || '-'}"`,
                                     createdAt: serverTimestamp()
-                                });
+                                }).catch(e => console.error("Audit Log Error (classification_change)", e));
                             }
                         });
 
@@ -958,7 +963,7 @@ export default function TaskManagement({
                                 type: 'dependency_added',
                                 details: `Añadida dependencia: ${depTask?.title || depId}`,
                                 createdAt: serverTimestamp()
-                            });
+                            }).catch(e => console.error("Audit Log Error (dependency_added)", e));
                         });
 
                         removedDeps.forEach(depId => {
@@ -972,7 +977,7 @@ export default function TaskManagement({
                                 type: 'dependency_removed',
                                 details: `Eliminada dependencia: ${depTask?.title || depId}`,
                                 createdAt: serverTimestamp()
-                            });
+                            }).catch(e => console.error("Audit Log Error (dependency_removed)", e));
                         });
                     }
 
@@ -988,6 +993,10 @@ export default function TaskManagement({
                             createdAt: serverTimestamp()
                         })
                             .catch(e => console.error("Notification Error", e));
+                    }
+                    } catch (auditError) {
+                        // No relanzar: la tarea ya se guardó, esto es solo bitácora/notificación.
+                        console.error("[TaskManagement] Error en audit log/notificaciones post-guardado (el cambio SÍ se guardó):", auditError);
                     }
 
                     setTasks(prev => prev.map(t => t.id === selectedTask.id ? { ...t, ...data } as Task : t));
