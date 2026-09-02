@@ -293,6 +293,7 @@ export default function DailyFollowUp() {
 
     // --- STATE: DIRTY (Unsaved Changes) ---
     const [isDirty, setIsDirty] = useState(false);
+    const [lastAutoSavedAt, setLastAutoSavedAt] = useState<Date | null>(null);
     const [showChangelog, setShowChangelog] = useState(false); // Added state
     // Move Feature State
     const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
@@ -312,9 +313,7 @@ export default function DailyFollowUp() {
     */
 
 
-    // Prevent accidental navigation if unsaved
-    // [DEBUG] Disabling listener to see if warning persists.
-    /*
+    // Prevent accidental navigation if unsaved (cerrar pestaña/navegador, recargar, navegar fuera)
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (isDirty) {
@@ -325,7 +324,6 @@ export default function DailyFollowUp() {
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [isDirty]);
-    */
 
     // Permission Logic
     const allowedProjectNames = useMemo(() => {
@@ -606,9 +604,11 @@ export default function DailyFollowUp() {
 
 
     // 3. Save Handler
-    const handleSave = async () => {
+    // silent=true se usa desde el autoguardado: persiste igual, pero sin toasts
+    // ruidosos en cada guardado automático (solo loguea en consola).
+    const handleSave = async (silent: boolean = false) => {
         if (!auth.currentUser) {
-            showToast("Error", "No has iniciado sesión", "error");
+            if (!silent) showToast("Error", "No has iniciado sesión", "error");
             return;
         }
         setSaving(true);
@@ -682,16 +682,56 @@ export default function DailyFollowUp() {
                 return [{ ...entry, updatedAt: new Date().toISOString() }, ...filtered].sort((a, b) => b.date.localeCompare(a.date));
             });
 
-            showToast("UniTaskController", `Distributed save across ${projectsByTenant.size} tenant(s)`, "success");
+            if (silent) {
+                console.log(`[AutoSave] Guardado automático OK (${projectsByTenant.size} tenant(s))`);
+                setLastAutoSavedAt(new Date());
+            } else {
+                showToast("UniTaskController", `Distributed save across ${projectsByTenant.size} tenant(s)`, "success");
+            }
             setIsDirty(false); // [FIX] Only clear dirty flag if save succeeded
         } catch (e) {
             console.error(e);
-            showToast("Error", "Error al guardar: " + (e as Error).message, "error");
-            // DO NOT clear isDirty here. User should try again.
+            if (!silent) showToast("Error", "Error al guardar: " + (e as Error).message, "error");
+            // DO NOT clear isDirty here. User should try again (o lo reintentará el autoguardado).
         } finally {
             setSaving(false);
         }
     };
+
+    // [AUTOSAVE] Guarda automáticamente los cambios sin depender del botón "Guardar" manual.
+    // Se dispara: (a) por debounce, 3s después de dejar de escribir; y (b) al instante si el
+    // usuario cambia de pestaña del navegador o la oculta (visibilitychange/pagehide), que es
+    // justo el caso reportado de pérdida de datos al cambiar de pestaña sin guardar.
+    const handleSaveRef = useRef(handleSave);
+    handleSaveRef.current = handleSave;
+    const isDirtyRef = useRef(isDirty);
+    isDirtyRef.current = isDirty;
+    const savingRef = useRef(saving);
+    savingRef.current = saving;
+
+    useEffect(() => {
+        if (!isDirty) return;
+        const timer = setTimeout(() => {
+            if (isDirtyRef.current && !savingRef.current) {
+                handleSaveRef.current(true);
+            }
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, [isDirty, entry]);
+
+    useEffect(() => {
+        const flushOnHide = () => {
+            if (document.visibilityState === 'hidden' && isDirtyRef.current && !savingRef.current) {
+                handleSaveRef.current(true);
+            }
+        };
+        document.addEventListener('visibilitychange', flushOnHide);
+        window.addEventListener('pagehide', flushOnHide);
+        return () => {
+            document.removeEventListener('visibilitychange', flushOnHide);
+            window.removeEventListener('pagehide', flushOnHide);
+        };
+    }, []);
 
     // --- NEW: Explicit AI Reformatting ---
     const [isReformattingAI, setIsReformattingAI] = useState<string | null>(null);
@@ -1935,7 +1975,7 @@ export default function DailyFollowUp() {
 
                                             {/* 4. SAVE (Unified Style) */}
                                             <button
-                                                onClick={handleSave}
+                                                onClick={() => handleSave(false)}
                                                 disabled={saving}
                                                 className={cn("flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm",
                                                     isLight
@@ -1947,20 +1987,13 @@ export default function DailyFollowUp() {
                                                 {t('common.save')}
                                             </button>
 
-                                            {isDirty && (
-                                                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse ml-1" title="Cambios sin guardar" />
-                                            )}
-
-                                            <button
-                                                onClick={() => {
-                                                    window.onbeforeunload = null;
-                                                    showToast("Debug", "Warning Disabled", "info");
-                                                }}
-                                                className="w-1.5 h-1.5 rounded-full bg-red-900/10 hover:bg-red-500 transition-colors ml-1"
-                                                title="Debug: Kill Warning"
-                                            />
-
-                                            {/* DIAGNOSTIC BUTTON REMOVED */}{" "}
+                                            {isDirty ? (
+                                                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse ml-1" title="Cambios sin guardar (se autoguarda en unos segundos)" />
+                                            ) : lastAutoSavedAt ? (
+                                                <span className="text-[9px] text-zinc-500 ml-1" title={lastAutoSavedAt.toLocaleTimeString()}>
+                                                    Autoguardado ✓
+                                                </span>
+                                            ) : null}
                                             {/* Add Project Button State */}
                                             {/* We need a local state for the dropdown, but we are in a map... wait, this is the header, outside map */}
                                         </div>
