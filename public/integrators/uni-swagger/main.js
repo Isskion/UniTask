@@ -507,13 +507,25 @@ async function loadSwagger(url) {
         const proxyUrl = `/api/proxy?url=${encodeURIComponent(finalUrl)}`;
         const response = await fetch(proxyUrl);
 
-        if (!response.ok) throw new Error('No se pudo obtener el Swagger');
+        if (!response.ok) {
+            const bodyText = await response.text().catch(() => '');
+            throw new Error(`No se pudo obtener el Swagger (HTTP ${response.status}). ${bodyText.slice(0, 200)}`);
+        }
         state.swagger = await response.json();
         renderMethods();
         notify('Swagger cargado automáticamente (vía Proxy local)', 'success');
     } catch (err) {
-        console.error(err);
+        console.error('[UniSwagger] Fallo al cargar Swagger desde', finalUrl, err);
         notify('Fallo carga automática. Intenta con "Pegar JSON".', 'error');
+        // Mostrar el motivo real donde el usuario está mirando (la barra izquierda),
+        // no solo en un toast que puede pasar desapercibido.
+        els.methodList.innerHTML = `
+            <div class="log-entry error">
+                <strong>No se pudieron cargar los servicios.</strong><br>
+                URL intentada: <code>${finalUrl}</code><br>
+                Motivo: ${err.message || 'Error desconocido'}<br><br>
+                Probá con el botón "Pegar JSON de Swagger" pegando el JSON manualmente.
+            </div>`;
     } finally {
         toggleLoading(false);
     }
@@ -523,8 +535,14 @@ function renderMethods() {
     console.log('Rendering methods...', state.swagger);
     const paths = state.swagger.paths;
     if (!paths) {
-        console.error('No paths found in Swagger JSON');
+        console.error('No paths found in Swagger JSON', state.swagger);
         notify('El JSON cargado no contiene rutas (paths)', 'error');
+        els.methodList.innerHTML = `
+            <div class="log-entry error">
+                <strong>El JSON cargado no contiene rutas ("paths").</strong><br>
+                Claves recibidas: <code>${Object.keys(state.swagger || {}).join(', ') || '(vacío)'}</code><br><br>
+                Verificá que sea un Swagger/OpenAPI válido (Swagger 2.0 con clave "paths").
+            </div>`;
         return;
     }
 
@@ -551,24 +569,16 @@ function renderMethods() {
         return;
     }
 
+    const HIDDEN_TAGS = ['logisticasync', 'inforasync', 'alerts', 'appointmentsasync', 'mapserver',
+        'calculateddistance', 'resources', 'searchaddress', 'searchpoi', 'shipmentevents',
+        'shipments', 'searchzipcode', 'shipmentsstate', 'unigisrouted'];
+
+    let visibleGroups = 0;
+
     groupKeys.forEach((tag, index) => {
         const lowerTag = tag.toLowerCase();
-        if (lowerTag === 'logisticasync' ||
-            lowerTag === 'inforasync' ||
-            lowerTag === 'alerts' ||
-            lowerTag === 'appointmentsasync' ||
-            lowerTag === 'mapserver' ||
-            lowerTag === 'calculateddistance' ||
-            lowerTag === 'resources' ||
-            lowerTag === 'searchaddress' ||
-            lowerTag === 'searchpoi' ||
-            lowerTag === 'shipmentevents' ||
-            lowerTag === 'shipments' ||
-            lowerTag === 'searchzipcode' ||
-            lowerTag === 'shipmentsstate' ||
-            lowerTag === 'unigisrouted'
-
-        ) return; // Hide these from the UI list
+        if (HIDDEN_TAGS.includes(lowerTag)) return; // Hide these from the UI list
+        visibleGroups++;
 
         const tagHeader = document.createElement('div');
         tagHeader.className = 'tag-header';
@@ -617,6 +627,21 @@ function renderMethods() {
         });
         els.methodList.appendChild(methodContainer);
     });
+
+    if (visibleGroups === 0) {
+        // Se cargaron métodos, pero el filtro de tags los ocultó a todos.
+        // Mostrar diagnóstico real en vez de dejar la barra vacía en silencio.
+        console.warn('[UniSwagger] Todos los grupos quedaron ocultos por el filtro de tags. Tags encontrados:', groupKeys);
+        els.methodList.innerHTML = `
+            <div class="log-entry error">
+                <strong>Se cargaron ${totalMethods} métodos pero ninguno es visible.</strong><br>
+                Todos los tags encontrados están en la lista oculta del integrador.<br>
+                Tags encontrados: <code>${groupKeys.join(', ')}</code><br><br>
+                Si esperabas ver "LogisticService", revisá que el Swagger cargado sea el correcto,
+                o ajustá la lista <code>HIDDEN_TAGS</code> en main.js (función renderMethods).
+            </div>`;
+        notify('Todos los métodos quedaron ocultos por el filtro de tags', 'error');
+    }
 }
 
 function selectMethod(path, verb, definition) {
