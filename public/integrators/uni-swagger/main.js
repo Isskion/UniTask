@@ -507,11 +507,31 @@ async function loadSwagger(url) {
         const proxyUrl = `/api/proxy?url=${encodeURIComponent(finalUrl)}`;
         const response = await fetch(proxyUrl);
 
+        const rawBody = await response.text();
+
         if (!response.ok) {
-            const bodyText = await response.text().catch(() => '');
-            throw new Error(`No se pudo obtener el Swagger (HTTP ${response.status}). ${bodyText.slice(0, 200)}`);
+            throw new Error(`HTTP ${response.status}. ${rawBody.slice(0, 200)}`);
         }
-        state.swagger = await response.json();
+
+        // Caso frecuente en UNIGIS: /swagger/docs/v1 exige sesión de sitio (cookie de
+        // Login.aspx), distinta del token de API que da el login de este integrador.
+        // Si no hay sesión, el servidor devuelve la página de login en vez del JSON.
+        const looksLikeLoginPage = /<!DOCTYPE|<html/i.test(rawBody) && /login/i.test(rawBody);
+        if (looksLikeLoginPage) {
+            throw new Error(
+                'El servidor devolvió la página de login (HTML) en vez del JSON del Swagger. ' +
+                'Esta ruta exige sesión de sitio (distinta del login de API que usa este integrador). ' +
+                'Iniciá sesión en el sitio de UNIGIS en otra pestaña, abrí ahí la misma URL del Swagger, ' +
+                'copiá el JSON y usá el botón "Pegar JSON de Swagger".'
+            );
+        }
+
+        try {
+            state.swagger = JSON.parse(rawBody);
+        } catch (e) {
+            throw new Error(`La respuesta no es JSON válido: ${rawBody.slice(0, 200)}`);
+        }
+
         renderMethods();
         notify('Swagger cargado automáticamente (vía Proxy local)', 'success');
     } catch (err) {
@@ -524,7 +544,7 @@ async function loadSwagger(url) {
                 <strong>No se pudieron cargar los servicios.</strong><br>
                 URL intentada: <code>${finalUrl}</code><br>
                 Motivo: ${err.message || 'Error desconocido'}<br><br>
-                Probá con el botón "Pegar JSON de Swagger" pegando el JSON manualmente.
+                Usá el botón "📋 Pegar JSON de Swagger" (arriba de esta lista) para cargarlo manualmente.
             </div>`;
     } finally {
         toggleLoading(false);

@@ -48,6 +48,11 @@
             </div>
             <div class="search-box">
                 <input type="text" id="methodSearch" placeholder="Buscar método...">
+                <button id="pasteJsonBtn" class="btn-secondary"
+                    style="width: 100%; margin-top: 8px; font-size: 12px; padding: 8px;"
+                    title="Si la carga automática del Swagger falla (login de sitio, CORS, etc.), pegá el JSON manualmente">
+                    📋 Pegar JSON de Swagger
+                </button>
             </div>
             <nav class="method-list" id="methodList">
                 <div class="loading-spinner">Cargando Swagger...</div>
@@ -203,7 +208,7 @@
     </div>
 
     <script src="https://cdn.sheetjs.com/xlsx-0.18.5/package/dist/xlsx.full.min.js"></script>
-    <script type="module" src="main.js?v=202606161100"></script>
+    <script type="module" src="main.js?v=202609020800"></script>
 </body>
 
 </html>
