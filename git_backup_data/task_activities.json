@@ -1400,6 +1400,20 @@
     }
   },
   {
+    "id": "8Gnk2xgLlIrbhR8Q3J4s",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "type": "status_change",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "details": "Estado cambiado de Pendiente a En Curso",
+    "userEmail": "daniel.delamo@unigis.com",
+    "taskId": "DbfR3gHu7elGlHEadpJO",
+    "createdAt": {
+      "_seconds": 1788348509,
+      "_nanoseconds": 941000000
+    }
+  },
+  {
     "id": "8ICJWZtdxuYbGiDeaQJb",
     "taskId": "20E8FLIHK9GvUhpbb213",
     "tenantId": "3",

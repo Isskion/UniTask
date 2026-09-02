@@ -5174,6 +5174,32 @@
     ]
   },
   {
+    "id": "3_2026-09-02",
+    "tenantId": "3",
+    "updatedAt": "2026-09-02T14:15:37.182Z",
+    "createdAt": "2026-09-02T14:07:09.113Z",
+    "date": "2026-09-02",
+    "generalNotes": "",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Transpais - Seguimiento semanal 02-09-2026\n\nPORTIC -- > confirmado el mapeo, queda definir una tabla de conversión de las refercnias externas para hacer matching entre pedidos de portic y Unigis.\n\nInterfaces:\n-> Aitana Business Central: REunión programada para el viernes día 4. Analisis de las interfaces compartidas.\n                                                                                Envía maestros (excepto conductores)\n-> Webfleet: Funcionando en test, validada recpeción de GPS. Sensores emitiendo y el sistema recibiendo, estamos analizando que recibimos y como mostrar los datos solicitados.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: Resuelto el flujo inicial de interfaces entre Unigis y Transpais.\n      Alta de pedido Generix consume el api expuesta por unigis - Si\n      Alta de pedido en Unigis y se graba en Generix consumiendo la api de Generix -- Si\n      Planificación del los pedidos - Unigis consume el Api de Generix \n                                                                                En base a las reglas de planificación u orden del planificador\n                                                                                Comunicamos a los terceros que correspondan\n      Generix devuelve las preparaciones -- Generix consume Api de Unigis con\n                                                                                 las cantidades reales preparadas\n                                                                                 Nº de pedido que el tercero le devolvió a generix (proveedores externos)\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. En construcción informamos de avances\n-> Internacional: Entregado documento con anotaciones respondidas. En construcción informamos de avances\n-> Distribución: Entregado documento con anotaciones respondidas. En construcción informamos de avances\n------------\n\n",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Transpais - Seguimiento semanal 02-09-2026\n\nPORTIC -- > confirmado el mapeo, queda definir una tabla de conversión de las refercnias externas para hacer matching entre pedidos de portic y Unigis.\n\nInterfaces:\n-> Aitana Business Central: REunión programada para el viernes día 4. Analisis de las interfaces compartidas.\n                                                                                Envía maestros (excepto conductores)\n-> Webfleet: Funcionando en test, validada recpeción de GPS. Sensores emitiendo y el sistema recibiendo, estamos analizando que recibimos y como mostrar los datos solicitados.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: Resuelto el flujo inicial de interfaces entre Unigis y Transpais.\n      Alta de pedido Generix consume el api expuesta por unigis - Si\n      Alta de pedido en Unigis y se graba en Generix consumiendo la api de Generix -- Si\n      Planificación del los pedidos - Unigis consume el Api de Generix \n                                                                                En base a las reglas de planificación u orden del planificador\n                                                                                Comunicamos a los terceros que correspondan\n      Generix devuelve las preparaciones -- Generix consume Api de Unigis con\n                                                                                 las cantidades reales preparadas\n                                                                                 Nº de pedido que el tercero le devolvió a generix (proveedores externos)\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. En construcción informamos de avances\n-> Internacional: Entregado documento con anotaciones respondidas. En construcción informamos de avances\n-> Distribución: Entregado documento con anotaciones respondidas. En construcción informamos de avances\n------------\n\n",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ]
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",

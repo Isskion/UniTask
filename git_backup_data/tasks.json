@@ -3751,6 +3751,54 @@
     }
   },
   {
+    "id": "DbfR3gHu7elGlHEadpJO",
+    "progress": 0,
+    "projectCode": "LSM",
+    "creationSource": "manual_main",
+    "ancestorIds": [],
+    "endDate": "2026-09-02T22:00:00.000Z",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "title": "Añadir nuevos casos al documento de tarifas, crear versión 3.0",
+    "type": "task",
+    "friendlyId": "LUI-11",
+    "dependencies": [],
+    "taskNumber": 11,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "order": 1788348191.481,
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "techDescription": "Añadir nuevos casos al documento de tarifas, crear versión 3.0",
+    "tenantId": "3",
+    "actualEffort": null,
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1788348283,
+      "_nanoseconds": 736000000
+    },
+    "attributes": {},
+    "status": "in_progress",
+    "updatedAt": {
+      "_seconds": 1788349146,
+      "_nanoseconds": 983000000
+    }
+  },
+  {
     "id": "DlDXGKJpFj3GpTQGQwaY",
     "title": "Modelo operativo 4PL",
     "status": "pending",
@@ -13288,7 +13336,6 @@
     "endDate": "2026-08-27T22:00:00.000Z",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "projectCode": "TSP",
-    "techDescription": "Estado\nCargado en remitente\nCargado Parcial en remitente\nNo Cargado en remitente\nCargado en depósito salida\nCargado Parcial en depósito salida\nNo Cargado en depósito salida\nCargado en depósito llegada\nCargado Parcial en depósito llegada\nNo Cargado en depósito llegada\nEntrega en depósito salida\nEntrega Parcial en depósito salida\nNo Entregado en depósito salida\nEntrega en depósito llegada\nEntrega Parcial en depósito llegada\nNo Entregado en depósito llegada\nEntrega en depósito llegada\nEntrega Parcial en depósito llegada\nNo Entregado en depósito llegada\n",
     "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-44",
@@ -13298,9 +13345,11 @@
       "_seconds": 1786111771,
       "_nanoseconds": 649000000
     },
+    "techDescription": "Estado\nCargado en remitente\nCargado Parcial en remitente\nNo Cargado en remitente\nCargado en depósito salida\nCargado Parcial en depósito salida\nNo Cargado en depósito salida\nCargado en depósito llegada\nCargado Parcial en depósito llegada\nNo Cargado en depósito llegada\nEntrega en depósito salida\nEntrega Parcial en depósito salida\nNo Entregado en depósito salida\nEntrega en depósito llegada\nEntrega Parcial en depósito llegada\nNo Entregado en depósito llegada\nEntrega en Remitente\nEntrega Parcial en Remitente\nNo Entregado en Remitente\n",
+    "attributes": {},
     "updatedAt": {
-      "_seconds": 1786111771,
-      "_nanoseconds": 649000000
+      "_seconds": 1788346443,
+      "_nanoseconds": 277000000
     }
   },
   {
