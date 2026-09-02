@@ -378,6 +378,20 @@
     }
   },
   {
+    "id": "2KzckZJcOw7dTfpvnLlq",
+    "type": "status_change",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userEmail": "daniel.delamo@unigis.com",
+    "taskId": "Nlr4u1XlGbkd0Ml9F1xY",
+    "userName": "Daniel Tenant Admin",
+    "details": "Estado cambiado de Pendiente a En Curso",
+    "createdAt": {
+      "_seconds": 1788338063,
+      "_nanoseconds": 857000000
+    }
+  },
+  {
     "id": "2NAUKNN4bseSA1dtKPTw",
     "taskId": "317NAmdAhUO5uYgQUMgs",
     "tenantId": "3",
@@ -1344,6 +1358,20 @@
     }
   },
   {
+    "id": "82HYn6kDBgtjaqvBodXT",
+    "userName": "Daniel Tenant Admin",
+    "userEmail": "daniel.delamo@unigis.com",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "type": "status_change",
+    "taskId": "4wNGOQtXK2gfwbstEUlB",
+    "tenantId": "3",
+    "details": "Estado cambiado de Pendiente a En Curso",
+    "createdAt": {
+      "_seconds": 1788333783,
+      "_nanoseconds": 741000000
+    }
+  },
+  {
     "id": "8FFt3wwIT4fque6ScJw9",
     "taskId": "H81ISDF4aORq4gNAnmuh",
     "tenantId": "3",
@@ -1481,6 +1509,20 @@
     "createdAt": {
       "_seconds": 1770210458,
       "_nanoseconds": 408000000
+    }
+  },
+  {
+    "id": "9BUYllugo6uuRtmOPSB8",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "details": "Estado cambiado de En Curso a Aprobación Final",
+    "userName": "Daniel Tenant Admin",
+    "userEmail": "daniel.delamo@unigis.com",
+    "taskId": "kzS8nrRgB8H2TZuYnaQD",
+    "type": "status_change",
+    "createdAt": {
+      "_seconds": 1788333674,
+      "_nanoseconds": 289000000
     }
   },
   {
@@ -4029,6 +4071,20 @@
     "createdAt": {
       "_seconds": 1769073207,
       "_nanoseconds": 709000000
+    }
+  },
+  {
+    "id": "QIrRA54705S2w6wiS9ST",
+    "userName": "Daniel Tenant Admin",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "taskId": "Nlr4u1XlGbkd0Ml9F1xY",
+    "tenantId": "3",
+    "details": "Estado cambiado de En Curso a Aprobación Final",
+    "type": "status_change",
+    "userEmail": "daniel.delamo@unigis.com",
+    "createdAt": {
+      "_seconds": 1788343025,
+      "_nanoseconds": 692000000
     }
   },
   {

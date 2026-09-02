@@ -1332,6 +1332,21 @@
     }
   },
   {
+    "id": "SBK5IOPYosfjTCR71SxQ",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "title": "Overdue Task",
+    "link": "/?view=task-manager&taskId=kzS8nrRgB8H2TZuYnaQD",
+    "tenantId": "3",
+    "taskId": "kzS8nrRgB8H2TZuYnaQD",
+    "type": "deadline_expired",
+    "message": "Your task DEX-1 - \"Crear documento de interfacs con mapeo y explicación para IT De heus\" has reached its deadline.",
+    "createdAt": {
+      "_seconds": 1788328742,
+      "_nanoseconds": 982000000
+    },
+    "read": true
+  },
+  {
     "id": "SUxvwTdMB1oDJehvajQL",
     "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "tenantId": "3",

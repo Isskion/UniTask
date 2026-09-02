@@ -1060,6 +1060,16 @@
     }
   },
   {
+    "id": "I8dMMGJO03JJk2oyVJ1n",
+    "tenantId": "3",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "word": "uniplan",
+    "createdAt": {
+      "_seconds": 1788336045,
+      "_nanoseconds": 969000000
+    }
+  },
+  {
     "id": "IJ8xgb3HQ3O0Z2lVER62",
     "tenantId": "3",
     "word": "farma",
@@ -1117,6 +1127,16 @@
     "createdAt": {
       "_seconds": 1785943391,
       "_nanoseconds": 624000000
+    }
+  },
+  {
+    "id": "JXrbZ302YGnmCxrp2lZk",
+    "word": "aitana",
+    "tenantId": "3",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1788336013,
+      "_nanoseconds": 475000000
     }
   },
   {

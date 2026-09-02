@@ -1243,7 +1243,6 @@
     "order": 1788275654.803,
     "title": "Solicitar información del SSO + MFA",
     "projectCode": "TSP",
-    "status": "pending",
     "endDate": "2026-09-29T22:00:00.000Z",
     "acceptanceCriteria": [
       {
@@ -1262,9 +1261,11 @@
       "_seconds": 1788275670,
       "_nanoseconds": 857000000
     },
+    "attributes": {},
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1788275670,
-      "_nanoseconds": 857000000
+      "_seconds": 1788333781,
+      "_nanoseconds": 576000000
     }
   },
   {
@@ -6422,6 +6423,59 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "Nlr4u1XlGbkd0Ml9F1xY",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "type": "task",
+    "taskNumber": 46,
+    "creationSource": "manual_main",
+    "title": "Preparar ejemplos de Json",
+    "tenantId": "3",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "friendlyId": "TRA-46",
+    "isActive": true,
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "dependencies": [],
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "techDescription": "prearar Json de ejemplo de \n\nCrearVehiculo\nCrearTransporte\nCrearClienteDador\nCrearClienteOrden\nCrearProducto",
+    "endDate": "2026-09-02T22:00:00.000Z",
+    "progress": 0,
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "ancestorIds": [],
+    "order": 1788333839.98,
+    "projectCode": "TSP",
+    "createdAt": {
+      "_seconds": 1788334688,
+      "_nanoseconds": 131000000
+    },
+    "attributes": {},
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 3,
+    "closedAt": {
+      "_seconds": 1788343024,
+      "_nanoseconds": 610000000
+    },
+    "status": "completed",
+    "updatedAt": {
+      "_seconds": 1788343024,
+      "_nanoseconds": 610000000
     }
   },
   {
@@ -12195,7 +12249,6 @@
     "techDescription": "Crear documento de interfacs con mapeo y explicación para IT De heus\n\nCrearOrdenPedido\nCrearClienteOrden\nCrearConductores\nCrearVehiculos\nCrearViajeCompleto\nCrearTransportes",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "creationSource": "manual_main",
-    "actualEffort": null,
     "isActive": true,
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "dependencies": [],
@@ -12231,10 +12284,16 @@
       "_nanoseconds": 780000000
     },
     "attributes": {},
-    "status": "in_progress",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 5,
+    "closedAt": {
+      "_seconds": 1788333673,
+      "_nanoseconds": 146000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1788262694,
-      "_nanoseconds": 154000000
+      "_seconds": 1788333673,
+      "_nanoseconds": 146000000
     }
   },
   {
