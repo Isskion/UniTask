@@ -217,9 +217,11 @@ function init() {
 
         els.processPaste.addEventListener('click', () => {
             try {
-                state.swagger = JSON.parse(els.jsonInputArea.value);
+                const parsed = JSON.parse(els.jsonInputArea.value);
+                state.swagger = parsed;
+                saveSwaggerCache(els.swaggerUrl ? els.swaggerUrl.value : null, parsed);
                 renderMethods();
-                notify('Swagger cargado desde JSON pegado', 'success');
+                notify('Swagger cargado y guardado en cache local (no hace falta volver a pegarlo)', 'success');
                 els.pasteModal.classList.add('hidden');
             } catch (err) {
                 alert('JSON inválido. Asegúrate de copiar todo el contenido.');
@@ -428,10 +430,22 @@ async function handleLogin() {
             els.loginScreenWrapper.classList.add('hidden');
             els.appContainer.classList.remove('hidden');
 
-            // Cargar Swagger automáticamente
+            // Cargar Swagger: primero desde cache local (instantáneo, no depende de la
+            // sesión de sitio), y en segundo plano intentar refrescarlo desde la red
+            // sin pisar la lista si ese intento falla (ver loadSwagger silent:true).
             const swaggerUrl = `${baseUrl}/swagger/docs/v1`;
             els.swaggerUrl.value = swaggerUrl;
-            loadSwagger(swaggerUrl);
+
+            const cached = loadSwaggerCache();
+            if (cached && cached.json) {
+                state.swagger = cached.json;
+                renderMethods();
+                const savedDate = cached.savedAt ? new Date(cached.savedAt).toLocaleString() : 'fecha desconocida';
+                notify(`Swagger cargado desde cache local (guardado ${savedDate})`, 'success');
+                loadSwagger(swaggerUrl, { silent: true });
+            } else {
+                loadSwagger(swaggerUrl);
+            }
         } else {
             // Intentar recuperar el mensaje de error de la estructura de UNIGIS
             let errMessage = data.Message || data.error || data.ExceptionMessage;
@@ -475,7 +489,35 @@ function handleLogout() {
 }
 
 // --- Swagger Logic ---
-async function loadSwagger(url) {
+// --- Cache local del Swagger (para no depender del fetch automático cada vez) ---
+const SWAGGER_CACHE_KEY = 'unigis_swagger_cache';
+
+function saveSwaggerCache(url, swaggerJson) {
+    try {
+        localStorage.setItem(SWAGGER_CACHE_KEY, JSON.stringify({
+            url: url || null,
+            json: swaggerJson,
+            savedAt: Date.now()
+        }));
+    } catch (e) {
+        console.warn('[UniSwagger] No se pudo guardar el cache local del Swagger:', e);
+    }
+}
+
+function loadSwaggerCache() {
+    try {
+        const raw = localStorage.getItem(SWAGGER_CACHE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+    } catch (e) {
+        console.warn('[UniSwagger] Cache local de Swagger corrupto, se descarta:', e);
+        localStorage.removeItem(SWAGGER_CACHE_KEY);
+        return null;
+    }
+}
+
+async function loadSwagger(url, opts = {}) {
+    const silent = !!opts.silent; // true = intento de refresco en segundo plano: no pisar la UI si falla
     if (!url) return alert('Por favor ingresa una URL');
 
     let finalUrl = url.trim();
@@ -499,9 +541,9 @@ async function loadSwagger(url) {
 
     // Update input to show the final path we are using
     els.swaggerUrl.value = finalUrl;
-    notify(`Cargando desde: ${finalUrl}`, 'info');
+    if (!silent) notify(`Cargando desde: ${finalUrl}`, 'info');
 
-    toggleLoading(true);
+    if (!silent) toggleLoading(true);
     try {
         // Use local proxy to bypass CORS automatically
         const proxyUrl = `/api/proxy?url=${encodeURIComponent(finalUrl)}`;
@@ -526,16 +568,24 @@ async function loadSwagger(url) {
             );
         }
 
+        let parsed;
         try {
-            state.swagger = JSON.parse(rawBody);
+            parsed = JSON.parse(rawBody);
         } catch (e) {
             throw new Error(`La respuesta no es JSON válido: ${rawBody.slice(0, 200)}`);
         }
 
+        state.swagger = parsed;
+        saveSwaggerCache(finalUrl, parsed);
         renderMethods();
-        notify('Swagger cargado automáticamente (vía Proxy local)', 'success');
+        notify(silent ? 'Swagger actualizado en segundo plano' : 'Swagger cargado automáticamente (vía Proxy local)', 'success');
     } catch (err) {
         console.error('[UniSwagger] Fallo al cargar Swagger desde', finalUrl, err);
+        if (silent) {
+            // Refresco en segundo plano: ya hay una lista cacheada visible, no la pisamos.
+            console.warn('[UniSwagger] Refresco en segundo plano falló, se mantiene el cache local.');
+            return;
+        }
         notify('Fallo carga automática. Intenta con "Pegar JSON".', 'error');
         // Mostrar el motivo real donde el usuario está mirando (la barra izquierda),
         // no solo en un toast que puede pasar desapercibido.
@@ -547,7 +597,7 @@ async function loadSwagger(url) {
                 Usá el botón "📋 Pegar JSON de Swagger" (arriba de esta lista) para cargarlo manualmente.
             </div>`;
     } finally {
-        toggleLoading(false);
+        if (!silent) toggleLoading(false);
     }
 }
 
