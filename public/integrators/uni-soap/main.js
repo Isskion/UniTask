@@ -3,6 +3,17 @@
  * Features: Swagger Parsing, Dynamic Form Building, Field Mapping, Mass Integration
  */
 
+// Secreto compartido para el endpoint /api/proxy. NO es un secreto real de
+// seguridad (va en JS público, cualquiera que abra esta página puede leerlo)
+// — solo corta el acceso anónimo/automatizado a quien golpea la URL
+// directamente sin haber cargado nunca la herramienta.
+const INTEGRATOR_SHARED_SECRET = '0e9a30536dc24c6633495766da86e36d6661beb39628ab0e65b93384265222d4';
+
+function integratorFetch(url, options = {}) {
+    const headers = { ...(options.headers || {}), 'X-Integrator-Key': INTEGRATOR_SHARED_SECRET };
+    return fetch(url, { ...options, headers });
+}
+
 let state = {
     swagger: null,
     selectedMethod: null,
@@ -342,7 +353,7 @@ async function handleLogin() {
         formData.append('password', pass);
         formData.append('system', 'MAPI');
 
-        const response = await fetch(proxyUrl, {
+        const response = await integratorFetch(proxyUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formData.toString()
@@ -499,7 +510,7 @@ async function loadSwagger(url) {
     try {
         // Use local proxy to bypass CORS automatically
         const proxyUrl = `/api/proxy?url=${encodeURIComponent(finalUrl)}`;
-        let response = await fetch(proxyUrl);
+        let response = await integratorFetch(proxyUrl);
 
         if (!response.ok) {
             console.warn('Proxy load failed, trying local swagger_dump.json');
@@ -1278,7 +1289,7 @@ async function executeServiceCall(body, current = null, total = null) {
     }
 
     try {
-        const response = await fetch(finalProxyUrl, {
+        const response = await integratorFetch(finalProxyUrl, {
             method: verb.toUpperCase(),
             headers: {
                 'Content-Type': contentType,

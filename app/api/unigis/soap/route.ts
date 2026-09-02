@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isAuthorizedIntegratorRequest } from '@/lib/integratorAuth';
 
 // Ensure Node 18+ fetch accepts UNIGIS self-signed certificates
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -9,6 +10,10 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
  * bypassing CORS restrictions and handling SSL certificates.
  */
 export async function POST(req: Request) {
+    if (!isAuthorizedIntegratorRequest(req)) {
+        return NextResponse.json({ ok: false, statusText: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const bodyJSON = await req.json();
         const { url, action, version, body, timeoutMs = 30000 } = bodyJSON;

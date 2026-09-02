@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isAuthorizedIntegratorRequest } from '@/lib/integratorAuth';
 
 /**
  * Universal Proxy API Route
@@ -34,6 +35,10 @@ function getForwardHeaders(req: Request, contentType: string) {
 }
 
 export async function GET(req: Request) {
+    if (!isAuthorizedIntegratorRequest(req)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const url = searchParams.get('url');
 
@@ -72,6 +77,10 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+    if (!isAuthorizedIntegratorRequest(req)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const url = searchParams.get('url');
 

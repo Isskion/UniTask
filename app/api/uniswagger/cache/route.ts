@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { isAuthorizedIntegratorRequest } from '@/lib/integratorAuth';
 
 /**
  * Cache del Swagger/OpenAPI de UNIGIS en Firestore.
@@ -18,6 +19,10 @@ function sanitizeDocId(raw: string): string {
 }
 
 export async function GET(req: Request) {
+    if (!isAuthorizedIntegratorRequest(req)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const { searchParams } = new URL(req.url);
         const url = searchParams.get('url') || 'default';
@@ -42,6 +47,10 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+    if (!isAuthorizedIntegratorRequest(req)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const body = await req.json();
         const { url, json } = body || {};

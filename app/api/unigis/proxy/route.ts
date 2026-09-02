@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import https from 'https';
 import http from 'http';
+import { isAuthorizedIntegratorRequest } from '@/lib/integratorAuth';
 
 /**
  * General CORS Proxy API Route — Replaces the old Express server.js proxy
@@ -31,6 +32,10 @@ export async function DELETE(req: NextRequest) {
 }
 
 async function handleProxy(req: NextRequest): Promise<NextResponse> {
+    if (!isAuthorizedIntegratorRequest(req)) {
+        return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const targetUrl = searchParams.get('url');
 
