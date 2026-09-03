@@ -166,13 +166,37 @@ function loadImageEl(src: string): Promise<HTMLImageElement> {
     });
 }
 
-// Compone la marca de agua (logo del tenant, en negro y a baja opacidad) sobre una captura ya
-// generada, usando Canvas 2D directamente — en vez de inyectar un <img> con filter:brightness(0)
-// en el DOM que se le pasa a html-to-image. Esa combinación (imagen externa + filtro CSS +
-// object-fit, dentro de un clon que html-to-image tiene que rasterizar) es la que producía el
-// recuadro gris sólido reportado en vez del logo tenue. Canvas 2D es mucho más predecible: ambas
-// imágenes ya son data URLs (sin red/CORS de por medio), y si algo falla igual se atrapa y se
-// entrega el diagrama SIN marca de agua en vez de con un recuadro roto.
+// ¿Tiene el logo transparencia real de fondo? Se muestrea el canal alfa de las 4 esquinas del
+// canvas donde ya se dibujó el logo — si las 4 son prácticamente transparentes, es un PNG/SVG
+// con fondo transparente de verdad (el caso ideal, un logo bien preparado). Si no, es una imagen
+// opaca (JPG, o PNG con fondo blanco/de color en vez de alfa) — muy común cuando el logo lo subió
+// alguien desde el panel de admin sin cuidar el formato. Envuelto en try/catch propio: si por lo
+// que sea getImageData falla, se trata como "sin transparencia" (opción segura) en vez de fallar
+// todo el compositing.
+function hasTransparentBackground(ctx: CanvasRenderingContext2D, size: number): boolean {
+    try {
+        const alphaAt = (x: number, y: number) => ctx.getImageData(x, y, 1, 1).data[3];
+        const corners = [alphaAt(0, 0), alphaAt(size - 1, 0), alphaAt(0, size - 1), alphaAt(size - 1, size - 1)];
+        return corners.every((a) => a < 20);
+    } catch {
+        return false;
+    }
+}
+
+// Compone la marca de agua (logo del tenant, a baja opacidad) sobre una captura ya generada,
+// usando Canvas 2D directamente — en vez de inyectar un <img> con filter:brightness(0) en el DOM
+// que se le pasa a html-to-image. Esa combinación (imagen externa + filtro CSS + object-fit,
+// dentro de un clon que html-to-image tiene que rasterizar) es la que producía el recuadro gris
+// sólido reportado en el primer intento. Canvas 2D es mucho más predecible: ambas imágenes ya son
+// data URLs (sin red/CORS de por medio), y si algo falla igual se atrapa y se entrega el diagrama
+// SIN marca de agua en vez de con un recuadro roto.
+//
+// SEGUNDO intento de este mismo bug: forzar el logo a una silueta negra (vía canal alfa,
+// `source-in`) también producía un recuadro gris — pero por un motivo distinto: si el logo NO
+// tiene transparencia real (fondo opaco), `source-in` rellena el cuadrado ENTERO de negro, no
+// solo el dibujo, y eso a baja opacidad se ve exactamente como un recuadro gris. Ver
+// hasTransparentBackground(): solo se aplica la silueta negra cuando el logo SÍ tiene fondo
+// transparente; si no, se dibuja el logo con sus colores originales (sin forzar a negro).
 async function compositeWatermark(
     rawDataUrl: string,
     width: number,
@@ -194,8 +218,6 @@ async function compositeWatermark(
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(base, 0, 0, width, height);
 
-        // Silueta en negro del logo (equivalente a filter:brightness(0)), vía composición en un
-        // canvas aparte — no depende de que el navegador aplique un filtro CSS al rasterizar.
         const size = Math.min(700, Math.max(200, Math.max(width, height) * 0.35));
         const logoCanvas = document.createElement('canvas');
         logoCanvas.width = size;
@@ -203,9 +225,15 @@ async function compositeWatermark(
         const lctx = logoCanvas.getContext('2d');
         if (lctx) {
             lctx.drawImage(logo, 0, 0, size, size);
-            lctx.globalCompositeOperation = 'source-in';
-            lctx.fillStyle = '#000000';
-            lctx.fillRect(0, 0, size, size);
+            if (hasTransparentBackground(lctx, size)) {
+                // Silueta en negro (equivalente a filter:brightness(0)) — segura acá porque el
+                // canal alfa realmente delimita el dibujo del logo, no todo el cuadrado.
+                lctx.globalCompositeOperation = 'source-in';
+                lctx.fillStyle = '#000000';
+                lctx.fillRect(0, 0, size, size);
+            }
+            // Si no hay transparencia real, se deja el logo tal cual (sus colores originales) —
+            // forzarlo a negro ahí pintaría el cuadro entero, no la silueta.
 
             ctx.globalAlpha = 0.08;
             ctx.drawImage(logoCanvas, (width - size) / 2, (height - size) / 2, size, size);
