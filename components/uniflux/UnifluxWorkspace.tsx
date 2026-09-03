@@ -1044,8 +1044,15 @@ export default function UnifluxWorkspace() {
                 if (isMounted && tDoc.exists()) {
                     const data = tDoc.data();
                     if (data.logos && data.logos.length > 0) {
+                        // Preferimos un logo etiquetado específicamente para marca de agua — el
+                        // "Logo Principal" de un tenant suele ser un banner (fondo de color +
+                        // texto), pensado para plantillas/sidebar, no para superponerse tenue
+                        // sobre un diagrama. Si no hay uno dedicado, caemos al principal/primero.
+                        const watermark = data.logos.find((l: any) =>
+                            /marca de agua|watermark/i.test(l.label || '')
+                        );
                         const principal = data.logos.find((l: any) => l.label?.toLowerCase().includes('principal'));
-                        setTenantLogoUrl(principal?.url || data.logos[0].url);
+                        setTenantLogoUrl(watermark?.url || principal?.url || data.logos[0].url);
                     } else if (data.logoUrl) {
                         setTenantLogoUrl(data.logoUrl);
                     }
