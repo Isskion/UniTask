@@ -13,6 +13,12 @@ const handleStyle = {
     transition: 'opacity 0.2s',
 };
 
+// La etiqueta vive DENTRO del marco del nodo (pegada justo debajo de la imagen, no flotando
+// lejos) para que las flechas que llegan por abajo aterricen debajo del texto y no lo tapen.
+const LABEL_GAP = 4;    // separación entre la imagen y la etiqueta
+const LABEL_HEIGHT = 20; // alto aprox. de la píldora de la etiqueta (10px + padding + borde)
+const BOTTOM_HANDLE_OFFSET = LABEL_GAP + LABEL_HEIGHT + 4; // +4 = mismo "sobresalir" que ya tenían
+
 const ImageNode = ({ id, data, selected }: any) => {
     const { setNodes, setEdges } = useReactFlow();
     
@@ -231,12 +237,13 @@ const ImageNode = ({ id, data, selected }: any) => {
                 <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '25%', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="top-25" />
                 <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '75%', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="top-75" />
                 
-                {/* Bottom side */}
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '50%', top: 'auto', opacity: isResizing ? 0 : (isHovered || selected ? 1 : 0) }} id="bottom-c" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: 0, top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-l" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '100%', top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-r" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '25%', top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-25" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '75%', top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-75" />
+                {/* Bottom side — empujados debajo de la etiqueta (ver BOTTOM_HANDLE_OFFSET) para
+                    que las flechas lleguen justo debajo del texto, no por encima tapándolo. */}
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -BOTTOM_HANDLE_OFFSET, left: '50%', top: 'auto', opacity: isResizing ? 0 : (isHovered || selected ? 1 : 0) }} id="bottom-c" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -BOTTOM_HANDLE_OFFSET, left: 0, top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-l" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -BOTTOM_HANDLE_OFFSET, left: '100%', top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-r" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -BOTTOM_HANDLE_OFFSET, left: '25%', top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-25" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -BOTTOM_HANDLE_OFFSET, left: '75%', top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-75" />
 
                 {/* Left side */}
                 <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '25%', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="left-25" />
@@ -247,13 +254,16 @@ const ImageNode = ({ id, data, selected }: any) => {
                 <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '25%', left: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="right-25" />
                 <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '50%', left: 'auto', opacity: isResizing ? 0 : (isHovered || selected ? 1 : 0) }} id="right-c" />
                 <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '75%', left: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="right-75" />
-            </div>
 
-            {/* Node Label (OUTSIDE the overflow-hidden container) */}
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-slate-600 bg-white/80 backdrop-blur-[2px] px-2 py-0.5 rounded-full border border-slate-200/50 shadow-sm pointer-events-none z-10">
-                {data.label || 'Imagen'}
+                {/* Node Label — DENTRO del marco: pegada justo debajo de la imagen (no flotando a
+                    -32px como antes), para que las flechas por abajo aterricen debajo del texto. */}
+                <div
+                    className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-slate-600 bg-white/80 backdrop-blur-[2px] px-2 py-0.5 rounded-full border border-slate-200/50 shadow-sm pointer-events-none z-10"
+                    style={{ top: `calc(100% + ${LABEL_GAP}px)` }}
+                >
+                    {data.label || 'Imagen'}
+                </div>
             </div>
-
         </>
     );
 };
