@@ -2788,6 +2788,53 @@
     }
   },
   {
+    "id": "AH3jPtvFCeCvf2ePa6L5",
+    "type": "task",
+    "friendlyId": "DEL-28",
+    "taskNumber": 28,
+    "actualEffort": null,
+    "projectCode": "DLG",
+    "order": 1788428901.307,
+    "tenantId": "3",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "creationSource": "manual_main",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
+    "techDescription": "Crear analiticas compartivas de los resultados de planificación test versus prod",
+    "ancestorIds": [],
+    "title": "Crear analiticas compartivas de los resultados de planificación test versus prod",
+    "isActive": true,
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "status": "pending",
+    "progress": 0,
+    "endDate": "2026-09-29T22:00:00.000Z",
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "createdAt": {
+      "_seconds": 1788429582,
+      "_nanoseconds": 188000000
+    },
+    "updatedAt": {
+      "_seconds": 1788429582,
+      "_nanoseconds": 188000000
+    }
+  },
+  {
     "id": "AHs4N5uHU5eHx8Kz34hU",
     "title": "Implement Auth API",
     "projectId": "mockup-product-2026",
