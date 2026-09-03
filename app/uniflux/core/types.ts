@@ -102,6 +102,15 @@ export interface FlowEdge {
     // V9: Customizable label styles
     textColor?: string;
     fontFamily?: string;
+    // Múltiples mensajes/interfaces sobre UNA sola arista (evita tener que crear una arista por
+    // cada mensaje entre los mismos dos sistemas). `label` se mantiene sincronizado como fallback
+    // legacy (join de los textos) para lo que todavía lo lea directamente.
+    messages?: EdgeMessage[];
+}
+
+export interface EdgeMessage {
+    id: string;
+    text: string;
 }
 
 export type MermaidEngine = 'sequence' | 'flowchart';

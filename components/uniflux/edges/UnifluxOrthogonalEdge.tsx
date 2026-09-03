@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useContext, useState } from 'react';
-import { BaseEdge, EdgeProps, getSmoothStepPath, EdgeLabelRenderer, useReactFlow, Position } from '@xyflow/react';
+import { BaseEdge, EdgeProps, getSmoothStepPath, EdgeLabelRenderer, Position } from '@xyflow/react';
 import { UnifluxDirtyContext } from '../UnifluxContext';
 
 const JORNADA_COLORS: Record<string, string> = {
@@ -30,12 +30,20 @@ export default function UnifluxOrthogonalEdge({
     sourcePosition, targetPosition,
     style = {}, markerEnd, label, selected, data,
 }: EdgeProps) {
-    const { showLogisticsLabels } = useContext(UnifluxDirtyContext);
+    const { showLogisticsLabels, onQuickAddMessage, onRemoveEdgeMessage } = useContext(UnifluxDirtyContext);
     const [hovered, setHovered] = useState(false);
 
     // Lane offset (px) precalculado en UnifluxWorkspace para familias de aristas paralelas o muy
     // próximas — ver laneOffsetByEdgeId ahí. 0 para el caso normal (arista sin "hermanas").
     const laneOffset = (data?.__laneOffset as number) || 0;
+
+    // Mensajes múltiples sobre esta misma arista (varias interfaces entre los mismos dos
+    // sistemas sin tener que crear una arista por cada una) — ver EdgeMessage en core/types.ts.
+    const messages = (data?.messages as { id: string; text: string }[] | undefined) || [];
+    const MESSAGE_COLLAPSE_AT = 3;
+    const visibleMessages = (hovered || selected || messages.length <= MESSAGE_COLLAPSE_AT)
+        ? messages
+        : messages.slice(0, MESSAGE_COLLAPSE_AT);
 
     const fontStyleMap: Record<string, string> = {
         'Garamond': '"EB Garamond", Garamond, Georgia, serif',
@@ -104,8 +112,57 @@ export default function UnifluxOrthogonalEdge({
             </g>
 
             <EdgeLabelRenderer>
-                {/* Free-text label */}
-                {label && (
+                {/* Botón "+" para añadir/duplicar un mensaje sin abrir el panel de edición —
+                    solo con la arista seleccionada, justo encima del stack/label. */}
+                {selected && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            transform: `translate(-50%,-100%) translate(${labelX}px,${labelY - (messages.length > 0 ? 16 : 10)}px)`,
+                            pointerEvents: 'all',
+                        }}
+                        className="nodrag nopan"
+                    >
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onQuickAddMessage(id); }}
+                            className="w-5 h-5 flex items-center justify-center rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow leading-none"
+                            title="Añadir mensaje a esta conexión"
+                        >+</button>
+                    </div>
+                )}
+
+                {messages.length > 0 ? (
+                    /* Stack de mensajes: varias interfaces sobre la MISMA arista, en vez de una
+                       arista por mensaje. Se colapsa a partir de MESSAGE_COLLAPSE_AT (se expande
+                       con hover o al seleccionar la arista). */
+                    <div
+                        style={{ position: 'absolute', transform: `translate(-50%,-50%) translate(${labelX}px,${labelY}px)`, pointerEvents: 'all' }}
+                        className="nodrag nopan flex flex-col items-center gap-1"
+                        onMouseEnter={() => setHovered(true)}
+                        onMouseLeave={() => setHovered(false)}
+                    >
+                        {visibleMessages.map((msg) => (
+                            <div key={msg.id}
+                                className="group flex items-center gap-1 bg-white border px-2 py-0.5 rounded shadow-sm text-[11px] font-bold select-none whitespace-nowrap"
+                                style={{ color: textColor, fontFamily, borderColor: selected ? '#4f46e5' : '#cbd5e1' }}
+                            >
+                                <span>{msg.text}</span>
+                                {selected && (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onRemoveEdgeMessage(id, msg.id); }}
+                                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 text-[10px] leading-none"
+                                        title="Quitar mensaje"
+                                    >✕</button>
+                                )}
+                            </div>
+                        ))}
+                        {!hovered && !selected && messages.length > MESSAGE_COLLAPSE_AT && (
+                            <div className="text-[9px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-full px-1.5 select-none">
+                                +{messages.length - MESSAGE_COLLAPSE_AT} más
+                            </div>
+                        )}
+                    </div>
+                ) : label && (
                     <div style={{ position: 'absolute', transform: `translate(-50%,-50%) translate(${labelX}px,${labelY}px)`, pointerEvents: 'none' }} className="nodrag nopan">
                         <div className="bg-white border px-2 py-0.5 rounded shadow-sm text-[11px] font-bold select-none text-center"
                             style={{ color: textColor, fontFamily, borderColor: selected ? '#4f46e5' : '#cbd5e1' }}>

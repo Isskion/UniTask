@@ -140,6 +140,23 @@ function pickFreeHandle(
     return free ?? requestedHandle; // si están todos ocupados, se queda como estaba (el offset de familia se encarga)
 }
 
+// True si `conn` (source/target/handles) ya es exactamente la misma conexión que otra arista
+// existente. `addEdge` (@xyflow/system) ya hace este chequeo internamente al CREAR una arista
+// nueva (rechaza el duplicado en silencio) — pero `reconnectEdge` NO lo hace al mover el extremo
+// de una arista ya existente, así que arrastrar sin querer un extremo hasta el punto de otra
+// arista podía dejar dos aristas con la misma conexión y, peor, la misma `id` (reconnectEdge
+// regenera el id de forma determinista a partir de la conexión) → colisión de key en React y una
+// de las dos "desaparecía". Se usa tanto en onConnect (defensivo) como en onReconnect (el gap real).
+function isDuplicateConnection(conn: Connection, currentEdges: Edge[], ignoreEdgeId?: string): boolean {
+    return currentEdges.some((e) =>
+        e.id !== ignoreEdgeId &&
+        e.source === conn.source &&
+        e.target === conn.target &&
+        (e.sourceHandle ?? null) === (conn.sourceHandle ?? null) &&
+        (e.targetHandle ?? null) === (conn.targetHandle ?? null)
+    );
+}
+
 // Initial placeholder graph
 const INITIAL_GRAPH: FlowGraph = {
     id: `draft-${Date.now()}`,
@@ -288,7 +305,6 @@ export default function UnifluxWorkspace() {
     
     // Stable callback exposed via context so edge components can signal dirtiness
     const markDirty = useCallback(() => setIsDirty(true), []);
-    const edgeCtxValue = useMemo(() => ({ markDirty, showLogisticsLabels }), [markDirty, showLogisticsLabels]);
 
     // Break circular dependency: syncNodesFromGraph -> handleJumpToFlow -> handleLoadFlow -> syncNodesFromGraph
     const jumpToFlowRef = useRef<(flowId: string, nodeId?: string) => Promise<void>>(null as any);
@@ -365,6 +381,34 @@ export default function UnifluxWorkspace() {
             });
         }, 300); // 300ms de-jitter interval
     }, [setNodes, setEdges]);
+
+    // Multi-mensaje por arista: el botón "+" vive DENTRO de UnifluxOrthogonalEdge (centro de la
+    // línea), que no tiene acceso directo al `edges` controlado. En vez de mutar el mensaje "en
+    // frío" desde el canvas (riesgo de guardar un mensaje vacío si el usuario no llega a
+    // escribirlo), reabre el MISMO panel de edición de abajo con una fila nueva ya añadida y
+    // enfocada — openEdgeEditor se define más abajo (necesita los setters de edición, declarados
+    // después); se referencia por ref para evitar el ciclo de dependencias.
+    const openEdgeEditorRef = useRef<(edge: Edge, extraMessage?: boolean) => void>(() => {});
+    const onQuickAddMessage = useCallback((edgeId: string) => {
+        const edge = edges.find((e) => e.id === edgeId);
+        if (edge) openEdgeEditorRef.current(edge, true);
+    }, [edges]);
+
+    // Quitar un mensaje SÍ es seguro mutarlo directo (nunca deja un dato a medio escribir).
+    const onRemoveEdgeMessage = useCallback((edgeId: string, messageId: string) => {
+        setEdges((eds) => eds.map((e) => {
+            if (e.id !== edgeId) return e;
+            const existing = (e.data?.messages as { id: string; text: string }[] | undefined) || [];
+            const messages = existing.filter((m) => m.id !== messageId);
+            return { ...e, label: messages.map((m) => m.text).join(' · ') || undefined, data: { ...e.data, messages: messages.length ? messages : undefined } };
+        }));
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
+    }, [setEdges, takeSnapshot]);
+
+    const edgeCtxValue = useMemo(
+        () => ({ markDirty, showLogisticsLabels, onQuickAddMessage, onRemoveEdgeMessage }),
+        [markDirty, showLogisticsLabels, onQuickAddMessage, onRemoveEdgeMessage]
+    );
 
     const undo = useCallback(() => {
         if (historyIndex > 0) {
@@ -659,6 +703,9 @@ export default function UnifluxWorkspace() {
     // Inline edge-label editor (replaces window.prompt)
     const [editingEdge, setEditingEdge] = useState<Edge | null>(null);
     const [edgeEditValue, setEdgeEditValue] = useState('');
+    // Lista de mensajes/interfaces de la arista en edición (panel inferior). Reemplaza el input
+    // único de texto para aristas no-C4 — ver onAddEdgeMessage/onRemoveEdgeMessage más arriba.
+    const [edgeMessages, setEdgeMessages] = useState<{ id: string; text: string }[]>([]);
     const [edgeProtocol, setEdgeProtocol] = useState('');
     const [edgeRelType, setEdgeRelType] = useState<string>('sync');
     const [edgeLineType, setEdgeLineType] = useState<string>('smoothstep');
@@ -852,6 +899,7 @@ export default function UnifluxWorkspace() {
                     markerEnd: e.markerEnd,
                     textColor: e.textColor || '#000000',
                     fontFamily: e.fontFamily || 'Garamond',
+                    ...(e.messages?.length ? { messages: e.messages } : {}),
                     ...(e.pickupType   ? { pickupType:   e.pickupType   } : {}),
                     ...(e.deliveryType ? { deliveryType: e.deliveryType } : {}),
                     ...(e.jornada       ? { jornada:       e.jornada       } : {}),
@@ -1592,10 +1640,18 @@ export default function UnifluxWorkspace() {
     }, [setEdges, takeSnapshot, nodes, edges]);
 
     const onReconnect = useCallback((oldEdge: Edge, newConnection: Connection) => {
-        setEdges((els) => reconnectEdge(oldEdge, newConnection, els));
+        // Si el nuevo extremo coincide exactamente con otra arista ya existente (mismo nodo +
+        // mismo handle en ambos lados), no tiene sentido permitirlo — no aporta una interfaz
+        // nueva y antes producía una colisión de id que borraba una de las dos aristas. Se
+        // ignora el drop y la arista se queda donde estaba.
+        if (isDuplicateConnection(newConnection, edges, oldEdge.id)) return;
+        // shouldReplaceId: false — reconectar un extremo no debe cambiar la identidad de la
+        // arista (evita que reconnectEdge la regenere con un id determinista que podría chocar
+        // con el de otra arista creada por otra vía, p.ej. una plantilla).
+        setEdges((els) => reconnectEdge(oldEdge, newConnection, els, { shouldReplaceId: false }));
         setTimeout(takeSnapshot, 0); setIsDirty(true);
         setIsDirty(true);
-    }, [setEdges, takeSnapshot]);
+    }, [setEdges, takeSnapshot, edges]);
 
     // Familias de aristas paralelas/muy próximas → offset por id (ver comentario junto a
     // NODE_PROXIMITY_PX arriba). Union-find por proximidad de centro de nodo, calculado una sola
@@ -1674,10 +1730,18 @@ export default function UnifluxWorkspace() {
         });
     }, [edges, laneOffsetByEdgeId]);
 
-    const onEdgeDoubleClick = (event: React.MouseEvent, edge: Edge) => {
-        event.stopPropagation();
+    // Compartido por onEdgeDoubleClick y el botón "+" del canvas (onQuickAddMessage, más arriba)
+    // — abre/reabre el panel inferior con todo el estado de edición seedeado desde la arista.
+    // `extraMessage`: además añade una fila nueva ya lista para escribir (duplica el texto del
+    // último mensaje, o arranca vacía si la arista todavía no tenía ninguno).
+    const openEdgeEditor = useCallback((edge: Edge, extraMessage?: boolean) => {
         setEditingEdge(edge);
         setEdgeEditValue((edge.label as string) || '');
+        const existingMessages = (edge.data?.messages as { id: string; text: string }[] | undefined)
+            || (edge.label ? [{ id: crypto.randomUUID(), text: edge.label as string }] : []);
+        setEdgeMessages(extraMessage
+            ? [...existingMessages, { id: crypto.randomUUID(), text: existingMessages.length ? existingMessages[existingMessages.length - 1].text : '' }]
+            : existingMessages);
         setEdgeProtocol((edge.data?.protocol as string) || '');
         setEdgeRelType((edge.data?.c4RelType as string) || 'sync');
         setEdgeLineType(edge.type || 'smoothstep');
@@ -1691,20 +1755,28 @@ export default function UnifluxWorkspace() {
         setEdgeOperacion((edge.data?.operacion as string) || '');
         setEdgeEstadoPedido((edge.data?.estadoPedido as string) || '');
         setEdgeFecha((edge.data?.fecha as string) || '');
+    }, []);
+    openEdgeEditorRef.current = openEdgeEditor;
+
+    const onEdgeDoubleClick = (event: React.MouseEvent, edge: Edge) => {
+        event.stopPropagation();
+        openEdgeEditor(edge);
     };
 
     const handleEdgeLabelSave = () => {
         if (!editingEdge) return;
         const isC4 = graph.docType === 'c4';
+        const cleanMessages = edgeMessages.map(m => ({ ...m, text: m.text.trim() })).filter(m => m.text);
+        const messagesLabel = cleanMessages.map(m => m.text).join(' · ') || undefined;
         setEdges(eds => eds.map(e => {
             if (e.id !== editingEdge.id) return e;
             const updated = {
                 ...e,
-                label: isC4 ? (edgeProtocol || edgeEditValue || undefined) : edgeEditValue,
-                data: isC4 ? { 
-                    ...e.data, 
-                    c4RelType: edgeRelType, 
-                    protocol: edgeProtocol, 
+                label: isC4 ? (edgeProtocol || edgeEditValue || undefined) : messagesLabel,
+                data: isC4 ? {
+                    ...e.data,
+                    c4RelType: edgeRelType,
+                    protocol: edgeProtocol,
                     c4Description: edgeEditValue,
                     textColor: edgeTextColor,
                     fontFamily: edgeFontFamily
@@ -1712,6 +1784,7 @@ export default function UnifluxWorkspace() {
                     ...e.data,
                     textColor: edgeTextColor,
                     fontFamily: edgeFontFamily,
+                    messages: cleanMessages.length ? cleanMessages : undefined,
                     pickupType:   edgePickupType   || undefined,
                     deliveryType: edgeDeliveryType || undefined,
                     jornada:      edgeJornada      || undefined,
@@ -2080,6 +2153,7 @@ export default function UnifluxWorkspace() {
                     pathPoints: (e.data?.pathPoints as any[]) || [],
                     textColor: (e.data?.textColor as string) || '#000000',
                     fontFamily: (e.data?.fontFamily as string) || 'Garamond',
+                    ...((e.data?.messages as any[])?.length ? { messages: e.data?.messages as any[] } : {}),
                     ...(e.data?.pickupType   ? { pickupType:   e.data.pickupType   as string } : {}),
                     ...(e.data?.deliveryType ? { deliveryType: e.data.deliveryType as string } : {}),
                     ...(e.data?.jornada       ? { jornada:       e.data.jornada       as string } : {}),
@@ -2748,14 +2822,36 @@ export default function UnifluxWorkspace() {
 
                         {graph.docType !== 'c4' && (
                             <>
-                                <input
-                                    autoFocus
-                                    value={edgeEditValue}
-                                    onChange={e => setEdgeEditValue(e.target.value)}
-                                    onKeyDown={e => { if (e.key === 'Enter') handleEdgeLabelSave(); if (e.key === 'Escape') setEditingEdge(null); }}
-                                    placeholder="Texto de la conexión (vacío = sin etiqueta)"
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-400 mb-3"
-                                />
+                                {/* Mensajes de la conexión — una arista puede llevar varios (p.ej.
+                                    distintas interfaces entre los mismos dos sistemas) en vez de
+                                    tener que crear una arista nueva por cada una. El botón "+" del
+                                    centro de la línea (en el canvas) hace lo mismo más rápido. */}
+                                <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">
+                                    Mensajes de la conexión {edgeMessages.length > 0 && `(${edgeMessages.length})`}
+                                </label>
+                                <div className="space-y-1.5 mb-2 max-h-40 overflow-y-auto pr-0.5">
+                                    {edgeMessages.map((msg, idx) => (
+                                        <div key={msg.id} className="flex gap-1.5">
+                                            <input
+                                                autoFocus={idx === edgeMessages.length - 1}
+                                                value={msg.text}
+                                                onChange={e => setEdgeMessages(ms => ms.map(m => m.id === msg.id ? { ...m, text: e.target.value } : m))}
+                                                onKeyDown={e => { if (e.key === 'Enter') handleEdgeLabelSave(); if (e.key === 'Escape') setEditingEdge(null); }}
+                                                placeholder="Ej: Enviar pedido, Confirmar recepción..."
+                                                className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-purple-400"
+                                            />
+                                            <button
+                                                onClick={() => setEdgeMessages(ms => ms.filter(m => m.id !== msg.id))}
+                                                className="px-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Quitar mensaje"
+                                            >✕</button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setEdgeMessages(ms => [...ms, { id: crypto.randomUUID(), text: '' }])}
+                                    className="w-full mb-3 py-1.5 text-xs font-semibold text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
+                                >+ Añadir mensaje</button>
                                 <div className="flex gap-2 mb-3">
                                     <div className="flex-1">
                                         <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Tipo de línea</label>
