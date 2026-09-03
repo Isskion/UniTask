@@ -1,8 +1,49 @@
 'use client';
 
-import React, { useContext, useState } from 'react';
-import { BaseEdge, EdgeProps, getSmoothStepPath, EdgeLabelRenderer, Position } from '@xyflow/react';
+import React, { useContext, useState, useRef } from 'react';
+import { BaseEdge, EdgeProps, getSmoothStepPath, EdgeLabelRenderer, useReactFlow, Position } from '@xyflow/react';
 import { UnifluxDirtyContext } from '../UnifluxContext';
+
+// Radio de las esquinas redondeadas y largo del tramo recto que sale de cada handle antes de
+// girar — mismos valores que se usaban al llamar a getSmoothStepPath (16 / default 20 de
+// @xyflow/system), para que el trazado se vea igual tanto si se puede arrastrar como si no.
+const CORNER_RADIUS = 16;
+const STUB_GAP = 20;
+
+const HANDLE_DIR: Record<string, { x: number; y: number }> = {
+    [Position.Left]:   { x: -1, y: 0 },
+    [Position.Right]:  { x: 1,  y: 0 },
+    [Position.Top]:    { x: 0,  y: -1 },
+    [Position.Bottom]: { x: 0,  y: 1 },
+};
+
+type Pt = { x: number; y: number };
+const dist = (a: Pt, b: Pt) => Math.hypot(b.x - a.x, b.y - a.y);
+
+// Mismo cálculo de esquina redondeada que usa @xyflow/system internamente (getBend, no
+// exportado) — es matemática pura sin dependencias, segura de portar tal cual.
+function roundedCorner(a: Pt, b: Pt, c: Pt, size: number): string {
+    const bendSize = Math.min(dist(a, b) / 2, dist(b, c) / 2, size);
+    const { x, y } = b;
+    if ((a.x === x && x === c.x) || (a.y === y && y === c.y)) return `L${x} ${y}`;
+    if (a.y === y) {
+        const xDir = a.x < c.x ? -1 : 1;
+        const yDir = a.y < c.y ? 1 : -1;
+        return `L ${x + bendSize * xDir},${y}Q ${x},${y} ${x},${y + bendSize * yDir}`;
+    }
+    const xDir = a.x < c.x ? 1 : -1;
+    const yDir = a.y < c.y ? -1 : 1;
+    return `L ${x},${y + bendSize * yDir}Q ${x},${y} ${x + bendSize * xDir},${y}`;
+}
+
+function buildBentPath(points: Pt[], radius: number): string {
+    return points.reduce((res, p, i) => {
+        const segment = (i > 0 && i < points.length - 1)
+            ? roundedCorner(points[i - 1], p, points[i + 1], radius)
+            : `${i === 0 ? 'M' : 'L'}${p.x} ${p.y}`;
+        return res + segment;
+    }, '');
+}
 
 const JORNADA_COLORS: Record<string, string> = {
     'completa':      '#3b82f6',
@@ -30,7 +71,8 @@ export default function UnifluxOrthogonalEdge({
     sourcePosition, targetPosition,
     style = {}, markerEnd, label, selected, data,
 }: EdgeProps) {
-    const { showLogisticsLabels, onQuickAddMessage, onRemoveEdgeMessage } = useContext(UnifluxDirtyContext);
+    const { showLogisticsLabels, onQuickAddMessage, onRemoveEdgeMessage, onSetEdgeBend } = useContext(UnifluxDirtyContext);
+    const { screenToFlowPosition } = useReactFlow();
     const [hovered, setHovered] = useState(false);
 
     // Lane offset (px) precalculado en UnifluxWorkspace para familias de aristas paralelas o muy
@@ -76,11 +118,85 @@ export default function UnifluxOrthogonalEdge({
     const offSourceY = sourceY + (isHorizontalFlow ? laneOffset : 0);
     const offTargetX = targetX + (isHorizontalFlow ? 0 : laneOffset);
     const offTargetY = targetY + (isHorizontalFlow ? laneOffset : 0);
-    const [edgePath, labelX, labelY] = getSmoothStepPath({
-        sourceX: offSourceX, sourceY: offSourceY, sourcePosition,
-        targetX: offTargetX, targetY: offTargetY, targetPosition,
-        borderRadius: 16,
-    });
+
+    // Arrastrar el segmento largo (central) de la arista — "oxigenar" el dibujo estirando los
+    // lados en vez de dejar que la ruta automática decida. SOLO cuando origen y destino están en
+    // el MISMO eje (Left/Right con Left/Right, o Top/Bottom con Top/Bottom): ahí hay un único
+    // segmento recto central bien definido para agarrar. Con ejes mixtos (p.ej. Bottom→Left) el
+    // ruteo automático de @xyflow/system resuelve un ángulo distinto en cada caso — no hay un
+    // "lado largo" estable, así que se deja tal cual el auto-ruteo de la librería (sin control
+    // manual ahí, para no repetir el bug de centerX/centerY ignorado en silencio).
+    const targetIsHorizontal = targetPosition === Position.Left || targetPosition === Position.Right;
+    const canBend = isHorizontalFlow === targetIsHorizontal;
+
+    // bendOffset persistido (data, ver core/types.ts); mientras se arrastra se previsualiza con
+    // estado local propio y solo se confirma (onSetEdgeBend) al soltar el mouse.
+    const savedBendOffset = data?.bendOffset as { x: number; y: number } | undefined;
+    const [dragBend, setDragBend] = useState<{ x: number; y: number } | null>(null);
+    const dragBendRef = useRef<{ x: number; y: number } | null>(null);
+    const bendOffset = dragBend ?? savedBendOffset ?? { x: 0, y: 0 };
+
+    let edgePath: string;
+    let labelX: number;
+    let labelY: number;
+    let bendLine: { x1: number; y1: number; x2: number; y2: number } | null = null;
+
+    if (canBend) {
+        const source: Pt = { x: offSourceX, y: offSourceY };
+        const target: Pt = { x: offTargetX, y: offTargetY };
+        const sourceGapped: Pt = { x: source.x + HANDLE_DIR[sourcePosition].x * STUB_GAP, y: source.y + HANDLE_DIR[sourcePosition].y * STUB_GAP };
+        const targetGapped: Pt = { x: target.x + HANDLE_DIR[targetPosition].x * STUB_GAP, y: target.y + HANDLE_DIR[targetPosition].y * STUB_GAP };
+
+        let bend1: Pt, bend2: Pt;
+        if (isHorizontalFlow) {
+            const bendX = (sourceGapped.x + targetGapped.x) / 2 + bendOffset.x;
+            bend1 = { x: bendX, y: sourceGapped.y };
+            bend2 = { x: bendX, y: targetGapped.y };
+        } else {
+            const bendY = (sourceGapped.y + targetGapped.y) / 2 + bendOffset.y;
+            bend1 = { x: sourceGapped.x, y: bendY };
+            bend2 = { x: targetGapped.x, y: bendY };
+        }
+        edgePath = buildBentPath([source, sourceGapped, bend1, bend2, targetGapped, target], CORNER_RADIUS);
+        labelX = (bend1.x + bend2.x) / 2;
+        labelY = (bend1.y + bend2.y) / 2;
+        bendLine = { x1: bend1.x, y1: bend1.y, x2: bend2.x, y2: bend2.y };
+    } else {
+        const [path, lx, ly] = getSmoothStepPath({
+            sourceX: offSourceX, sourceY: offSourceY, sourcePosition,
+            targetX: offTargetX, targetY: offTargetY, targetPosition,
+            borderRadius: CORNER_RADIUS,
+        });
+        edgePath = path; labelX = lx; labelY = ly;
+    }
+
+    // Mousedown sobre el segmento central: arranca un drag a nivel documento (mismo patrón que
+    // los puntos de UnifluxMovableEdge), en coordenadas de flow (screenToFlowPosition) para que
+    // funcione igual con cualquier zoom/pan. Solo persiste (onSetEdgeBend) al soltar — durante el
+    // arrastre solo actualiza estado local, para no disparar autosave/history en cada frame.
+    const onBendMouseDown = (evt: React.MouseEvent) => {
+        evt.stopPropagation();
+        const startFlow = screenToFlowPosition({ x: evt.clientX, y: evt.clientY });
+        const base = savedBendOffset ?? { x: 0, y: 0 };
+
+        const onMouseMove = (moveEvt: MouseEvent) => {
+            const flowPos = screenToFlowPosition({ x: moveEvt.clientX, y: moveEvt.clientY });
+            const dx = flowPos.x - startFlow.x;
+            const dy = flowPos.y - startFlow.y;
+            const next = isHorizontalFlow ? { x: base.x + dx, y: 0 } : { x: 0, y: base.y + dy };
+            dragBendRef.current = next;
+            setDragBend(next);
+        };
+        const onMouseUp = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            if (dragBendRef.current) onSetEdgeBend(id, dragBendRef.current);
+            dragBendRef.current = null;
+            setDragBend(null);
+        };
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    };
 
     // Chip positions: linear interpolation along source→target
     const srcX = sourceX + (targetX - sourceX) * 0.2;
@@ -109,6 +225,28 @@ export default function UnifluxOrthogonalEdge({
                     stroke: selected ? '#4f46e5' : (style.stroke || '#94a3b8'),
                     transition: 'stroke-width 0.2s, stroke 0.2s',
                 }} />
+
+                {/* Agarre del segmento largo — solo con la arista seleccionada y solo cuando hay
+                    un segmento central estable para arrastrar (ver `canBend`). Área de clic ancha
+                    e invisible + un grip visible en el punto medio. */}
+                {canBend && bendLine && selected && (
+                    <>
+                        <line
+                            x1={bendLine.x1} y1={bendLine.y1} x2={bendLine.x2} y2={bendLine.y2}
+                            stroke="transparent" strokeWidth={16}
+                            style={{ cursor: isHorizontalFlow ? 'ew-resize' : 'ns-resize', pointerEvents: 'stroke' }}
+                            className="nodrag nopan"
+                            onMouseDown={onBendMouseDown}
+                        />
+                        <circle
+                            cx={(bendLine.x1 + bendLine.x2) / 2} cy={(bendLine.y1 + bendLine.y2) / 2}
+                            r={5} fill="#4f46e5" stroke="white" strokeWidth={1.5}
+                            style={{ cursor: isHorizontalFlow ? 'ew-resize' : 'ns-resize', pointerEvents: 'all' }}
+                            className="nodrag nopan"
+                            onMouseDown={onBendMouseDown}
+                        />
+                    </>
+                )}
             </g>
 
             <EdgeLabelRenderer>

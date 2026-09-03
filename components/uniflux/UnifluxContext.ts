@@ -10,6 +10,9 @@ export interface UnifluxContextValue {
     // para no persistir nunca un mensaje vacío); onRemoveEdgeMessage sí muta directo (es seguro).
     onQuickAddMessage: (edgeId: string) => void;
     onRemoveEdgeMessage: (edgeId: string, messageId: string) => void;
+    // Arrastrar el segmento largo (central) de una arista ortogonal — ver bendOffset en
+    // core/types.ts. Se llama solo al SOLTAR el drag (mouseup), no en cada frame.
+    onSetEdgeBend: (edgeId: string, bendOffset: { x: number; y: number }) => void;
 }
 
 export const UnifluxDirtyContext = createContext<UnifluxContextValue>({
@@ -17,4 +20,5 @@ export const UnifluxDirtyContext = createContext<UnifluxContextValue>({
     showLogisticsLabels: true,
     onQuickAddMessage: () => {},
     onRemoveEdgeMessage: () => {},
+    onSetEdgeBend: () => {},
 });

@@ -405,9 +405,17 @@ export default function UnifluxWorkspace() {
         setTimeout(takeSnapshot, 0); setIsDirty(true);
     }, [setEdges, takeSnapshot]);
 
+    // Arrastrar el segmento largo de una arista ortogonal — se persiste como un único offset
+    // perpendicular (`bendOffset`, ver core/types.ts). UnifluxOrthogonalEdge lo aplica en vivo
+    // durante el drag con estado local propio; esto solo se llama en el mouseup final.
+    const onSetEdgeBend = useCallback((edgeId: string, bendOffset: { x: number; y: number }) => {
+        setEdges((eds) => eds.map((e) => e.id === edgeId ? { ...e, data: { ...e.data, bendOffset } } : e));
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
+    }, [setEdges, takeSnapshot]);
+
     const edgeCtxValue = useMemo(
-        () => ({ markDirty, showLogisticsLabels, onQuickAddMessage, onRemoveEdgeMessage }),
-        [markDirty, showLogisticsLabels, onQuickAddMessage, onRemoveEdgeMessage]
+        () => ({ markDirty, showLogisticsLabels, onQuickAddMessage, onRemoveEdgeMessage, onSetEdgeBend }),
+        [markDirty, showLogisticsLabels, onQuickAddMessage, onRemoveEdgeMessage, onSetEdgeBend]
     );
 
     const undo = useCallback(() => {
@@ -900,6 +908,7 @@ export default function UnifluxWorkspace() {
                     textColor: e.textColor || '#000000',
                     fontFamily: e.fontFamily || 'Garamond',
                     ...(e.messages?.length ? { messages: e.messages } : {}),
+                    ...(e.bendOffset ? { bendOffset: e.bendOffset } : {}),
                     ...(e.pickupType   ? { pickupType:   e.pickupType   } : {}),
                     ...(e.deliveryType ? { deliveryType: e.deliveryType } : {}),
                     ...(e.jornada       ? { jornada:       e.jornada       } : {}),
@@ -2154,6 +2163,7 @@ export default function UnifluxWorkspace() {
                     textColor: (e.data?.textColor as string) || '#000000',
                     fontFamily: (e.data?.fontFamily as string) || 'Garamond',
                     ...((e.data?.messages as any[])?.length ? { messages: e.data?.messages as any[] } : {}),
+                    ...(e.data?.bendOffset ? { bendOffset: e.data.bendOffset as { x: number; y: number } } : {}),
                     ...(e.data?.pickupType   ? { pickupType:   e.data.pickupType   as string } : {}),
                     ...(e.data?.deliveryType ? { deliveryType: e.data.deliveryType as string } : {}),
                     ...(e.data?.jornada       ? { jornada:       e.data.jornada       as string } : {}),
