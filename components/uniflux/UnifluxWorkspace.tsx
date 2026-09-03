@@ -88,6 +88,58 @@ const edgeTypes = {
     // and need React Flow's built-in bezier renderer with their own styled props.
 };
 
+// ---------------------------------------------------------------------------------------------
+// Separación de aristas paralelas / muy próximas ("labels ilegibles cuando decenas de líneas se
+// pisan"). Dos mecanismos complementarios:
+//
+// 1) laneOffsetByEdgeId (más abajo, dentro del componente): agrupa aristas que "hacen el mismo
+//    viaje" — mismos nodos, o nodos MUY cercanos entre sí, en cualquier dirección — mediante un
+//    union-find por proximidad de centro de nodo, y les asigna un desplazamiento (lane) estable
+//    por id. Se calcula UNA vez por cambio de nodes/edges (no una vez por arista) y se inyecta
+//    solo en el array que consume <ReactFlow>, nunca en el estado `edges` real, para no persistir
+//    esta geometría derivada en Firestore.
+// 2) pickFreeHandle (debajo): al conectar dos nodos, si el usuario suelta en el handle central
+//    por defecto (el único visible sin pasar el mouse) y ese punto ya está en uso por otra arista
+//    del mismo nodo, reasigna automáticamente la conexión al siguiente punto libre del contorno
+//    (VisioShapeNode/IconNode exponen ~12-16 puntos). Si el usuario eligió a propósito otro punto
+//    del contorno, se respeta tal cual.
+const NODE_PROXIMITY_PX = 200; // radio (centro de nodo a centro de nodo) para considerar "misma familia"
+const PARALLEL_LANE_STEP = 20; // separación en px entre corredores dentro de una misma familia
+
+const HANDLE_SUFFIXES_BY_NODE_TYPE: Record<string, Record<string, string[]>> = {
+    visioShape: { top: ['c', '25', '75', 'l', 'r'], bottom: ['c', '25', '75', 'l', 'r'], left: ['c', '25', '75'], right: ['c', '25', '75'] },
+    ICON:       { top: ['c', '25', '75'],           bottom: ['c', '25', '75'],           left: ['c', '25', '75'], right: ['c', '25', '75'] },
+};
+
+function pickFreeHandle(
+    nodeId: string,
+    requestedHandle: string | null | undefined,
+    nodeType: string | undefined,
+    currentEdges: Edge[],
+    isSource: boolean,
+): string | null | undefined {
+    if (!requestedHandle) return requestedHandle;
+    const sides = nodeType ? HANDLE_SUFFIXES_BY_NODE_TYPE[nodeType] : undefined;
+    if (!sides) return requestedHandle; // tipo de nodo sin convención de handles conocida (PRO_NODE, C4, ...): no tocar
+
+    const dash = requestedHandle.lastIndexOf('-');
+    if (dash === -1) return requestedHandle;
+    const side = requestedHandle.slice(0, dash);
+    const suffix = requestedHandle.slice(dash + 1);
+    const candidates = sides[side];
+    if (!candidates || suffix !== 'c') return requestedHandle; // solo redistribuimos el central por defecto
+
+    const used = new Set(
+        currentEdges
+            .filter((e) => (isSource ? e.source === nodeId : e.target === nodeId))
+            .map((e) => (isSource ? e.sourceHandle : e.targetHandle))
+    );
+    if (!used.has(requestedHandle)) return requestedHandle; // el central sigue libre, no hace falta tocar nada
+
+    const free = candidates.map((s) => `${side}-${s}`).find((h) => !used.has(h));
+    return free ?? requestedHandle; // si están todos ocupados, se queda como estaba (el offset de familia se encarga)
+}
+
 // Initial placeholder graph
 const INITIAL_GRAPH: FlowGraph = {
     id: `draft-${Date.now()}`,
@@ -1513,13 +1565,17 @@ export default function UnifluxWorkspace() {
     }, [setNodes, takeSnapshot]);
 
     const onConnect = useCallback((params: Connection) => {
+        const sourceNode = nodes.find((n) => n.id === params.source);
+        const targetNode = nodes.find((n) => n.id === params.target);
         const newEdge: Edge = {
             ...params,
+            sourceHandle: pickFreeHandle(params.source!, params.sourceHandle, sourceNode?.type, edges, true),
+            targetHandle: pickFreeHandle(params.target!, params.targetHandle, targetNode?.type, edges, false),
             id: `e-${params.source}-${params.target}-${Date.now()}`,
             type: 'orthogonal',
             animated: false,
             style: { stroke: '#94a3b8', strokeWidth: 2 },
-            markerEnd: { 
+            markerEnd: {
                 type: MarkerType.ArrowClosed,
                 width: 20,
                 height: 20,
@@ -1533,7 +1589,7 @@ export default function UnifluxWorkspace() {
         setEdges((eds) => addEdge(newEdge, eds));
         setTimeout(takeSnapshot, 0); setIsDirty(true);
         setIsDirty(true);
-    }, [setEdges, takeSnapshot]);
+    }, [setEdges, takeSnapshot, nodes, edges]);
 
     const onReconnect = useCallback((oldEdge: Edge, newConnection: Connection) => {
         setEdges((els) => reconnectEdge(oldEdge, newConnection, els));
@@ -1541,7 +1597,82 @@ export default function UnifluxWorkspace() {
         setIsDirty(true);
     }, [setEdges, takeSnapshot]);
 
+    // Familias de aristas paralelas/muy próximas → offset por id (ver comentario junto a
+    // NODE_PROXIMITY_PX arriba). Union-find por proximidad de centro de nodo, calculado una sola
+    // vez por cambio de nodes/edges.
+    const laneOffsetByEdgeId = useMemo(() => {
+        const result = new globalThis.Map<string, number>();
+        if (edges.length <= 1) return result;
 
+        const nodeById = new globalThis.Map(nodes.map((n) => [n.id, n]));
+        const centerOf = (nodeId: string): { x: number; y: number } | null => {
+            const n = nodeById.get(nodeId);
+            if (!n) return null;
+            const w = n.measured?.width ?? (n.style?.width as number) ?? 120;
+            const h = n.measured?.height ?? (n.style?.height as number) ?? 80;
+            return { x: n.position.x + w / 2, y: n.position.y + h / 2 };
+        };
+        const centers = new globalThis.Map<string, { x: number; y: number } | null>();
+        edges.forEach((e) => {
+            if (!centers.has(e.source)) centers.set(e.source, centerOf(e.source));
+            if (!centers.has(e.target)) centers.set(e.target, centerOf(e.target));
+        });
+
+        const parent = new globalThis.Map<string, string>(edges.map((e) => [e.id, e.id]));
+        const find = (x: string): string => {
+            const p = parent.get(x) as string;
+            if (p === x) return x;
+            const root = find(p);
+            parent.set(x, root);
+            return root;
+        };
+        const union = (a: string, b: string) => {
+            const ra = find(a), rb = find(b);
+            if (ra !== rb) parent.set(ra, rb);
+        };
+        const dist = (a: { x: number; y: number } | null, b: { x: number; y: number } | null) =>
+            a && b ? Math.hypot(a.x - b.x, a.y - b.y) : Infinity;
+
+        for (let i = 0; i < edges.length; i++) {
+            const a = edges[i];
+            const aS = centers.get(a.source) ?? null;
+            const aT = centers.get(a.target) ?? null;
+            for (let j = i + 1; j < edges.length; j++) {
+                const b = edges[j];
+                const bS = centers.get(b.source) ?? null;
+                const bT = centers.get(b.target) ?? null;
+                const sameDir = dist(aS, bS) <= NODE_PROXIMITY_PX && dist(aT, bT) <= NODE_PROXIMITY_PX;
+                const revDir = dist(aS, bT) <= NODE_PROXIMITY_PX && dist(aT, bS) <= NODE_PROXIMITY_PX;
+                if (sameDir || revDir) union(a.id, b.id);
+            }
+        }
+
+        const groups = new globalThis.Map<string, Edge[]>();
+        edges.forEach((e) => {
+            const root = find(e.id);
+            const arr = groups.get(root) || [];
+            arr.push(e);
+            groups.set(root, arr);
+        });
+        groups.forEach((group) => {
+            if (group.length <= 1) return;
+            const sorted = [...group].sort((a, b) => a.id.localeCompare(b.id));
+            const mid = (sorted.length - 1) / 2;
+            sorted.forEach((e, idx) => result.set(e.id, (idx - mid) * PARALLEL_LANE_STEP));
+        });
+        return result;
+    }, [edges, nodes]);
+
+    // Array derivado SOLO para <ReactFlow>: inyecta el lane offset en data sin tocar el estado
+    // `edges` real (que es lo que se serializa/guarda) ni las referencias de aristas sin familia.
+    const displayEdges = useMemo(() => {
+        if (laneOffsetByEdgeId.size === 0) return edges;
+        return edges.map((e) => {
+            const off = laneOffsetByEdgeId.get(e.id);
+            if (!off) return e;
+            return { ...e, data: { ...e.data, __laneOffset: off } };
+        });
+    }, [edges, laneOffsetByEdgeId]);
 
     const onEdgeDoubleClick = (event: React.MouseEvent, edge: Edge) => {
         event.stopPropagation();
@@ -2880,7 +3011,7 @@ export default function UnifluxWorkspace() {
                 {/* Visual Canvas */}
                 {graph.docType !== 'mermaid' && <ReactFlow
                     nodes={nodes}
-                    edges={edges}
+                    edges={displayEdges}
                     nodeTypes={nodeTypes}
                     onNodesChange={onNodesChangeWrapped}
                     onEdgesChange={onEdgesChangeWrapped}
