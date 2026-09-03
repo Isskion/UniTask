@@ -39,11 +39,11 @@ export default function UnifluxOrthogonalEdge({
 
     // Mensajes múltiples sobre esta misma arista (varias interfaces entre los mismos dos
     // sistemas sin tener que crear una arista por cada una) — ver EdgeMessage en core/types.ts.
+    // Se muestran TODOS por defecto (para poder imprimir/exportar el diagrama con todo el texto
+    // visible sin tener que pasar el mouse por cada línea); colapsar a un único resumen con
+    // contador es una acción manual y explícita del usuario, no automática por hover.
     const messages = (data?.messages as { id: string; text: string }[] | undefined) || [];
-    const MESSAGE_COLLAPSE_AT = 3;
-    const visibleMessages = (hovered || selected || messages.length <= MESSAGE_COLLAPSE_AT)
-        ? messages
-        : messages.slice(0, MESSAGE_COLLAPSE_AT);
+    const [collapsed, setCollapsed] = useState(false);
 
     const fontStyleMap: Record<string, string> = {
         'Garamond': '"EB Garamond", Garamond, Georgia, serif',
@@ -133,33 +133,50 @@ export default function UnifluxOrthogonalEdge({
 
                 {messages.length > 0 ? (
                     /* Stack de mensajes: varias interfaces sobre la MISMA arista, en vez de una
-                       arista por mensaje. Se colapsa a partir de MESSAGE_COLLAPSE_AT (se expande
-                       con hover o al seleccionar la arista). */
+                       arista por mensaje. Expandido por defecto (para imprimir/exportar con todo
+                       el texto visible); colapsar a un resumen con contador es una acción manual
+                       (botón "－", solo con más de un mensaje) — nunca automática por hover. */
                     <div
                         style={{ position: 'absolute', transform: `translate(-50%,-50%) translate(${labelX}px,${labelY}px)`, pointerEvents: 'all' }}
                         className="nodrag nopan flex flex-col items-center gap-1"
                         onMouseEnter={() => setHovered(true)}
                         onMouseLeave={() => setHovered(false)}
                     >
-                        {visibleMessages.map((msg) => (
-                            <div key={msg.id}
-                                className="group flex items-center gap-1 bg-white border px-2 py-0.5 rounded shadow-sm text-[11px] font-bold select-none whitespace-nowrap"
+                        {collapsed ? (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setCollapsed(false); }}
+                                className="flex items-center gap-1 bg-white border px-2 py-0.5 rounded shadow-sm text-[11px] font-bold select-none whitespace-nowrap"
                                 style={{ color: textColor, fontFamily, borderColor: selected ? '#4f46e5' : '#cbd5e1' }}
+                                title="Mostrar todos los mensajes"
                             >
-                                <span>{msg.text}</span>
-                                {selected && (
+                                <span>{messages.length} mensajes</span>
+                                <span className="text-slate-400 text-[9px]">▸</span>
+                            </button>
+                        ) : (
+                            <>
+                                {messages.length > 1 && (hovered || selected) && (
                                     <button
-                                        onClick={(e) => { e.stopPropagation(); onRemoveEdgeMessage(id, msg.id); }}
-                                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 text-[10px] leading-none"
-                                        title="Quitar mensaje"
-                                    >✕</button>
+                                        onClick={(e) => { e.stopPropagation(); setCollapsed(true); }}
+                                        className="text-[9px] font-bold text-slate-400 hover:text-slate-600 bg-white border border-slate-200 rounded-full w-4 h-4 flex items-center justify-center shadow-sm leading-none"
+                                        title="Colapsar a un resumen"
+                                    >－</button>
                                 )}
-                            </div>
-                        ))}
-                        {!hovered && !selected && messages.length > MESSAGE_COLLAPSE_AT && (
-                            <div className="text-[9px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-full px-1.5 select-none">
-                                +{messages.length - MESSAGE_COLLAPSE_AT} más
-                            </div>
+                                {messages.map((msg) => (
+                                    <div key={msg.id}
+                                        className="group flex items-center gap-1 bg-white border px-2 py-0.5 rounded shadow-sm text-[11px] font-bold select-none whitespace-nowrap"
+                                        style={{ color: textColor, fontFamily, borderColor: selected ? '#4f46e5' : '#cbd5e1' }}
+                                    >
+                                        <span>{msg.text}</span>
+                                        {selected && (
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); onRemoveEdgeMessage(id, msg.id); }}
+                                                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 text-[10px] leading-none"
+                                                title="Quitar mensaje"
+                                            >✕</button>
+                                        )}
+                                    </div>
+                                ))}
+                            </>
                         )}
                     </div>
                 ) : label && (
