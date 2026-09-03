@@ -157,6 +157,68 @@ function isDuplicateConnection(conn: Connection, currentEdges: Edge[], ignoreEdg
     );
 }
 
+function loadImageEl(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('No se pudo cargar la imagen para exportar'));
+        img.src = src;
+    });
+}
+
+// Compone la marca de agua (logo del tenant, en negro y a baja opacidad) sobre una captura ya
+// generada, usando Canvas 2D directamente — en vez de inyectar un <img> con filter:brightness(0)
+// en el DOM que se le pasa a html-to-image. Esa combinación (imagen externa + filtro CSS +
+// object-fit, dentro de un clon que html-to-image tiene que rasterizar) es la que producía el
+// recuadro gris sólido reportado en vez del logo tenue. Canvas 2D es mucho más predecible: ambas
+// imágenes ya son data URLs (sin red/CORS de por medio), y si algo falla igual se atrapa y se
+// entrega el diagrama SIN marca de agua en vez de con un recuadro roto.
+async function compositeWatermark(
+    rawDataUrl: string,
+    width: number,
+    height: number,
+    logoDataUrl: string | null,
+    mimeType: 'image/png' | 'image/jpeg',
+    quality?: number
+): Promise<string> {
+    if (!logoDataUrl) return rawDataUrl;
+    try {
+        const [base, logo] = await Promise.all([loadImageEl(rawDataUrl), loadImageEl(logoDataUrl)]);
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return rawDataUrl;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(base, 0, 0, width, height);
+
+        // Silueta en negro del logo (equivalente a filter:brightness(0)), vía composición en un
+        // canvas aparte — no depende de que el navegador aplique un filtro CSS al rasterizar.
+        const size = Math.min(700, Math.max(200, Math.max(width, height) * 0.35));
+        const logoCanvas = document.createElement('canvas');
+        logoCanvas.width = size;
+        logoCanvas.height = size;
+        const lctx = logoCanvas.getContext('2d');
+        if (lctx) {
+            lctx.drawImage(logo, 0, 0, size, size);
+            lctx.globalCompositeOperation = 'source-in';
+            lctx.fillStyle = '#000000';
+            lctx.fillRect(0, 0, size, size);
+
+            ctx.globalAlpha = 0.08;
+            ctx.drawImage(logoCanvas, (width - size) / 2, (height - size) / 2, size, size);
+            ctx.globalAlpha = 1;
+        }
+
+        return canvas.toDataURL(mimeType, quality);
+    } catch (err) {
+        console.warn('No se pudo componer la marca de agua — se exporta el diagrama sin ella:', err);
+        return rawDataUrl;
+    }
+}
+
 // Initial placeholder graph
 const INITIAL_GRAPH: FlowGraph = {
     id: `draft-${Date.now()}`,
@@ -477,13 +539,39 @@ export default function UnifluxWorkspace() {
         const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
         if (!viewport) return;
 
-        // 1. Bounding box in absolute coords
+        // 1. Bounding box: medimos el contenido REALMENTE renderizado (nodos + trazos de arista +
+        // todo lo que EdgeLabelRenderer pinta: etiquetas, stacks de mensajes, chips de logística)
+        // en vez de confiar solo en las posiciones declaradas de los nodos. getNodesBounds() sola
+        // recortaba contenido que se sale de la caja "teórica" del nodo — handles empujados por la
+        // etiqueta, líneas con el segmento central arrastrado a mano, stacks de mensajes largos —
+        // sin tener que enumerar cada caso a mano; medir el DOM real cubre todos de una.
+        const measureRenderedBounds = (): { x: number; y: number; width: number; height: number } | null => {
+            if (!reactFlowInstance) return null;
+            const els = viewport.querySelectorAll<HTMLElement>(
+                '.react-flow__node, .react-flow__edge-path, .react-flow__edgelabel-renderer > *'
+            );
+            if (els.length === 0) return null;
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            els.forEach((el) => {
+                const r = el.getBoundingClientRect();
+                if (r.width === 0 && r.height === 0) return;
+                const tl = reactFlowInstance.screenToFlowPosition({ x: r.left, y: r.top });
+                const br = reactFlowInstance.screenToFlowPosition({ x: r.right, y: r.bottom });
+                minX = Math.min(minX, tl.x); minY = Math.min(minY, tl.y);
+                maxX = Math.max(maxX, br.x); maxY = Math.max(maxY, br.y);
+            });
+            if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) return null;
+            return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+        };
+
+        // Fallback (diagrama vacío de aristas, o el navegador no soporta algo de lo anterior):
+        // bounds calculados solo a partir de las posiciones de nodos, como antes.
         const absoluteNodes = nodes.map(n => {
             const absX = (n as any).computed?.positionAbsolute?.x ?? (n as any).positionAbsolute?.x ?? n.position.x;
             const absY = (n as any).computed?.positionAbsolute?.y ?? (n as any).positionAbsolute?.y ?? n.position.y;
             return { ...n, position: { x: absX, y: absY } };
         });
-        const nodesBounds = getNodesBounds(absoluteNodes);
+        const nodesBounds = measureRenderedBounds() ?? getNodesBounds(absoluteNodes);
 
         const padding = 60;
         const titlePaddingTop = 120;
@@ -491,7 +579,8 @@ export default function UnifluxWorkspace() {
         const imageHeight = nodesBounds.height + padding * 2 + titlePaddingTop;
         const pixelRatio  = format === 'svg' ? 1 : 3;
 
-        // 2. Inject title (no watermark DOM injection — done via canvas compositing instead)
+        // 2. Inject title (texto simple — html-to-image lo rasteriza sin problema). La marca de
+        // agua NO se inyecta en el DOM (ver compositeWatermark más abajo, fuera de este pipeline).
         const titleEl = document.createElement('div');
         titleEl.innerText = graph.name || 'Flujo UniFlux';
         titleEl.style.cssText = `
@@ -508,9 +597,8 @@ export default function UnifluxWorkspace() {
         titleEl.appendChild(dateEl);
         viewport.appendChild(titleEl);
         
-        let watermarkEl: HTMLImageElement | null = null;
         let logoDataUrl = tenantLogoBase64;
-        
+
         if (!logoDataUrl && tenantLogoUrl) {
             try {
                 const noCacheUrl = tenantLogoUrl + (tenantLogoUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
@@ -524,35 +612,6 @@ export default function UnifluxWorkspace() {
                 });
             } catch (e) {
                 console.error("Fallback logo fetch failed:", e);
-            }
-        }
-
-        if (logoDataUrl) {
-            watermarkEl = document.createElement('img');
-            watermarkEl.src = logoDataUrl;
-            watermarkEl.style.position = 'absolute';
-            const centerX = nodesBounds.x + nodesBounds.width / 2;
-            const centerY = nodesBounds.y + nodesBounds.height / 2;
-            const baseSize = Math.max(nodesBounds.width, nodesBounds.height) * 0.7;
-            const watermarkSize = Math.min(1600, Math.max(400, baseSize));
-            watermarkEl.style.width = `${watermarkSize}px`;
-            watermarkEl.style.height = `${watermarkSize}px`;
-            watermarkEl.style.objectFit = 'contain';
-            watermarkEl.style.left = `${centerX - watermarkSize / 2}px`;
-            watermarkEl.style.top = `${centerY - watermarkSize / 2}px`;
-            watermarkEl.style.opacity = '0.10';
-            // Convertimos el logo a negro (por si es blanco) para que destaque como marca de agua en fondo blanco
-            watermarkEl.style.filter = 'brightness(0)';
-            watermarkEl.style.zIndex = '0';
-            watermarkEl.style.pointerEvents = 'none';
-            viewport.insertBefore(watermarkEl, viewport.firstChild);
-
-            try {
-                await watermarkEl.decode();
-                // Permitir que el navegador pinte la imagen en el DOM antes de capturar
-                await new Promise(resolve => setTimeout(resolve, 300));
-            } catch (err) {
-                console.warn("Watermark decode failed:", err);
             }
         }
 
@@ -577,7 +636,10 @@ export default function UnifluxWorkspace() {
         };
 
         try {
-            // 3. Capture raw flow (SVG or raster) with everything inside the DOM natively
+            // 3. Capture raw flow (SVG or raster) with everything inside the DOM natively —
+            // SIN la marca de agua: se compone aparte con Canvas 2D (ver compositeWatermark) en
+            // vez de inyectarla como <img> con filter en el DOM que html-to-image rasteriza, que
+            // es lo que producía el recuadro gris sólido en vez del logo tenue.
             let rawDataUrl: string;
             if (format === 'svg') {
                 rawDataUrl = await toSvg(viewport, config);
@@ -587,6 +649,18 @@ export default function UnifluxWorkspace() {
                 rawDataUrl = await toPng(viewport, config);
             }
 
+            // 4. Marca de agua — solo en formatos raster (png/jpeg/pdf, que usa la captura PNG).
+            // El SVG no pasa por Canvas, así que se entrega sin marca de agua ahí (limitación
+            // conocida y aceptada: preferible a repetir el mismo hack frágil por otra vía).
+            let finalDataUrl = rawDataUrl;
+            if (format !== 'svg') {
+                finalDataUrl = await compositeWatermark(
+                    rawDataUrl, imageWidth, imageHeight, logoDataUrl,
+                    format === 'jpeg' ? 'image/jpeg' : 'image/png',
+                    format === 'jpeg' ? 0.92 : undefined
+                );
+            }
+
             // 5. Download or generate PDF
             if (format === 'pdf') {
                 const pdf = new jsPDF({
@@ -594,18 +668,17 @@ export default function UnifluxWorkspace() {
                     unit: 'px',
                     format: [imageWidth, imageHeight],
                 });
-                pdf.addImage(rawDataUrl, 'PNG', 0, 0, imageWidth, imageHeight);
+                pdf.addImage(finalDataUrl, 'PNG', 0, 0, imageWidth, imageHeight);
                 pdf.save(`uniflux-${graph.name.toLowerCase().replace(/\s/g, '-')}.pdf`);
             } else {
-                downloadFile(rawDataUrl, format === 'jpeg' ? 'jpg' : format);
+                downloadFile(finalDataUrl, format === 'jpeg' ? 'jpg' : format);
             }
         } catch (err) {
             console.error('Falló la exportación del flujo:', err);
         } finally {
             if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
-            if (watermarkEl && viewport.contains(watermarkEl)) viewport.removeChild(watermarkEl);
         };
-    }, [graph.name, nodes, tenantLogoBase64]);
+    }, [graph.name, nodes, tenantLogoBase64, reactFlowInstance]);
 
     // Keyboard Shortcuts
     useEffect(() => {
