@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useContext, useState } from 'react';
-import { BaseEdge, EdgeProps, getSmoothStepPath, EdgeLabelRenderer, useReactFlow } from '@xyflow/react';
+import React, { useContext, useState, useMemo } from 'react';
+import { BaseEdge, EdgeProps, getSmoothStepPath, EdgeLabelRenderer, useReactFlow, useEdges, Position } from '@xyflow/react';
 import { UnifluxDirtyContext } from '../UnifluxContext';
+
+// Separación (px) entre corredores cuando varias aristas comparten el mismo par de nodos.
+const PARALLEL_OFFSET_STEP = 24;
 
 const JORNADA_COLORS: Record<string, string> = {
     'completa':      '#3b82f6',
@@ -26,12 +29,27 @@ function LabeledValue({ label, value, color = '#475569' }: { label: string; valu
 }
 
 export default function UnifluxOrthogonalEdge({
-    id, sourceX, sourceY, targetX, targetY,
+    id, source, target, sourceX, sourceY, targetX, targetY,
     sourcePosition, targetPosition,
     style = {}, markerEnd, label, selected, data,
 }: EdgeProps) {
     const { showLogisticsLabels } = useContext(UnifluxDirtyContext);
     const [hovered, setHovered] = useState(false);
+    const allEdges = useEdges();
+
+    // Aristas "paralelas": comparten el mismo par de nodos (en cualquier dirección).
+    // Se les asigna un índice estable (por id) para separar sus corredores y que
+    // las etiquetas no queden pisadas cuando hay varias interfaces entre los mismos dos nodos.
+    const parallelOffset = useMemo(() => {
+        const pairKey = [source, target].sort().join('___');
+        const siblings = allEdges
+            .filter((e) => [e.source, e.target].sort().join('___') === pairKey)
+            .sort((a, b) => a.id.localeCompare(b.id));
+        if (siblings.length <= 1) return 0;
+        const index = siblings.findIndex((e) => e.id === id);
+        const mid = (siblings.length - 1) / 2;
+        return (index - mid) * PARALLEL_OFFSET_STEP;
+    }, [allEdges, source, target, id]);
 
     const fontStyleMap: Record<string, string> = {
         'Garamond': '"EB Garamond", Garamond, Georgia, serif',
@@ -53,10 +71,16 @@ export default function UnifluxOrthogonalEdge({
     const centerFields = [estadoPedido, jornada, operacion, fecha].filter(Boolean);
     const hasLogistics = pickupType || deliveryType || centerFields.length > 0;
 
+    // Con layout horizontal (handles Left/Right) el tramo compartido es el segmento
+    // vertical del medio → desplazamos centerY. Con layout vertical (Top/Bottom) es
+    // el segmento horizontal del medio → desplazamos centerX.
+    const isHorizontalFlow = sourcePosition === Position.Left || sourcePosition === Position.Right;
     const [edgePath, labelX, labelY] = getSmoothStepPath({
         sourceX, sourceY, sourcePosition,
         targetX, targetY, targetPosition,
         borderRadius: 16,
+        ...(parallelOffset !== 0 && isHorizontalFlow ? { centerY: (sourceY + targetY) / 2 + parallelOffset } : {}),
+        ...(parallelOffset !== 0 && !isHorizontalFlow ? { centerX: (sourceX + targetX) / 2 + parallelOffset } : {}),
     });
 
     // Chip positions: linear interpolation along source→target
