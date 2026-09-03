@@ -12844,6 +12844,53 @@
     }
   },
   {
+    "id": "ncbbnWzAmyvj6my6fBTF",
+    "projectCode": "TSP",
+    "status": "pending",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "actualEffort": null,
+    "order": 1788435852.339,
+    "tenantId": "3",
+    "techDescription": "Conversar con el chamo de los servicios adicionales",
+    "title": "Conversar con el chamo de los servicios adicionales",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "type": "task",
+    "endDate": "2026-09-07T22:00:00.000Z",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "friendlyId": "TRA-47",
+    "ancestorIds": [],
+    "taskNumber": 47,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "progress": 0,
+    "priority": "Alta",
+    "dependencies": [],
+    "creationSource": "manual_main",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1788435875,
+      "_nanoseconds": 804000000
+    },
+    "updatedAt": {
+      "_seconds": 1788435875,
+      "_nanoseconds": 804000000
+    }
+  },
+  {
     "id": "nyNBfsA1e8IGWNMtvP2y",
     "friendlyId": "MOCK-07-0",
     "organizationId": "1",

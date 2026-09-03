@@ -281,6 +281,53 @@
     }
   },
   {
+    "id": "0LVgTck2EMi1aXQaIRjD",
+    "projectColor": "#84cc16",
+    "weekNumber": 35,
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "consultantName": "JORGE MARTINEZ",
+    "weekStart": "2026-08-24",
+    "activityType": "Reunión Cliente",
+    "isActive": true,
+    "region": "España",
+    "consultantOrder": 6,
+    "weekLabel": "Semana 4",
+    "projectId": "11K4kv5QI3SVkhVwuFfo",
+    "scheduleEnd": "13:30",
+    "importedFromExcel": true,
+    "projectCode": "FRR",
+    "comment": "FRIT RAVICH / ETATAPA II - DISEÑO TO BE",
+    "yearMonth": "2026-08",
+    "description": "ETATAPA II - DISEÑO TO BE",
+    "weekMonth": "Semana 4-AGO 2026",
+    "tenantId": "3",
+    "dayType": "DH",
+    "jiraRecord": "Reunión Cliente: FRIT RAVICH->ETATAPA II - DISEÑO TO BE",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "scheduleStart": "12:00",
+    "scheduleRaw": "12:00 A 13:30",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "scheduledHours": 1.5,
+    "result": "Hecho",
+    "needsDateReview": false,
+    "divisionId": "",
+    "projectName": "FRIT RAVICH",
+    "client": "FRIT RAVICH",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "0OzeAFq2bSU3k1DAAwCa",
     "tenantId": "3",
     "date": {
@@ -753,11 +800,8 @@
     "weekNumber": 36,
     "scheduleRaw": "10:00 A 11:00",
     "activityType": "Reunión UNIGIS",
-    "projectColor": null,
     "client": "UNIGIS",
-    "projectCode": null,
     "consultantOrder": 1,
-    "divisionName": "",
     "needsDateReview": false,
     "linkedTaskId": null,
     "region": "España",
@@ -779,20 +823,23 @@
     "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
     "scheduleStart": "10:00",
-    "projectId": null,
     "importedFromExcel": true,
     "weekStart": "2026-08-31",
-    "divisionId": "",
     "yearMonth": "2026-08",
-    "result": "Por Hacer",
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "createdAt": {
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Cancelado",
+    "projectCode": "UNI",
+    "divisionName": "Consultoría",
+    "projectColor": "#ef4444",
+    "divisionId": "Consultoría",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788430648,
+      "_nanoseconds": 343000000
     }
   },
   {
@@ -1543,6 +1590,53 @@
     }
   },
   {
+    "id": "1Tqt0Kzd0E5lNrrofS96",
+    "scheduleRaw": "11:00 A 12:00",
+    "scheduleStart": "11:00",
+    "yearMonth": "2026-08",
+    "consultantOrder": 6,
+    "projectColor": null,
+    "result": "Hecho",
+    "jiraRecord": "Reunión Interna: LOGIFRIO->REVISIÓN DE EPS CON EQUIPO",
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "client": "LOGIFRIO",
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "activityType": "Reunión Interna",
+    "projectId": null,
+    "isActive": true,
+    "dayType": "DH",
+    "scheduledHours": 1,
+    "weekLabel": "Semana 4",
+    "projectName": "LOGIFRIO",
+    "divisionId": "",
+    "weekStart": "2026-08-24",
+    "comment": "Logifrio / Revisión de Eps con equipo",
+    "tenantId": "3",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "weekNumber": 35,
+    "description": "REVISIÓN DE EPS CON EQUIPO",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": null,
+    "importedFromExcel": true,
+    "scheduleEnd": "12:00",
+    "needsDateReview": false,
+    "region": "España",
+    "consultantName": "JORGE MARTINEZ",
+    "weekMonth": "Semana 4-AGO 2026",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "1WIpOpzrLJxVdIEs4TS8",
     "client": "UNIGIS",
     "scheduleRaw": "09:00 A 18:00",
@@ -2245,6 +2339,53 @@
     "updatedAt": {
       "_seconds": 1788427636,
       "_nanoseconds": 279000000
+    }
+  },
+  {
+    "id": "251JQyDixAEa9x6oMsYQ",
+    "consultantOrder": 1,
+    "yearMonth": "2026-08",
+    "scheduleStart": "09:00",
+    "weekNumber": 35,
+    "projectId": null,
+    "linkedTaskId": null,
+    "comment": "UNIGIS / Licencia paternidad",
+    "divisionName": "",
+    "consultantName": "JESUS MARQUEZ",
+    "projectCode": null,
+    "client": "UNIGIS",
+    "description": "LICENCIA PATERNIDAD",
+    "tenantId": "3",
+    "weekLabel": "Semana 4",
+    "result": "Hecho",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "scheduleEnd": "18:00",
+    "weekStart": "2026-08-24",
+    "region": "España",
+    "consultantId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "scheduleRaw": "09:00 A 18:00",
+    "scheduledHours": 9,
+    "projectColor": null,
+    "jiraRecord": "Especial: UNIGIS->LICENCIA PATERNIDAD",
+    "activityType": "Especial",
+    "importedFromExcel": true,
+    "projectName": "UNIGIS",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "divisionId": "",
+    "weekMonth": "Semana 4-AGO 2026",
+    "needsDateReview": false,
+    "dayType": "DH",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -4485,6 +4626,53 @@
     "updatedAt": {
       "_seconds": 1779792157,
       "_nanoseconds": 359000000
+    }
+  },
+  {
+    "id": "4CxGg3wvN3WhC0U7D9XK",
+    "weekStart": "2026-08-24",
+    "weekLabel": "Semana 4",
+    "projectName": "LOGIFRIO",
+    "scheduledHours": 1,
+    "projectId": null,
+    "client": "LOGIFRIO",
+    "needsDateReview": false,
+    "weekNumber": 35,
+    "dayType": "DH",
+    "tenantId": "3",
+    "scheduleRaw": "11:00 A 12:00",
+    "result": "Hecho",
+    "yearMonth": "2026-08",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "weekMonth": "Semana 4-AGO 2026",
+    "divisionId": "",
+    "scheduleStart": "11:00",
+    "scheduleEnd": "12:00",
+    "region": "España",
+    "projectCode": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "comment": "Logifrio / Revisión de Eps con equipo",
+    "consultantOrder": 6,
+    "description": "REVISIÓN DE EPS CON EQUIPO",
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "isActive": true,
+    "projectColor": null,
+    "importedFromExcel": true,
+    "consultantName": "JORGE MARTINEZ",
+    "activityType": "Reunión Interna",
+    "jiraRecord": "Reunión Interna: LOGIFRIO->REVISIÓN DE EPS CON EQUIPO",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -6731,6 +6919,53 @@
     }
   },
   {
+    "id": "6BLZW509QFlgdUFKpcTp",
+    "projectId": null,
+    "projectName": "UNIGIS",
+    "scheduledHours": 9,
+    "weekNumber": 35,
+    "yearMonth": "2026-08",
+    "importedFromExcel": true,
+    "scheduleStart": "09:00",
+    "weekStart": "2026-08-24",
+    "comment": "UNIGIS / Licencia paternidad",
+    "projectColor": null,
+    "scheduleRaw": "09:00 A 18:00",
+    "consultantId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "result": "Hecho",
+    "isActive": true,
+    "weekLabel": "Semana 4",
+    "client": "UNIGIS",
+    "activityType": "Especial",
+    "needsDateReview": false,
+    "consultantOrder": 1,
+    "jiraRecord": "Especial: UNIGIS->LICENCIA PATERNIDAD",
+    "dayType": "DH",
+    "consultantName": "JESUS MARQUEZ",
+    "description": "LICENCIA PATERNIDAD",
+    "projectCode": null,
+    "scheduleEnd": "18:00",
+    "region": "España",
+    "weekMonth": "Semana 4-AGO 2026",
+    "divisionName": "",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "linkedTaskId": null,
+    "tenantId": "3",
+    "divisionId": "",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "6DzfsV96jTNOFl0zSgvK",
     "tenantId": "3",
     "date": {
@@ -7805,6 +8040,100 @@
     }
   },
   {
+    "id": "6moH6OcKOKt0A5mR6FZc",
+    "weekMonth": "Semana 4-AGO 2026",
+    "linkedTaskId": null,
+    "weekNumber": 35,
+    "divisionName": "",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "region": "España",
+    "dayType": "DH",
+    "scheduledHours": 0.75,
+    "consultantOrder": 1,
+    "scheduleEnd": "11:45",
+    "scheduleStart": "11:00",
+    "projectCode": "LSM",
+    "tenantId": "3",
+    "description": "GESTIÓN SEMANAL DE PROYECTO",
+    "comment": "Luis Simoes / Gestión semanal de proyecto",
+    "weekStart": "2026-08-24",
+    "activityType": "Reunión Cliente",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "importedFromExcel": true,
+    "consultantId": "4Bv59XpXVHQop7puwmjRRemGcxU2",
+    "weekLabel": "Semana 4",
+    "needsDateReview": false,
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->GESTIÓN SEMANAL DE PROYECTO",
+    "scheduleRaw": "11:00 A 11:45",
+    "projectColor": "#10b981",
+    "divisionId": "",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "result": "Por Hacer",
+    "isActive": true,
+    "consultantName": "DIEGO SENRA LAMBERTI",
+    "projectName": "LUIS SIMOES Fase II",
+    "client": "LUIS SIMOES",
+    "yearMonth": "2026-08",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
+    "id": "6o9tIKBpfYK07fyDWP24",
+    "divisionId": "",
+    "needsDateReview": false,
+    "weekStart": "2026-08-24",
+    "scheduleEnd": "11:00",
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "description": "PREBUILDS",
+    "weekLabel": "Semana 4",
+    "scheduleStart": "10:00",
+    "projectCode": null,
+    "projectId": null,
+    "client": "UNIGIS",
+    "consultantName": "IÑAKI IRABURU",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "dayType": "DH",
+    "result": "Hecho",
+    "tenantId": "3",
+    "jiraRecord": "Reunión Interna: UNIGIS->PREBUILDS",
+    "yearMonth": "2026-08",
+    "weekMonth": "Semana 4-AGO 2026",
+    "region": "España",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "comment": "UNIGIS / Prebuilds",
+    "projectName": "UNIGIS",
+    "isActive": true,
+    "scheduledHours": 1,
+    "projectColor": null,
+    "weekNumber": 35,
+    "importedFromExcel": true,
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "scheduleRaw": "10:00 A 11:00",
+    "activityType": "Reunión Interna",
+    "consultantOrder": 4,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "6uRuNGssC2n8LaYKPrRF",
     "tenantId": "3",
     "date": {
@@ -8040,7 +8369,6 @@
   },
   {
     "id": "77Uq7bKa5cOi5XEb0ZTJ",
-    "projectId": null,
     "isActive": true,
     "weekLabel": "Semana 5",
     "scheduleStart": "11:00",
@@ -8053,36 +8381,37 @@
     "jiraRecord": "Reunión Cliente: LUIS SIMOES->GESTIÓN SEMANAL DE PROYECTO",
     "needsDateReview": false,
     "description": "GESTIÓN SEMANAL DE PROYECTO",
-    "result": "Por Hacer",
     "consultantName": "DANIEL TENANT ADMIN",
-    "divisionId": "",
     "client": "LUIS SIMOES",
     "linkedTaskId": null,
     "weekNumber": 36,
-    "scheduledHours": 0.75,
     "importedFromExcel": true,
     "date": {
       "_seconds": 1788127200,
       "_nanoseconds": 0
     },
-    "projectName": "LUIS SIMOES",
-    "divisionName": "",
     "weekMonth": "Semana 5-AGO 2026",
-    "scheduleEnd": "11:45",
     "comment": "Luis Simoes / Gestión semanal de proyecto",
-    "scheduleRaw": "11:00 A 11:45",
     "region": "España",
     "tenantId": "3",
-    "projectCode": null,
     "activityType": "Reunión Cliente",
-    "projectColor": null,
     "createdAt": {
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Hecho",
+    "projectCode": "LSM",
+    "divisionName": "Consultoría",
+    "projectColor": "#10b981",
+    "scheduleEnd": "12:00",
+    "divisionId": "Consultoría",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "scheduleRaw": "11:00 A 12:00",
+    "scheduledHours": 1,
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788430661,
+      "_nanoseconds": 125000000
     }
   },
   {
@@ -9163,6 +9492,53 @@
     }
   },
   {
+    "id": "7sTSeXa5ZUd1Phc7luFl",
+    "region": "España",
+    "description": "VALIDACIONES DE TARIFACIÓN",
+    "projectCode": "SPR",
+    "weekMonth": "Semana 4-AGO 2026",
+    "scheduleEnd": "11:00",
+    "weekNumber": 35,
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "needsDateReview": false,
+    "dayType": "DH",
+    "scheduledHours": 2,
+    "divisionName": "",
+    "linkedTaskId": null,
+    "tenantId": "3",
+    "importedFromExcel": true,
+    "jiraRecord": "Tarea: SPAR->VALIDACIONES DE TARIFACIÓN",
+    "weekStart": "2026-08-24",
+    "projectName": "SPAR",
+    "comment": "SPAR / Validaciones de tarifación",
+    "weekLabel": "Semana 4",
+    "scheduleStart": "09:00",
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "consultantOrder": 3,
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "scheduleRaw": "09:00 A 11:00",
+    "projectColor": "#f59e0b",
+    "client": "SPAR",
+    "projectId": "WcF8wTccm1LkaFBfWvug",
+    "yearMonth": "2026-08",
+    "result": "Cancelado",
+    "activityType": "Tareas a Realizar",
+    "consultantName": "ERIC WALTHER",
+    "divisionId": "",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "7t4k3lVHNfIfP02Otpc4",
     "tenantId": "3",
     "date": {
@@ -9489,6 +9865,53 @@
     }
   },
   {
+    "id": "8Ft89ltvBQOooQV4en6f",
+    "scheduleStart": "11:00",
+    "weekLabel": "Semana 4",
+    "scheduleEnd": "12:00",
+    "comment": "Logifrio / Revisión de Eps con equipo",
+    "projectCode": null,
+    "weekStart": "2026-08-24",
+    "jiraRecord": "Reunión Interna: LOGIFRIO->REVISIÓN DE EPS CON EQUIPO",
+    "importedFromExcel": true,
+    "description": "REVISIÓN DE EPS CON EQUIPO",
+    "tenantId": "3",
+    "divisionId": "",
+    "consultantName": "JORGE MARTINEZ",
+    "result": "Hecho",
+    "yearMonth": "2026-08",
+    "consultantOrder": 6,
+    "projectId": null,
+    "linkedTaskId": null,
+    "client": "LOGIFRIO",
+    "divisionName": "",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "needsDateReview": false,
+    "weekNumber": 35,
+    "weekMonth": "Semana 4-AGO 2026",
+    "projectName": "LOGIFRIO",
+    "region": "España",
+    "projectColor": null,
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "dayType": "DH",
+    "scheduledHours": 1,
+    "activityType": "Reunión Interna",
+    "scheduleRaw": "11:00 A 12:00",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "8Mhx8PANqm51h32nKsVy",
     "tenantId": "3",
     "date": {
@@ -9676,6 +10099,53 @@
     }
   },
   {
+    "id": "8bwTB2fv6wZ9c5lMk9cz",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "scheduleRaw": "10:00 A 11:00",
+    "weekNumber": 35,
+    "consultantName": "DIEGO SENRA LAMBERTI",
+    "weekMonth": "Semana 4-AGO 2026",
+    "dayType": "DH",
+    "importedFromExcel": true,
+    "region": "España",
+    "needsDateReview": false,
+    "tenantId": "3",
+    "projectName": "UNIGIS",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "weekLabel": "Semana 4",
+    "isActive": true,
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "scheduledHours": 1,
+    "weekStart": "2026-08-24",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "consultantOrder": 1,
+    "consultantId": "4Bv59XpXVHQop7puwmjRRemGcxU2",
+    "description": "WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "projectCode": "UNI",
+    "divisionId": "",
+    "projectColor": "#ef4444",
+    "result": "Por Hacer",
+    "yearMonth": "2026-08",
+    "client": "UNIGIS",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "scheduleEnd": "11:00",
+    "comment": "UNIGIS / WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "scheduleStart": "10:00",
+    "activityType": "Reunión UNIGIS",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "8kHoKJOxNnOHvL5Y9w3e",
     "client": "LUIS SIMOES",
     "consultantOrder": 5,
@@ -9720,6 +10190,53 @@
     "updatedAt": {
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
+    }
+  },
+  {
+    "id": "8kLewZiPIieuPqaTyygh",
+    "description": "LICENCIA",
+    "weekLabel": "Semana 4",
+    "projectCode": null,
+    "region": "España",
+    "weekNumber": 35,
+    "scheduleEnd": "18:00",
+    "weekStart": "2026-08-24",
+    "consultantName": "GONZALO CASTRO",
+    "divisionName": "",
+    "isActive": true,
+    "linkedTaskId": null,
+    "yearMonth": "2026-08",
+    "consultantOrder": 5,
+    "projectId": null,
+    "comment": "UNIGIS / Licencia",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "needsDateReview": false,
+    "projectName": "UNIGIS",
+    "weekMonth": "Semana 4-AGO 2026",
+    "scheduleStart": "09:00",
+    "dayType": "DH",
+    "activityType": "Vacaciones",
+    "scheduleRaw": "09:00 A 18:00",
+    "result": "Hecho",
+    "importedFromExcel": true,
+    "projectColor": null,
+    "scheduledHours": 9,
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "consultantId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "client": "UNIGIS",
+    "tenantId": "3",
+    "divisionId": "",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -11721,6 +12238,53 @@
     }
   },
   {
+    "id": "AfADjwxZCdGagsrQDQvB",
+    "jiraRecord": "Tarea: SMSA->AVANCE REPORTES Y ALARMAS",
+    "scheduleRaw": "10:30 A 11:30",
+    "isActive": true,
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "activityType": "Tareas a Realizar",
+    "comment": "SMSA / Avance reportes y alarmas",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "projectColor": "#f97316",
+    "consultantName": "IÑAKI IRABURU",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "scheduleStart": "10:30",
+    "projectName": "SMSA",
+    "consultantOrder": 4,
+    "weekMonth": "Semana 4-AGO 2026",
+    "divisionId": "",
+    "region": "España",
+    "result": "Hecho",
+    "divisionName": "",
+    "scheduledHours": 1,
+    "linkedTaskId": null,
+    "yearMonth": "2026-08",
+    "projectId": "c0HRtaCkKXxeiQf897sY",
+    "needsDateReview": false,
+    "client": "SMSA",
+    "weekNumber": 35,
+    "tenantId": "3",
+    "weekLabel": "Semana 4",
+    "description": "AVANCE REPORTES Y ALARMAS",
+    "projectCode": "SMSA",
+    "dayType": "DH",
+    "scheduleEnd": "11:30",
+    "importedFromExcel": true,
+    "weekStart": "2026-08-24",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "AftIPWTWYe5tiJwTlRPq",
     "weekMonth": "Semana 4-JUL 2026",
     "consultantOrder": 6,
@@ -11811,6 +12375,53 @@
     "updatedAt": {
       "_seconds": 1782203427,
       "_nanoseconds": 404000000
+    }
+  },
+  {
+    "id": "AmOgINK5dw82BQ4BjfIr",
+    "scheduleRaw": "09:00 A 18:00",
+    "divisionId": "",
+    "consultantName": "JAIME JESUS ARMAS",
+    "result": "Hecho",
+    "client": "UNIGIS",
+    "linkedTaskId": null,
+    "dayType": "DH",
+    "divisionName": "",
+    "weekMonth": "Semana 4-AGO 2026",
+    "importedFromExcel": true,
+    "projectName": "UNIGIS",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "needsDateReview": false,
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "comment": "UNIGIS / Licencia",
+    "projectId": null,
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "consultantOrder": 8,
+    "scheduleStart": "09:00",
+    "scheduledHours": 9,
+    "yearMonth": "2026-08",
+    "description": "LICENCIA",
+    "weekStart": "2026-08-24",
+    "activityType": "Vacaciones",
+    "weekNumber": 35,
+    "projectCode": null,
+    "weekLabel": "Semana 4",
+    "tenantId": "3",
+    "scheduleEnd": "18:00",
+    "projectColor": null,
+    "region": "España",
+    "consultantId": "kUZXUUXtufZdvDAG8lCuAw7J1Ez1",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -12374,6 +12985,100 @@
     }
   },
   {
+    "id": "BCE8G4873Q68gqAURXkj",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "comment": "UNIGIS / Licencia",
+    "scheduleEnd": "18:00",
+    "result": "Hecho",
+    "projectCode": null,
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "client": "UNIGIS",
+    "weekMonth": "Semana 4-AGO 2026",
+    "tenantId": "3",
+    "description": "LICENCIA",
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "consultantOrder": 1,
+    "divisionId": "",
+    "scheduleStart": "09:00",
+    "scheduledHours": 9,
+    "divisionName": "",
+    "linkedTaskId": null,
+    "weekLabel": "Semana 4",
+    "weekNumber": 35,
+    "isActive": true,
+    "projectName": "UNIGIS",
+    "weekStart": "2026-08-24",
+    "needsDateReview": false,
+    "projectColor": null,
+    "dayType": "DH",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "importedFromExcel": true,
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "yearMonth": "2026-08",
+    "activityType": "Vacaciones",
+    "projectId": null,
+    "region": "España",
+    "scheduleRaw": "09:00 A 18:00",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
+    "id": "BEQuJ4Kuuq0LskXIEAEy",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "scheduledHours": 1.5,
+    "weekNumber": 35,
+    "yearMonth": "2026-08",
+    "scheduleStart": "09:00",
+    "comment": "Europastry / Avance reportes y dudas",
+    "weekStart": "2026-08-24",
+    "projectColor": "#ef4444",
+    "scheduleRaw": "09:00 A 10:30",
+    "needsDateReview": false,
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "isActive": true,
+    "weekLabel": "Semana 4",
+    "activityType": "Tareas a Realizar",
+    "importedFromExcel": true,
+    "region": "España",
+    "jiraRecord": "Tarea: EUROPASTRY->AVANCE REPORTES Y DUDAS",
+    "dayType": "DH",
+    "description": "AVANCE REPORTES Y DUDAS",
+    "projectCode": "EUP",
+    "result": "Hecho",
+    "client": "EUROPASTRY",
+    "scheduleEnd": "10:30",
+    "consultantOrder": 4,
+    "consultantName": "IÑAKI IRABURU",
+    "weekMonth": "Semana 4-AGO 2026",
+    "divisionName": "",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "linkedTaskId": null,
+    "tenantId": "3",
+    "divisionId": "",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "BEfB06BDrkoVdMpIsiVF",
     "tenantId": "3",
     "date": {
@@ -12840,6 +13545,53 @@
     }
   },
   {
+    "id": "BVf1HAe4PgwcCztkof9E",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "importedFromExcel": true,
+    "projectColor": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "comment": "SMSA / Revisión Diego+Iñaki de reportes y alarmas compartidos",
+    "consultantName": "IÑAKI IRABURU",
+    "weekMonth": "Semana 4-AGO 2026",
+    "activityType": "Reunión Interna",
+    "projectCode": null,
+    "result": "Hecho",
+    "description": "REVISIÓN DIEGO+IÑAKI DE REPORTES Y ALARMAS COMPARTIDOS",
+    "weekNumber": 35,
+    "isActive": true,
+    "scheduleStart": "12:00",
+    "client": "SMSA",
+    "scheduleEnd": "13:00",
+    "needsDateReview": false,
+    "consultantOrder": 4,
+    "scheduledHours": 1,
+    "divisionId": "",
+    "scheduleRaw": "12:00 A 13:00",
+    "weekLabel": "Semana 4",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "region": "España",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "weekStart": "2026-08-24",
+    "projectName": "SMSA",
+    "yearMonth": "2026-08",
+    "tenantId": "3",
+    "dayType": "DH",
+    "projectId": null,
+    "jiraRecord": "Reunión Interna: SMSA->REVISIÓN DIEGO+IÑAKI DE REPORTES Y ALARMAS COMPARTIDOS",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "BWW6pebhiww2ORPOjzUH",
     "tenantId": "3",
     "date": {
@@ -13026,6 +13778,53 @@
     }
   },
   {
+    "id": "Bg0dfjmtZFfbUNiBRtq4",
+    "weekLabel": "Semana 4",
+    "consultantName": "ERIC WALTHER",
+    "scheduleStart": "12:00",
+    "weekNumber": 35,
+    "comment": "SPAR / Configurar mezcla de cargas",
+    "weekStart": "2026-08-24",
+    "tenantId": "3",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "result": "Hecho",
+    "yearMonth": "2026-08",
+    "scheduleEnd": "13:00",
+    "projectId": "WcF8wTccm1LkaFBfWvug",
+    "client": "SPAR",
+    "projectCode": "SPR",
+    "consultantOrder": 3,
+    "description": "CONFIGURAR MEZCLA DE CARGAS",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "needsDateReview": false,
+    "weekMonth": "Semana 4-AGO 2026",
+    "jiraRecord": "Tarea: SPAR->CONFIGURAR MEZCLA DE CARGAS",
+    "scheduleRaw": "12:00 A 13:00",
+    "scheduledHours": 1,
+    "region": "España",
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "divisionId": "",
+    "activityType": "Tareas a Realizar",
+    "importedFromExcel": true,
+    "dayType": "DH",
+    "projectColor": "#f59e0b",
+    "projectName": "SPAR",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "BjrUkKzu0liPUTPIFgDx",
     "tenantId": "3",
     "date": {
@@ -13117,6 +13916,53 @@
     "updatedAt": {
       "_seconds": 1784287665,
       "_nanoseconds": 284000000
+    }
+  },
+  {
+    "id": "Bm5flbAMQHwLFDsp7U2g",
+    "scheduledHours": 9,
+    "projectId": null,
+    "scheduleStart": "09:00",
+    "projectName": "UNIGIS",
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "yearMonth": "2026-08",
+    "scheduleRaw": "09:00 A 18:00",
+    "divisionId": "",
+    "isActive": true,
+    "weekStart": "2026-08-24",
+    "region": "España",
+    "activityType": "Vacaciones",
+    "weekLabel": "Semana 4",
+    "consultantId": "kUZXUUXtufZdvDAG8lCuAw7J1Ez1",
+    "consultantOrder": 8,
+    "dayType": "DH",
+    "importedFromExcel": true,
+    "projectColor": null,
+    "description": "LICENCIA",
+    "client": "UNIGIS",
+    "needsDateReview": false,
+    "weekNumber": 35,
+    "projectCode": null,
+    "consultantName": "JAIME JESUS ARMAS",
+    "scheduleEnd": "18:00",
+    "result": "Hecho",
+    "comment": "UNIGIS / Licencia",
+    "weekMonth": "Semana 4-AGO 2026",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -13819,6 +14665,53 @@
     "updatedAt": {
       "_seconds": 1788428044,
       "_nanoseconds": 265000000
+    }
+  },
+  {
+    "id": "CgkLiApGAikBNTRKF6Mj",
+    "scheduleStart": "15:30",
+    "scheduleEnd": "16:00",
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "jiraRecord": "Reunión Cliente: EUROPASTRY->SEGUIMIENTO SEMANAL DE PROYECTO",
+    "projectColor": "#ef4444",
+    "yearMonth": "2026-08",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "region": "España",
+    "description": "SEGUIMIENTO SEMANAL DE PROYECTO",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "projectCode": "EUP",
+    "needsDateReview": false,
+    "activityType": "Reunión Cliente",
+    "importedFromExcel": true,
+    "weekLabel": "Semana 4",
+    "divisionId": "",
+    "comment": "Europastry / Seguimiento semanal de proyecto",
+    "weekStart": "2026-08-24",
+    "tenantId": "3",
+    "consultantName": "JORGE MARTINEZ",
+    "dayType": "DH",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "projectName": "EUROPASTRY",
+    "weekNumber": 35,
+    "consultantOrder": 6,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "result": "Cancelado",
+    "scheduledHours": 0.5,
+    "weekMonth": "Semana 4-AGO 2026",
+    "scheduleRaw": "15:30 A 16:00",
+    "client": "EUROPASTRY",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -15468,8 +16361,6 @@
     "consultantName": "DANIEL TENANT ADMIN",
     "comment": "Luis Simoes / Avance Plan FaseII Etapa III",
     "scheduleEnd": "13:00",
-    "result": "Por Hacer",
-    "projectName": "LUIS SIMOES",
     "tenantId": "3",
     "scheduleRaw": "11:00 A 13:00",
     "scheduleStart": "11:00",
@@ -15479,22 +16370,17 @@
     },
     "weekNumber": 36,
     "consultantOrder": 1,
-    "projectCode": null,
-    "divisionName": "",
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "divisionId": "",
     "weekStart": "2026-08-31",
     "yearMonth": "2026-09",
     "isActive": true,
     "importedFromExcel": true,
     "jiraRecord": "Reunión Interna: LUIS SIMOES->AVANCE PLAN FASEII ETAPA III",
-    "projectId": null,
     "linkedTaskId": null,
     "weekLabel": "Semana 1",
     "region": "España",
     "description": "AVANCE PLAN FASEII ETAPA III",
     "scheduledHours": 2,
-    "projectColor": null,
     "activityType": "Reunión Interna",
     "dayType": "DH",
     "client": "LUIS SIMOES",
@@ -15502,9 +16388,16 @@
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Hecho",
+    "projectCode": "LSM",
+    "divisionName": "Consultoría",
+    "projectColor": "#10b981",
+    "divisionId": "Consultoría",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectId": "OH4sjML9byhLuzMXSTss",
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788430774,
+      "_nanoseconds": 70000000
     }
   },
   {
@@ -16817,6 +17710,53 @@
     }
   },
   {
+    "id": "FFdBkzBQvnjo0ubrTn8I",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "scheduledHours": 1.5,
+    "client": "EUROPASTRY",
+    "projectColor": "#ef4444",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "yearMonth": "2026-08",
+    "dayType": "DH",
+    "activityType": "Tareas a Realizar",
+    "result": "Hecho",
+    "projectCode": "EUP",
+    "weekNumber": 35,
+    "importedFromExcel": true,
+    "weekStart": "2026-08-24",
+    "description": "REVISIÓN ADELANTOS",
+    "isActive": true,
+    "scheduleStart": "09:00",
+    "scheduleEnd": "10:30",
+    "consultantOrder": 4,
+    "weekLabel": "Semana 4",
+    "needsDateReview": false,
+    "scheduleRaw": "09:00 A 10:30",
+    "divisionId": "",
+    "consultantName": "IÑAKI IRABURU",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "projectName": "EUROPASTRY",
+    "weekMonth": "Semana 4-AGO 2026",
+    "tenantId": "3",
+    "region": "España",
+    "jiraRecord": "Tarea: EUROPASTRY->REVISIÓN ADELANTOS",
+    "comment": "Europastry / Revisión adelantos",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "FIeUFZ6aHhdjIMgiw2eB",
     "tenantId": "3",
     "date": {
@@ -17658,6 +18598,53 @@
     }
   },
   {
+    "id": "G3kRTzzEmHZkZZQwi0o4",
+    "linkedTaskId": null,
+    "consultantOrder": 3,
+    "divisionName": "",
+    "comment": "SPAR / Sesión semanal con Jesus",
+    "importedFromExcel": true,
+    "scheduleRaw": "12:00 A 13:00",
+    "region": "España",
+    "tenantId": "3",
+    "scheduleStart": "12:00",
+    "weekNumber": 35,
+    "weekMonth": "Semana 4-AGO 2026",
+    "scheduledHours": 1,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectName": "SPAR",
+    "projectId": "WcF8wTccm1LkaFBfWvug",
+    "activityType": "Reunión Cliente",
+    "jiraRecord": "Reunión Cliente: SPAR->SESIÓN SEMANAL CON JESUS",
+    "isActive": true,
+    "projectColor": "#f59e0b",
+    "yearMonth": "2026-08",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "result": "Hecho",
+    "weekStart": "2026-08-24",
+    "dayType": "DH",
+    "scheduleEnd": "13:00",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "consultantName": "ERIC WALTHER",
+    "divisionId": "",
+    "description": "SESIÓN SEMANAL CON JESUS",
+    "weekLabel": "Semana 4",
+    "needsDateReview": false,
+    "projectCode": "SPR",
+    "client": "SPAR",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "G6MXGBaGf2hCmsUw9atE",
     "needsDateReview": false,
     "projectId": null,
@@ -18171,6 +19158,53 @@
     "updatedAt": {
       "_seconds": 1782203427,
       "_nanoseconds": 404000000
+    }
+  },
+  {
+    "id": "GSDQTYpt6LgZ5Mf34DxB",
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "scheduleEnd": "18:00",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "needsDateReview": false,
+    "weekLabel": "Semana 4",
+    "description": "LICENCIA",
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "projectCode": null,
+    "weekStart": "2026-08-24",
+    "comment": "UNIGIS / Licencia",
+    "region": "España",
+    "yearMonth": "2026-08",
+    "consultantName": "GONZALO CASTRO",
+    "isActive": true,
+    "projectId": null,
+    "divisionId": "",
+    "activityType": "Vacaciones",
+    "client": "UNIGIS",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectColor": null,
+    "weekNumber": 35,
+    "result": "Hecho",
+    "consultantId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "weekMonth": "Semana 4-AGO 2026",
+    "projectName": "UNIGIS",
+    "tenantId": "3",
+    "scheduleRaw": "09:00 A 18:00",
+    "consultantOrder": 5,
+    "scheduleStart": "09:00",
+    "scheduledHours": 9,
+    "dayType": "DH",
+    "importedFromExcel": true,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -18826,6 +19860,53 @@
     "updatedAt": {
       "_seconds": 1782287076,
       "_nanoseconds": 959000000
+    }
+  },
+  {
+    "id": "Gy6lHPdRDRd4pdTR71Nm",
+    "divisionName": "",
+    "weekStart": "2026-08-24",
+    "linkedTaskId": null,
+    "client": "SMSA",
+    "weekLabel": "Semana 4",
+    "scheduleRaw": "09:00 A 11:00",
+    "divisionId": "",
+    "result": "Hecho",
+    "consultantOrder": 4,
+    "jiraRecord": "Tarea: SMSA->AVANCE REPORTES Y NOTIFICACIONES",
+    "projectId": "c0HRtaCkKXxeiQf897sY",
+    "dayType": "DH",
+    "importedFromExcel": true,
+    "consultantName": "IÑAKI IRABURU",
+    "tenantId": "3",
+    "projectName": "SMSA",
+    "yearMonth": "2026-08",
+    "scheduleStart": "09:00",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "activityType": "Tareas a Realizar",
+    "weekMonth": "Semana 4-AGO 2026",
+    "comment": "SMSA / Avance reportes y notificaciones",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectColor": "#f97316",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "needsDateReview": false,
+    "scheduleEnd": "11:00",
+    "isActive": true,
+    "region": "España",
+    "weekNumber": 35,
+    "description": "AVANCE REPORTES Y NOTIFICACIONES",
+    "scheduledHours": 2,
+    "projectCode": "SMSA",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -20091,6 +21172,53 @@
     }
   },
   {
+    "id": "HpB3eYU8a20X7kw6qPDV",
+    "weekMonth": "Semana 4-AGO 2026",
+    "consultantName": "IÑAKI IRABURU",
+    "activityType": "Reunión Cliente",
+    "divisionId": "",
+    "consultantOrder": 4,
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectColor": "#ef4444",
+    "comment": "Europastry / Sesiones de configuración y pruebas",
+    "scheduleEnd": "17:00",
+    "result": "Hecho",
+    "client": "EUROPASTRY",
+    "jiraRecord": "Reunión Cliente: EUROPASTRY->SESIONES DE CONFIGURACIÓN Y PRUEBAS",
+    "projectCode": "EUP",
+    "tenantId": "3",
+    "scheduleStart": "16:00",
+    "description": "SESIONES DE CONFIGURACIÓN Y PRUEBAS",
+    "dayType": "DH",
+    "weekStart": "2026-08-24",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "weekLabel": "Semana 4",
+    "region": "España",
+    "scheduledHours": 1,
+    "scheduleRaw": "16:00 A 17:00",
+    "weekNumber": 35,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "importedFromExcel": true,
+    "isActive": true,
+    "projectName": "EUROPASTRY",
+    "needsDateReview": false,
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "yearMonth": "2026-08",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "Hvkf7rFsihIJtb8tcNbm",
     "tenantId": "3",
     "date": {
@@ -20371,6 +21499,53 @@
     }
   },
   {
+    "id": "IEvhsmvyCxtU65psmUqf",
+    "dayType": "DH",
+    "consultantName": "GONZALO CASTRO",
+    "weekNumber": 35,
+    "scheduleRaw": "09:00 A 18:00",
+    "result": "Hecho",
+    "tenantId": "3",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "needsDateReview": false,
+    "divisionName": "",
+    "linkedTaskId": null,
+    "importedFromExcel": true,
+    "projectName": "UNIGIS",
+    "weekMonth": "Semana 4-AGO 2026",
+    "client": "UNIGIS",
+    "yearMonth": "2026-08",
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "consultantOrder": 5,
+    "scheduledHours": 9,
+    "region": "España",
+    "projectId": null,
+    "scheduleEnd": "18:00",
+    "projectColor": null,
+    "comment": "UNIGIS / Licencia",
+    "weekLabel": "Semana 4",
+    "consultantId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "scheduleStart": "09:00",
+    "description": "LICENCIA",
+    "activityType": "Vacaciones",
+    "projectCode": null,
+    "weekStart": "2026-08-24",
+    "isActive": true,
+    "divisionId": "",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "ILXdzXOUdggODSBlWNfK",
     "weekNumber": 33,
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
@@ -20468,33 +21643,24 @@
     "id": "IOTL6jJQaEEEAnb8ktWA",
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "comment": "Transpais / Seguimiento interfaces",
-    "result": "Por Hacer",
     "needsDateReview": false,
-    "scheduleRaw": "15:15 A 16:00",
     "weekStart": "2026-08-31",
     "yearMonth": "2026-09",
-    "projectId": null,
     "importedFromExcel": true,
     "weekLabel": "Semana 1",
-    "projectCode": null,
     "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "tenantId": "3",
     "jiraRecord": "Reunión Cliente: TRANSPAIS->SEGUIMIENTO INTERFACES",
     "scheduleEnd": "16:00",
     "projectName": "TRANSPAIS",
-    "divisionId": "",
     "consultantOrder": 1,
-    "scheduledHours": 0.75,
     "description": "SEGUIMIENTO INTERFACES",
     "weekMonth": "Semana 1-SEP 2026",
-    "projectColor": null,
     "isActive": true,
     "region": "España",
     "activityType": "Reunión Cliente",
     "weekNumber": 36,
-    "scheduleStart": "15:15",
     "consultantName": "DANIEL TENANT ADMIN",
-    "divisionName": "",
     "client": "TRANSPAIS",
     "dayType": "DH",
     "linkedTaskId": null,
@@ -20506,9 +21672,18 @@
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Hecho",
+    "scheduleStart": "15:30",
+    "projectCode": "TSP",
+    "divisionName": "Consultoría",
+    "projectColor": "#3b82f6",
+    "divisionId": "Consultoría",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "scheduleRaw": "15:30 A 16:00",
+    "scheduledHours": 0.5,
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788430849,
+      "_nanoseconds": 734000000
     }
   },
   {
@@ -21768,6 +22943,53 @@
     }
   },
   {
+    "id": "JQxtVULeUhb0mrdjnFXu",
+    "result": "Hecho",
+    "weekLabel": "Semana 4",
+    "scheduleRaw": "15:00 A 16:00",
+    "weekStart": "2026-08-24",
+    "client": "LOGIFRIO",
+    "consultantName": "ERIC WALTHER",
+    "consultantOrder": 3,
+    "isActive": true,
+    "weekNumber": 35,
+    "yearMonth": "2026-08",
+    "divisionName": "",
+    "projectId": "bGeacYFR1Fk4xv0Yh9XV",
+    "linkedTaskId": null,
+    "comment": "Logifrio / Avance Eps reportados",
+    "projectName": "Logifrio",
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "scheduledHours": 1,
+    "divisionId": "",
+    "importedFromExcel": true,
+    "weekMonth": "Semana 4-AGO 2026",
+    "dayType": "DH",
+    "scheduleEnd": "16:00",
+    "needsDateReview": false,
+    "projectColor": "#71717a",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "region": "España",
+    "jiraRecord": "Tarea: LOGIFRIO->AVANCE EPS REPORTADOS",
+    "scheduleStart": "15:00",
+    "activityType": "Tareas a Realizar",
+    "description": "AVANCE EPS REPORTADOS",
+    "projectCode": "LGF",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "JS3OHpWNl7SRYGKcL1MK",
     "tenantId": "3",
     "date": {
@@ -22047,6 +23269,53 @@
     "updatedAt": {
       "_seconds": 1788427243,
       "_nanoseconds": 956000000
+    }
+  },
+  {
+    "id": "JxVN5JvT3G7pVmDNkfkM",
+    "scheduleStart": "09:00",
+    "importedFromExcel": true,
+    "scheduleEnd": "10:30",
+    "isActive": true,
+    "jiraRecord": "Tarea: EUROPASTRY->AVANCE REPORTES Y DUDAS",
+    "yearMonth": "2026-08",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "comment": "Europastry / Avance reportes y dudas",
+    "needsDateReview": false,
+    "description": "AVANCE REPORTES Y DUDAS",
+    "projectCode": "EUP",
+    "weekLabel": "Semana 4",
+    "scheduledHours": 1.5,
+    "linkedTaskId": null,
+    "divisionId": "",
+    "divisionName": "",
+    "weekStart": "2026-08-24",
+    "region": "España",
+    "result": "Hecho",
+    "client": "EUROPASTRY",
+    "projectName": "EUROPASTRY",
+    "tenantId": "3",
+    "weekNumber": 35,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectColor": "#ef4444",
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "consultantOrder": 4,
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "dayType": "DH",
+    "weekMonth": "Semana 4-AGO 2026",
+    "scheduleRaw": "09:00 A 10:30",
+    "activityType": "Tareas a Realizar",
+    "consultantName": "IÑAKI IRABURU",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -23268,6 +24537,53 @@
     }
   },
   {
+    "id": "Kz4k2MnwGBGk3ufZAWW0",
+    "weekStart": "2026-08-24",
+    "activityType": "Vacaciones",
+    "scheduleStart": "09:00",
+    "weekLabel": "Semana 4",
+    "needsDateReview": false,
+    "projectColor": null,
+    "consultantId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "scheduledHours": 9,
+    "region": "España",
+    "dayType": "DH",
+    "projectId": null,
+    "projectCode": null,
+    "description": "LICENCIA",
+    "weekNumber": 35,
+    "importedFromExcel": true,
+    "tenantId": "3",
+    "yearMonth": "2026-08",
+    "scheduleEnd": "18:00",
+    "comment": "UNIGIS / Licencia",
+    "divisionId": "",
+    "linkedTaskId": null,
+    "weekMonth": "Semana 4-AGO 2026",
+    "divisionName": "",
+    "consultantName": "GONZALO CASTRO",
+    "scheduleRaw": "09:00 A 18:00",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectName": "UNIGIS",
+    "result": "Hecho",
+    "consultantOrder": 5,
+    "isActive": true,
+    "client": "UNIGIS",
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "KzFdzwG05cUDuraDmCuC",
     "dayType": "DH",
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
@@ -23359,6 +24675,53 @@
     "updatedAt": {
       "_seconds": 1784287667,
       "_nanoseconds": 318000000
+    }
+  },
+  {
+    "id": "L1FaYqdovualS8OuHnr9",
+    "importedFromExcel": true,
+    "dayType": "DH",
+    "scheduleStart": "09:00",
+    "consultantName": "ERIC WALTHER",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "tenantId": "3",
+    "projectName": "TRANSPAIS",
+    "weekMonth": "Semana 4-AGO 2026",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "region": "España",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "weekNumber": 35,
+    "scheduleRaw": "09:00 A 10:00",
+    "consultantOrder": 3,
+    "needsDateReview": false,
+    "scheduleEnd": "10:00",
+    "projectColor": null,
+    "projectId": null,
+    "result": "Cancelado",
+    "isActive": true,
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "activityType": "Reunión Interna",
+    "description": "MAPEO DE NIFI PARA PORTIC CON DAVID",
+    "divisionId": "",
+    "client": "TRANSPAIS",
+    "projectCode": null,
+    "yearMonth": "2026-08",
+    "scheduledHours": 1,
+    "weekStart": "2026-08-24",
+    "jiraRecord": "Reunión Interna: TRANSPAIS->MAPEO DE NIFI PARA PORTIC CON DAVID",
+    "comment": "Transpais / Mapeo de NiFI para Portic con David",
+    "weekLabel": "Semana 4",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -23781,6 +25144,53 @@
     "updatedAt": {
       "_seconds": 1784652130,
       "_nanoseconds": 228000000
+    }
+  },
+  {
+    "id": "LYpGTo0Ll5ujiNv4IUyt",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "comment": "UNIGIS / WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "result": "Por Hacer",
+    "client": "UNIGIS",
+    "yearMonth": "2026-08",
+    "needsDateReview": false,
+    "divisionName": "",
+    "linkedTaskId": null,
+    "scheduleEnd": "11:00",
+    "weekStart": "2026-08-24",
+    "projectCode": "UNI",
+    "divisionId": "",
+    "weekLabel": "Semana 4",
+    "scheduledHours": 1,
+    "description": "WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "isActive": true,
+    "scheduleStart": "10:00",
+    "weekNumber": 35,
+    "scheduleRaw": "10:00 A 11:00",
+    "activityType": "Reunión UNIGIS",
+    "dayType": "DH",
+    "consultantOrder": 4,
+    "tenantId": "3",
+    "consultantName": "IÑAKI IRABURU",
+    "weekMonth": "Semana 4-AGO 2026",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "projectName": "UNIGIS",
+    "projectColor": "#ef4444",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "importedFromExcel": true,
+    "region": "España",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -26306,11 +27716,9 @@
   {
     "id": "NoiGKK1YM4BBKVdjChYg",
     "region": "España",
-    "divisionId": "",
     "scheduleStart": "09:00",
     "jiraRecord": "Tarea: DEHEUS->PREPARACIÓN DE DOC PARA CLIENTE API Y MAESTROS",
     "comment": "DeHeus / Preparación de doc para cliente API y Maestros",
-    "projectName": "DEHEUS",
     "needsDateReview": false,
     "consultantName": "DANIEL TENANT ADMIN",
     "scheduleEnd": "11:00",
@@ -26319,19 +27727,14 @@
     "client": "DEHEUS",
     "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "consultantOrder": 1,
-    "projectCode": null,
     "weekMonth": "Semana 1-SEP 2026",
     "activityType": "Tareas a Realizar",
     "isActive": true,
-    "projectColor": null,
-    "result": "Por Hacer",
     "date": {
       "_seconds": 1788213600,
       "_nanoseconds": 0
     },
     "dayType": "DH",
-    "projectId": null,
-    "divisionName": "",
     "description": "PREPARACIÓN DE DOC PARA CLIENTE API Y MAESTROS",
     "weekLabel": "Semana 1",
     "importedFromExcel": true,
@@ -26345,9 +27748,16 @@
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Hecho",
+    "projectCode": "DHE",
+    "divisionName": "Consultoría",
+    "projectColor": "#06b6d4",
+    "divisionId": "Consultoría",
+    "projectName": "DE HEUS",
+    "projectId": "sZDav2CndgdmhfYc8BTt",
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788430782,
+      "_nanoseconds": 533000000
     }
   },
   {
@@ -26913,6 +28323,53 @@
     }
   },
   {
+    "id": "O8ENJAhc96k4T2HrUZZY",
+    "isActive": true,
+    "scheduleEnd": "18:00",
+    "activityType": "Vacaciones",
+    "divisionId": "",
+    "projectColor": null,
+    "description": "LICENCIA",
+    "comment": "UNIGIS / Licencia",
+    "projectCode": null,
+    "consultantId": "kUZXUUXtufZdvDAG8lCuAw7J1Ez1",
+    "scheduledHours": 9,
+    "needsDateReview": false,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "region": "España",
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "weekMonth": "Semana 4-AGO 2026",
+    "scheduleStart": "09:00",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "client": "UNIGIS",
+    "consultantName": "JAIME JESUS ARMAS",
+    "yearMonth": "2026-08",
+    "importedFromExcel": true,
+    "projectId": null,
+    "projectName": "UNIGIS",
+    "result": "Hecho",
+    "tenantId": "3",
+    "consultantOrder": 8,
+    "weekLabel": "Semana 4",
+    "weekNumber": 35,
+    "weekStart": "2026-08-24",
+    "scheduleRaw": "09:00 A 18:00",
+    "dayType": "DH",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "OAtD5YuHiI2wLvkVQ9Ju",
     "tenantId": "3",
     "divisionId": "",
@@ -27331,6 +28788,53 @@
     "updatedAt": {
       "_seconds": 1784287663,
       "_nanoseconds": 709000000
+    }
+  },
+  {
+    "id": "Ob3CrGAOWCvFAWSVc4FG",
+    "yearMonth": "2026-08",
+    "weekNumber": 35,
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "consultantOrder": 1,
+    "importedFromExcel": true,
+    "divisionName": "",
+    "linkedTaskId": null,
+    "scheduleStart": "09:00",
+    "isActive": true,
+    "projectName": "UNIGIS",
+    "projectId": null,
+    "comment": "UNIGIS / Licencia",
+    "weekLabel": "Semana 4",
+    "region": "España",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "scheduleRaw": "09:00 A 18:00",
+    "weekStart": "2026-08-24",
+    "scheduleEnd": "18:00",
+    "tenantId": "3",
+    "projectColor": null,
+    "client": "UNIGIS",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "description": "LICENCIA",
+    "activityType": "Vacaciones",
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "projectCode": null,
+    "result": "Hecho",
+    "scheduledHours": 9,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "divisionId": "",
+    "needsDateReview": false,
+    "weekMonth": "Semana 4-AGO 2026",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -29802,6 +31306,53 @@
     }
   },
   {
+    "id": "RBBXm3uZzkb8BbEoUh2g",
+    "comment": "Europastry / Mejora en adelantos preparación automáticos",
+    "weekMonth": "Semana 4-AGO 2026",
+    "consultantOrder": 4,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "region": "España",
+    "importedFromExcel": true,
+    "jiraRecord": "Tarea: EUROPASTRY->MEJORA EN ADELANTOS PREPARACIÓN AUTOMÁTICOS",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "divisionId": "",
+    "scheduleEnd": "10:30",
+    "tenantId": "3",
+    "description": "MEJORA EN ADELANTOS PREPARACIÓN AUTOMÁTICOS",
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "projectCode": "EUP",
+    "consultantName": "IÑAKI IRABURU",
+    "weekNumber": 35,
+    "weekStart": "2026-08-24",
+    "scheduleRaw": "09:00 A 10:30",
+    "weekLabel": "Semana 4",
+    "scheduleStart": "09:00",
+    "dayType": "DH",
+    "activityType": "Tareas a Realizar",
+    "scheduledHours": 1.5,
+    "result": "Hecho",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "client": "EUROPASTRY",
+    "needsDateReview": false,
+    "yearMonth": "2026-08",
+    "projectColor": "#ef4444",
+    "projectName": "EUROPASTRY",
+    "isActive": true,
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "RCEKVmVlnHYoDgsZkwhC",
     "activityType": "Reunión Interna",
     "dayType": "DH",
@@ -30034,6 +31585,53 @@
     "updatedAt": {
       "_seconds": 1784652132,
       "_nanoseconds": 280000000
+    }
+  },
+  {
+    "id": "RPwgblWK6tnXPM3qDEMu",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "dayType": "DH",
+    "tenantId": "3",
+    "projectName": "EUROPASTRY",
+    "scheduledHours": 1,
+    "divisionId": "",
+    "yearMonth": "2026-08",
+    "weekStart": "2026-08-24",
+    "importedFromExcel": true,
+    "consultantOrder": 4,
+    "client": "EUROPASTRY",
+    "jiraRecord": "Reunión Cliente: EUROPASTRY->SESIONES DE CONFIGURACIÓN Y PRUEBAS",
+    "weekLabel": "Semana 4",
+    "result": "Hecho",
+    "divisionName": "",
+    "scheduleRaw": "16:00 A 17:00",
+    "linkedTaskId": null,
+    "region": "España",
+    "consultantName": "IÑAKI IRABURU",
+    "isActive": true,
+    "scheduleEnd": "17:00",
+    "projectCode": "EUP",
+    "needsDateReview": false,
+    "description": "SESIONES DE CONFIGURACIÓN Y PRUEBAS",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "weekMonth": "Semana 4-AGO 2026",
+    "projectColor": "#ef4444",
+    "comment": "Europastry / Sesiones de configuración y pruebas",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "scheduleStart": "16:00",
+    "weekNumber": 35,
+    "activityType": "Reunión Cliente",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -30691,7 +32289,6 @@
   },
   {
     "id": "SEhhhSV87CdnYizhklbG",
-    "divisionName": "",
     "isActive": true,
     "consultantOrder": 1,
     "dayType": "DH",
@@ -30699,8 +32296,6 @@
     "weekNumber": 36,
     "consultantName": "DANIEL TENANT ADMIN",
     "linkedTaskId": null,
-    "result": "Por Hacer",
-    "projectColor": null,
     "date": {
       "_seconds": 1788300000,
       "_nanoseconds": 0
@@ -30710,7 +32305,6 @@
     "needsDateReview": false,
     "scheduleEnd": "16:00",
     "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "projectId": null,
     "projectName": "TRANSPAIS",
     "weekLabel": "Semana 1",
     "importedFromExcel": true,
@@ -30719,8 +32313,6 @@
     "yearMonth": "2026-09",
     "weekStart": "2026-08-31",
     "tenantId": "3",
-    "divisionId": "",
-    "projectCode": null,
     "jiraRecord": "Reunión Interna: TRANSPAIS->SINCRONIZACIÓN DE AVANCE DE INTERFACES ERIC DANI JORGE",
     "client": "TRANSPAIS",
     "scheduledHours": 1,
@@ -30731,9 +32323,62 @@
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Hecho",
+    "projectCode": "TSP",
+    "divisionName": "Consultoría",
+    "projectColor": "#3b82f6",
+    "divisionId": "Consultoría",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788430987,
+      "_nanoseconds": 288000000
+    }
+  },
+  {
+    "id": "SL6j05AsDUrK817WMv1x",
+    "projectId": "WcF8wTccm1LkaFBfWvug",
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "scheduleStart": "12:00",
+    "divisionId": "",
+    "projectName": "SPAR",
+    "scheduledHours": 1,
+    "yearMonth": "2026-08",
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "linkedTaskId": null,
+    "weekStart": "2026-08-24",
+    "isActive": true,
+    "divisionName": "",
+    "jiraRecord": "Reunión Cliente: SPAR->SESIÓN SEMANAL CON JESUS",
+    "result": "Hecho",
+    "dayType": "DH",
+    "client": "SPAR",
+    "weekLabel": "Semana 4",
+    "scheduleRaw": "12:00 A 13:00",
+    "consultantName": "ERIC WALTHER",
+    "scheduleEnd": "13:00",
+    "comment": "SPAR / Sesión semanal con Jesus",
+    "projectCode": "SPR",
+    "description": "SESIÓN SEMANAL CON JESUS",
+    "region": "España",
+    "weekMonth": "Semana 4-AGO 2026",
+    "activityType": "Reunión Cliente",
+    "projectColor": "#f59e0b",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantOrder": 3,
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "tenantId": "3",
+    "weekNumber": 35,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -30966,6 +32611,53 @@
     "updatedAt": {
       "_seconds": 1779725361,
       "_nanoseconds": 759000000
+    }
+  },
+  {
+    "id": "SV3xEV4nZf6gZ2hjQiGn",
+    "yearMonth": "2026-08",
+    "consultantId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "projectName": "UNIGIS",
+    "projectColor": null,
+    "scheduledHours": 9,
+    "isActive": true,
+    "jiraRecord": "Especial: UNIGIS->LICENCIA PATERNIDAD",
+    "projectId": null,
+    "activityType": "Especial",
+    "scheduleStart": "09:00",
+    "client": "UNIGIS",
+    "scheduleRaw": "09:00 A 18:00",
+    "importedFromExcel": true,
+    "weekLabel": "Semana 4",
+    "divisionId": "",
+    "needsDateReview": false,
+    "dayType": "DH",
+    "weekStart": "2026-08-24",
+    "result": "Hecho",
+    "weekNumber": 35,
+    "description": "LICENCIA PATERNIDAD",
+    "projectCode": null,
+    "region": "España",
+    "tenantId": "3",
+    "consultantOrder": 1,
+    "scheduleEnd": "18:00",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "comment": "UNIGIS / Licencia paternidad",
+    "consultantName": "JESUS MARQUEZ",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "weekMonth": "Semana 4-AGO 2026",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -33913,6 +35605,53 @@
     }
   },
   {
+    "id": "Uy90d5Um4Jmbeia7a4HB",
+    "importedFromExcel": true,
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "description": "REVISIÓN TEMAS PENDIENTES JORGE + IÑAKI",
+    "projectCode": null,
+    "weekNumber": 35,
+    "scheduleEnd": "12:00",
+    "needsDateReview": false,
+    "scheduleStart": "11:00",
+    "isActive": true,
+    "comment": "Europastry / Revisión temas pendientes Jorge + Iñaki",
+    "activityType": "Reunión Interna",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectColor": null,
+    "weekMonth": "Semana 4-AGO 2026",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "scheduledHours": 1,
+    "region": "España",
+    "dayType": "DH",
+    "yearMonth": "2026-08",
+    "jiraRecord": "Reunión Interna: EUROPASTRY->REVISIÓN TEMAS PENDIENTES JORGE + IÑAKI",
+    "tenantId": "3",
+    "projectName": "EUROPASTRY",
+    "result": "Hecho",
+    "client": "EUROPASTRY",
+    "projectId": null,
+    "divisionName": "",
+    "linkedTaskId": null,
+    "scheduleRaw": "11:00 A 12:00",
+    "consultantOrder": 4,
+    "consultantName": "IÑAKI IRABURU",
+    "weekLabel": "Semana 4",
+    "weekStart": "2026-08-24",
+    "divisionId": "",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "V11dBiny9q7wKOlGfAg4",
     "tenantId": "3",
     "date": {
@@ -34237,6 +35976,53 @@
     "updatedAt": {
       "_seconds": 1782313666,
       "_nanoseconds": 229000000
+    }
+  },
+  {
+    "id": "VO9S3UdvgaHLUPclgItW",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dayType": "DH",
+    "scheduledHours": 1.5,
+    "scheduleEnd": "13:30",
+    "consultantOrder": 4,
+    "projectCode": "FRR",
+    "jiraRecord": "Reunión Cliente: FRIT RAVICH->ETATAPA II - DISEÑO TO BE",
+    "weekMonth": "Semana 4-AGO 2026",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "description": "ETATAPA II - DISEÑO TO BE",
+    "divisionId": "",
+    "result": "Hecho",
+    "client": "FRIT RAVICH",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "weekLabel": "Semana 4",
+    "weekNumber": 35,
+    "isActive": true,
+    "consultantName": "IÑAKI IRABURU",
+    "projectName": "FRIT RAVICH",
+    "weekStart": "2026-08-24",
+    "region": "España",
+    "scheduleStart": "12:00",
+    "projectColor": "#84cc16",
+    "comment": "FRIT RAVICH / ETATAPA II - DISEÑO TO BE",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "yearMonth": "2026-08",
+    "activityType": "Reunión Cliente",
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "projectId": "11K4kv5QI3SVkhVwuFfo",
+    "scheduleRaw": "12:00 A 13:30",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -35041,7 +36827,6 @@
     "id": "W6gQ28fopi9Pifks0S9x",
     "scheduleEnd": "16:00",
     "projectName": "TRANSPAIS",
-    "projectColor": null,
     "scheduleStart": "15:00",
     "activityType": "Reunión Interna",
     "isActive": true,
@@ -35051,19 +36836,15 @@
     },
     "consultantName": "DANIEL TENANT ADMIN",
     "weekNumber": 36,
-    "result": "Por Hacer",
     "comment": "Transpais / Sincronización de avance de interfaces Eric Dani Jorge",
-    "projectCode": null,
     "linkedTaskId": null,
     "weekMonth": "Semana 5-AGO 2026",
-    "divisionName": "",
     "scheduleRaw": "15:00 A 16:00",
     "scheduledHours": 1,
     "jiraRecord": "Reunión Interna: TRANSPAIS->SINCRONIZACIÓN DE AVANCE DE INTERFACES ERIC DANI JORGE",
     "needsDateReview": false,
     "client": "TRANSPAIS",
     "dayType": "DH",
-    "divisionId": "",
     "weekStart": "2026-08-31",
     "yearMonth": "2026-08",
     "importedFromExcel": true,
@@ -35073,15 +36854,20 @@
     "description": "SINCRONIZACIÓN DE AVANCE DE INTERFACES ERIC DANI JORGE",
     "consultantOrder": 1,
     "tenantId": "3",
-    "projectId": null,
     "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "createdAt": {
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Hecho",
+    "projectCode": "TSP",
+    "divisionName": "Consultoría",
+    "projectColor": "#3b82f6",
+    "divisionId": "Consultoría",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788430689,
+      "_nanoseconds": 628000000
     }
   },
   {
@@ -35271,6 +37057,53 @@
     }
   },
   {
+    "id": "WFoOryB9kvcouy0Zoj1U",
+    "isActive": true,
+    "result": "Hecho",
+    "scheduleEnd": "18:00",
+    "dayType": "DH",
+    "client": "UNIGIS",
+    "projectCode": null,
+    "description": "LICENCIA PATERNIDAD",
+    "weekNumber": 35,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "weekMonth": "Semana 4-AGO 2026",
+    "needsDateReview": false,
+    "linkedTaskId": null,
+    "divisionName": "",
+    "scheduledHours": 9,
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "importedFromExcel": true,
+    "divisionId": "",
+    "consultantOrder": 1,
+    "yearMonth": "2026-08",
+    "projectId": null,
+    "projectName": "UNIGIS",
+    "tenantId": "3",
+    "projectColor": null,
+    "weekLabel": "Semana 4",
+    "consultantName": "JESUS MARQUEZ",
+    "consultantId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "comment": "UNIGIS / Licencia paternidad",
+    "jiraRecord": "Especial: UNIGIS->LICENCIA PATERNIDAD",
+    "scheduleStart": "09:00",
+    "activityType": "Especial",
+    "weekStart": "2026-08-24",
+    "scheduleRaw": "09:00 A 18:00",
+    "region": "España",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "WItHXQRVJnSYtcFxmCFQ",
     "tenantId": "3",
     "date": {
@@ -35315,6 +37148,53 @@
     "updatedAt": {
       "_seconds": 1784287662,
       "_nanoseconds": 571000000
+    }
+  },
+  {
+    "id": "WKoEQdcFSzxl0HbQhb9l",
+    "projectColor": null,
+    "scheduleStart": "09:00",
+    "weekLabel": "Semana 4",
+    "consultantId": "kUZXUUXtufZdvDAG8lCuAw7J1Ez1",
+    "projectName": "UNIGIS",
+    "activityType": "Vacaciones",
+    "region": "España",
+    "weekStart": "2026-08-24",
+    "scheduledHours": 9,
+    "isActive": true,
+    "weekNumber": 35,
+    "yearMonth": "2026-08",
+    "projectId": null,
+    "consultantOrder": 8,
+    "comment": "UNIGIS / Licencia",
+    "scheduleRaw": "09:00 A 18:00",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "divisionId": "",
+    "needsDateReview": false,
+    "scheduleEnd": "18:00",
+    "consultantName": "JAIME JESUS ARMAS",
+    "weekMonth": "Semana 4-AGO 2026",
+    "importedFromExcel": true,
+    "projectCode": null,
+    "divisionName": "",
+    "linkedTaskId": null,
+    "dayType": "DH",
+    "description": "LICENCIA",
+    "result": "Hecho",
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "client": "UNIGIS",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -35408,6 +37288,53 @@
     "updatedAt": {
       "_seconds": 1784652128,
       "_nanoseconds": 121000000
+    }
+  },
+  {
+    "id": "WZOl2XmIMb7wYPvyoATy",
+    "comment": "Logifrio / Avance Eps reportados",
+    "scheduleStart": "15:00",
+    "projectId": "bGeacYFR1Fk4xv0Yh9XV",
+    "result": "Cancelado",
+    "client": "LOGIFRIO",
+    "yearMonth": "2026-08",
+    "divisionId": "",
+    "scheduleEnd": "16:00",
+    "weekStart": "2026-08-24",
+    "jiraRecord": "Tarea: LOGIFRIO->AVANCE EPS REPORTADOS",
+    "needsDateReview": false,
+    "importedFromExcel": true,
+    "scheduledHours": 1,
+    "description": "AVANCE EPS REPORTADOS",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "linkedTaskId": null,
+    "weekLabel": "Semana 4",
+    "divisionName": "",
+    "isActive": true,
+    "projectCode": "LGF",
+    "consultantOrder": 3,
+    "scheduleRaw": "15:00 A 16:00",
+    "dayType": "DH",
+    "tenantId": "3",
+    "consultantName": "ERIC WALTHER",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "weekMonth": "Semana 4-AGO 2026",
+    "projectColor": "#71717a",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "weekNumber": 35,
+    "region": "España",
+    "projectName": "Logifrio",
+    "activityType": "Tareas a Realizar",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -35549,6 +37476,53 @@
     "updatedAt": {
       "_seconds": 1788427799,
       "_nanoseconds": 572000000
+    }
+  },
+  {
+    "id": "WmlvJvYlzK7PvirJg122",
+    "scheduleEnd": "18:00",
+    "region": "España",
+    "activityType": "Vacaciones",
+    "scheduleStart": "09:00",
+    "divisionId": "",
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "projectColor": null,
+    "description": "LICENCIA",
+    "projectCode": null,
+    "consultantId": "kUZXUUXtufZdvDAG8lCuAw7J1Ez1",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "scheduledHours": 9,
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "weekMonth": "Semana 4-AGO 2026",
+    "tenantId": "3",
+    "comment": "UNIGIS / Licencia",
+    "needsDateReview": false,
+    "consultantOrder": 8,
+    "divisionName": "",
+    "linkedTaskId": null,
+    "yearMonth": "2026-08",
+    "projectId": null,
+    "importedFromExcel": true,
+    "projectName": "UNIGIS",
+    "dayType": "DH",
+    "isActive": true,
+    "weekLabel": "Semana 4",
+    "weekNumber": 35,
+    "client": "UNIGIS",
+    "weekStart": "2026-08-24",
+    "result": "Hecho",
+    "scheduleRaw": "09:00 A 18:00",
+    "consultantName": "JAIME JESUS ARMAS",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -36301,6 +38275,53 @@
     }
   },
   {
+    "id": "XSLaj94qAI1JjGyLRn5Q",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "projectName": "EUROPASTRY",
+    "region": "España",
+    "projectColor": "#ef4444",
+    "weekStart": "2026-08-24",
+    "consultantOrder": 4,
+    "importedFromExcel": true,
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "activityType": "Tareas a Realizar",
+    "weekLabel": "Semana 4",
+    "isActive": true,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "scheduleRaw": "09:00 A 10:30",
+    "dayType": "DH",
+    "yearMonth": "2026-08",
+    "weekNumber": 35,
+    "consultantName": "IÑAKI IRABURU",
+    "tenantId": "3",
+    "projectCode": "EUP",
+    "comment": "Europastry / Ayuda a equipo interfaces EUP con dudas",
+    "weekMonth": "Semana 4-AGO 2026",
+    "description": "AYUDA A EQUIPO INTERFACES EUP CON DUDAS",
+    "divisionId": "",
+    "scheduleEnd": "10:30",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "jiraRecord": "Tarea: EUROPASTRY->AYUDA A EQUIPO INTERFACES EUP CON DUDAS",
+    "scheduledHours": 1.5,
+    "client": "EUROPASTRY",
+    "needsDateReview": false,
+    "result": "Hecho",
+    "scheduleStart": "09:00",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "XVLLl8hKy2CXWo0vD21q",
     "tenantId": "3",
     "date": {
@@ -36391,6 +38412,53 @@
     "updatedAt": {
       "_seconds": 1779792157,
       "_nanoseconds": 359000000
+    }
+  },
+  {
+    "id": "XVVg9i6Gfao99Mgli40F",
+    "projectColor": "#ef4444",
+    "needsDateReview": false,
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "importedFromExcel": true,
+    "scheduledHours": 1,
+    "weekStart": "2026-08-24",
+    "activityType": "Reunión UNIGIS",
+    "comment": "UNIGIS / WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "weekLabel": "Semana 4",
+    "scheduleEnd": "11:00",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "tenantId": "3",
+    "result": "Hecho",
+    "weekNumber": 35,
+    "client": "UNIGIS",
+    "projectCode": "UNI",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "yearMonth": "2026-08",
+    "description": "WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "scheduleStart": "10:00",
+    "weekMonth": "Semana 4-AGO 2026",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "region": "España",
+    "consultantName": "ERIC WALTHER",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "scheduleRaw": "10:00 A 11:00",
+    "divisionId": "",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "projectName": "UNIGIS",
+    "dayType": "DH",
+    "isActive": true,
+    "consultantOrder": 3,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -36814,6 +38882,53 @@
     }
   },
   {
+    "id": "Xp3O3JHXAFnvCsc5bSWD",
+    "dayType": "DH",
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "scheduleRaw": "09:00 A 18:00",
+    "weekMonth": "Semana 4-AGO 2026",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "activityType": "Vacaciones",
+    "tenantId": "3",
+    "projectName": "UNIGIS",
+    "needsDateReview": false,
+    "projectColor": null,
+    "scheduledHours": 9,
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "weekNumber": 35,
+    "region": "España",
+    "scheduleStart": "09:00",
+    "weekStart": "2026-08-24",
+    "result": "Hecho",
+    "divisionId": "",
+    "client": "UNIGIS",
+    "consultantOrder": 1,
+    "weekLabel": "Semana 4",
+    "comment": "UNIGIS / Licencia",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "description": "LICENCIA",
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "projectCode": null,
+    "consultantName": "DANIEL TENANT ADMIN",
+    "projectId": null,
+    "importedFromExcel": true,
+    "yearMonth": "2026-08",
+    "scheduleEnd": "18:00",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "XrMI68cgDUC1L1MEHOPF",
     "tenantId": "3",
     "date": {
@@ -36902,6 +39017,53 @@
     "updatedAt": {
       "_seconds": 1779362987,
       "_nanoseconds": 897000000
+    }
+  },
+  {
+    "id": "XsBwV2H14VhA2xWN0E1E",
+    "comment": "SPAR / Seguimiento de proyecto",
+    "weekMonth": "Semana 4-AGO 2026",
+    "divisionId": "",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "region": "España",
+    "consultantOrder": 3,
+    "projectColor": "#f59e0b",
+    "projectCode": "SPR",
+    "tenantId": "3",
+    "description": "SEGUIMIENTO DE PROYECTO",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "jiraRecord": "Reunión Cliente: SPAR->SEGUIMIENTO DE PROYECTO",
+    "scheduledHours": 0.5,
+    "activityType": "Reunión Cliente",
+    "importedFromExcel": true,
+    "scheduleEnd": "12:30",
+    "scheduleRaw": "12:00 A 12:30",
+    "weekStart": "2026-08-24",
+    "weekLabel": "Semana 4",
+    "dayType": "DH",
+    "scheduleStart": "12:00",
+    "needsDateReview": false,
+    "projectName": "SPAR",
+    "result": "Hecho",
+    "projectId": "WcF8wTccm1LkaFBfWvug",
+    "yearMonth": "2026-08",
+    "client": "SPAR",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "consultantName": "ERIC WALTHER",
+    "weekNumber": 35,
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -37561,6 +39723,53 @@
     }
   },
   {
+    "id": "YZNVUoleaoOFJw1Krsj0",
+    "yearMonth": "2026-08",
+    "consultantOrder": 6,
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "comment": "Logifrio / Revisión de Eps con equipo",
+    "projectId": null,
+    "projectName": "LOGIFRIO",
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "result": "Por Hacer",
+    "tenantId": "3",
+    "weekLabel": "Semana 4",
+    "projectColor": null,
+    "weekNumber": 35,
+    "scheduleRaw": "11:00 A 12:00",
+    "scheduledHours": 1,
+    "client": "LOGIFRIO",
+    "scheduleStart": "11:00",
+    "weekStart": "2026-08-24",
+    "activityType": "Reunión Interna",
+    "scheduleEnd": "12:00",
+    "region": "España",
+    "description": "REVISIÓN DE EPS CON EQUIPO",
+    "projectCode": null,
+    "divisionId": "",
+    "consultantName": "JORGE MARTINEZ",
+    "jiraRecord": "Reunión Interna: LOGIFRIO->REVISIÓN DE EPS CON EQUIPO",
+    "importedFromExcel": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "needsDateReview": false,
+    "isActive": true,
+    "dayType": "DH",
+    "linkedTaskId": null,
+    "weekMonth": "Semana 4-AGO 2026",
+    "divisionName": "",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "YgGAEhcehqjGBN6UCDUd",
     "tenantId": "3",
     "date": {
@@ -37839,6 +40048,53 @@
     "updatedAt": {
       "_seconds": 1788428044,
       "_nanoseconds": 265000000
+    }
+  },
+  {
+    "id": "Yp3ifE0OMWpWu9HAIHhB",
+    "consultantId": "4Bv59XpXVHQop7puwmjRRemGcxU2",
+    "result": "Por Hacer",
+    "projectColor": null,
+    "projectName": "SMSA",
+    "dayType": "DH",
+    "client": "SMSA",
+    "activityType": "Reunión Interna",
+    "divisionId": "",
+    "scheduleRaw": "12:00 A 13:00",
+    "jiraRecord": "Reunión Interna: SMSA->REVISIÓN DIEGO+IÑAKI DE REPORTES Y ALARMAS COMPARTIDOS",
+    "importedFromExcel": true,
+    "weekMonth": "Semana 4-AGO 2026",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "needsDateReview": false,
+    "isActive": true,
+    "consultantName": "DIEGO SENRA LAMBERTI",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "description": "REVISIÓN DIEGO+IÑAKI DE REPORTES Y ALARMAS COMPARTIDOS",
+    "projectId": null,
+    "projectCode": null,
+    "consultantOrder": 1,
+    "scheduleEnd": "13:00",
+    "yearMonth": "2026-08",
+    "scheduleStart": "12:00",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "scheduledHours": 1,
+    "weekStart": "2026-08-24",
+    "tenantId": "3",
+    "comment": "SMSA / Revisión Diego+Iñaki de reportes y alarmas compartidos",
+    "weekNumber": 35,
+    "region": "España",
+    "weekLabel": "Semana 4",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -38492,6 +40748,53 @@
     "updatedAt": {
       "_seconds": 1784652128,
       "_nanoseconds": 121000000
+    }
+  },
+  {
+    "id": "ZQoCvKESdIUEp6QQWcTU",
+    "weekNumber": 35,
+    "yearMonth": "2026-08",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "dayType": "DH",
+    "importedFromExcel": true,
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "tenantId": "3",
+    "scheduleStart": "10:00",
+    "weekLabel": "Semana 4",
+    "scheduleEnd": "11:00",
+    "projectColor": "#ef4444",
+    "client": "UNIGIS",
+    "projectCode": "UNI",
+    "result": "Hecho",
+    "consultantName": "JORGE MARTINEZ",
+    "needsDateReview": false,
+    "weekStart": "2026-08-24",
+    "activityType": "Reunión UNIGIS",
+    "description": "WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "region": "España",
+    "consultantOrder": 6,
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduledHours": 1,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "comment": "UNIGIS / WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "divisionId": "",
+    "projectName": "UNIGIS",
+    "isActive": true,
+    "divisionName": "",
+    "weekMonth": "Semana 4-AGO 2026",
+    "linkedTaskId": null,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -41438,6 +43741,100 @@
     }
   },
   {
+    "id": "blFAUkZFAAKEPnEWGkFn",
+    "yearMonth": "2026-08",
+    "projectName": "Logifrio",
+    "comment": "Logifrio / Avance Eps reportados",
+    "result": "Cancelado",
+    "jiraRecord": "Tarea: LOGIFRIO->AVANCE EPS REPORTADOS",
+    "consultantOrder": 3,
+    "client": "LOGIFRIO",
+    "linkedTaskId": null,
+    "projectId": "bGeacYFR1Fk4xv0Yh9XV",
+    "divisionName": "",
+    "importedFromExcel": true,
+    "tenantId": "3",
+    "scheduleRaw": "15:00 A 16:00",
+    "weekLabel": "Semana 4",
+    "divisionId": "",
+    "weekStart": "2026-08-24",
+    "scheduledHours": 1,
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "projectCode": "LGF",
+    "projectColor": "#71717a",
+    "description": "AVANCE EPS REPORTADOS",
+    "scheduleStart": "15:00",
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "activityType": "Tareas a Realizar",
+    "weekNumber": 35,
+    "scheduleEnd": "16:00",
+    "dayType": "DH",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "ERIC WALTHER",
+    "needsDateReview": false,
+    "region": "España",
+    "weekMonth": "Semana 4-AGO 2026",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
+    "id": "blHl61Qay1P8wOZj5jh9",
+    "result": "Hecho",
+    "comment": "Logifrio / Avance Eps reportados",
+    "weekMonth": "Semana 4-AGO 2026",
+    "consultantName": "ERIC WALTHER",
+    "isActive": true,
+    "weekNumber": 35,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectName": "Logifrio",
+    "client": "LOGIFRIO",
+    "activityType": "Tareas a Realizar",
+    "scheduleRaw": "15:00 A 16:00",
+    "projectColor": "#71717a",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "consultantOrder": 3,
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "needsDateReview": false,
+    "weekStart": "2026-08-24",
+    "scheduleEnd": "16:00",
+    "weekLabel": "Semana 4",
+    "description": "AVANCE EPS REPORTADOS",
+    "importedFromExcel": true,
+    "tenantId": "3",
+    "jiraRecord": "Tarea: LOGIFRIO->AVANCE EPS REPORTADOS",
+    "scheduledHours": 1,
+    "projectCode": "LGF",
+    "divisionId": "",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "dayType": "DH",
+    "projectId": "bGeacYFR1Fk4xv0Yh9XV",
+    "scheduleStart": "15:00",
+    "region": "España",
+    "yearMonth": "2026-08",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "bmPSisqwZjpKC6YX0cji",
     "tenantId": "3",
     "date": {
@@ -42094,7 +44491,6 @@
   },
   {
     "id": "cSDuSzNhwRiBioYB11Ck",
-    "divisionName": "",
     "description": "REALIZAR PRUEBAS APP COBRANZAS Y VER CON JORGE",
     "scheduledHours": 1,
     "tenantId": "3",
@@ -42102,23 +44498,18 @@
     "linkedTaskId": null,
     "scheduleStart": "13:00",
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "projectColor": null,
     "yearMonth": "2026-09",
     "dayType": "DH",
     "weekStart": "2026-08-31",
     "activityType": "Tareas a Realizar",
     "weekNumber": 36,
-    "projectId": null,
     "weekLabel": "Semana 1",
-    "result": "Por Hacer",
     "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "scheduleRaw": "13:00 A 14:00",
     "jiraRecord": "Tarea: DELGADO->REALIZAR PRUEBAS APP COBRANZAS Y VER CON JORGE",
     "client": "DELGADO",
     "comment": "Delgado / Realizar pruebas app cobranzas y ver con Jorge",
     "needsDateReview": false,
-    "projectCode": null,
-    "divisionId": "",
     "consultantOrder": 1,
     "weekMonth": "Semana 1-SEP 2026",
     "isActive": true,
@@ -42134,9 +44525,15 @@
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Hecho",
+    "projectCode": "DLG",
+    "divisionName": "Consultoría",
+    "projectColor": "#a855f7",
+    "divisionId": "Consultoría",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788430792,
+      "_nanoseconds": 853000000
     }
   },
   {
@@ -42417,6 +44814,53 @@
     "updatedAt": {
       "_seconds": 1784652130,
       "_nanoseconds": 228000000
+    }
+  },
+  {
+    "id": "cmJMQ69Nh7qCyr5dfoJQ",
+    "activityType": "Reunión UNIGIS",
+    "weekMonth": "Semana 4-AGO 2026",
+    "scheduledHours": 1,
+    "consultantOrder": 1,
+    "projectColor": "#ef4444",
+    "scheduleRaw": "10:00 A 11:00",
+    "consultantId": "4Bv59XpXVHQop7puwmjRRemGcxU2",
+    "comment": "UNIGIS / Planning semanal IB",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "importedFromExcel": true,
+    "region": "España",
+    "tenantId": "3",
+    "projectName": "UNIGIS",
+    "weekNumber": 35,
+    "client": "UNIGIS",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "weekStart": "2026-08-24",
+    "divisionId": "",
+    "consultantName": "DIEGO SENRA LAMBERTI",
+    "result": "Hecho",
+    "weekLabel": "Semana 4",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->PLANNING SEMANAL IB",
+    "scheduleEnd": "11:00",
+    "needsDateReview": false,
+    "isActive": true,
+    "yearMonth": "2026-08",
+    "projectCode": "UNI",
+    "description": "PLANNING SEMANAL IB",
+    "scheduleStart": "10:00",
+    "dayType": "DH",
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -45272,6 +47716,53 @@
     }
   },
   {
+    "id": "ewAivM8fS35nuNUgplml",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantOrder": 4,
+    "divisionName": "",
+    "scheduleStart": "09:00",
+    "linkedTaskId": null,
+    "scheduleEnd": "10:30",
+    "projectCode": "EUP",
+    "jiraRecord": "Tarea: EUROPASTRY->MEJORA EN ADELANTOS PREPARACIÓN AUTOMÁTICOS",
+    "weekMonth": "Semana 4-AGO 2026",
+    "region": "España",
+    "importedFromExcel": true,
+    "description": "MEJORA EN ADELANTOS PREPARACIÓN AUTOMÁTICOS",
+    "consultantName": "IÑAKI IRABURU",
+    "dayType": "DH",
+    "divisionId": "",
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "isActive": true,
+    "weekLabel": "Semana 4",
+    "comment": "Europastry / Mejora en adelantos preparación automáticos",
+    "activityType": "Tareas a Realizar",
+    "weekNumber": 35,
+    "projectName": "EUROPASTRY",
+    "weekStart": "2026-08-24",
+    "projectColor": "#ef4444",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "result": "Hecho",
+    "yearMonth": "2026-08",
+    "scheduledHours": 1.5,
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "client": "EUROPASTRY",
+    "scheduleRaw": "09:00 A 10:30",
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "ewcNE0smej21T4615fsU",
     "tenantId": "3",
     "date": {
@@ -47792,24 +50283,67 @@
     }
   },
   {
+    "id": "hci9ADSB71BMPf3aPVND",
+    "consultantName": "ERIC WALTHER",
+    "projectName": "SPAR",
+    "consultantOrder": 3,
+    "client": "SPAR",
+    "result": "Hecho",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "weekNumber": 35,
+    "scheduleRaw": "12:00 A 13:00",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "dayType": "DH",
+    "tenantId": "3",
+    "weekMonth": "Semana 4-AGO 2026",
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "description": "CONFIGURAR MEZCLA DE CARGAS",
+    "yearMonth": "2026-08",
+    "divisionId": "",
+    "projectCode": "SPR",
+    "comment": "SPAR / Configurar mezcla de cargas",
+    "scheduleEnd": "13:00",
+    "importedFromExcel": true,
+    "projectId": "WcF8wTccm1LkaFBfWvug",
+    "scheduledHours": 1,
+    "weekLabel": "Semana 4",
+    "region": "España",
+    "isActive": true,
+    "activityType": "Tareas a Realizar",
+    "weekStart": "2026-08-24",
+    "needsDateReview": false,
+    "jiraRecord": "Tarea: SPAR->CONFIGURAR MEZCLA DE CARGAS",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "projectColor": "#f59e0b",
+    "scheduleStart": "12:00",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "hj153UYDY3IpYNIkitQE",
     "scheduleRaw": "15:30 A 16:30",
     "importedFromExcel": true,
     "scheduleStart": "15:30",
     "needsDateReview": false,
-    "divisionName": "",
     "date": {
       "_seconds": 1788213600,
       "_nanoseconds": 0
     },
     "jiraRecord": "Reunión Interna: TRANSPAIS->REVISIÓN Y AVANCE PLAN ETAPA III JORGE Y DIEGO",
     "client": "TRANSPAIS",
-    "projectCode": null,
     "scheduledHours": 1,
     "linkedTaskId": null,
-    "divisionId": "",
     "activityType": "Reunión Interna",
-    "projectColor": null,
     "projectName": "TRANSPAIS",
     "consultantOrder": 1,
     "region": "España",
@@ -47823,19 +50357,23 @@
     "isActive": true,
     "weekLabel": "Semana 1",
     "weekNumber": 36,
-    "projectId": null,
     "weekStart": "2026-08-31",
     "consultantName": "DANIEL TENANT ADMIN",
     "yearMonth": "2026-09",
-    "result": "Por Hacer",
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "createdAt": {
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Hecho",
+    "projectCode": "TSP",
+    "divisionName": "Consultoría",
+    "projectColor": "#3b82f6",
+    "divisionId": "Consultoría",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788430839,
+      "_nanoseconds": 154000000
     }
   },
   {
@@ -49194,6 +51732,53 @@
     }
   },
   {
+    "id": "j416uWYFUJLy0RM9oSRU",
+    "activityType": "Vacaciones",
+    "yearMonth": "2026-08",
+    "projectName": "UNIGIS",
+    "divisionId": "",
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "scheduledHours": 9,
+    "region": "España",
+    "projectColor": null,
+    "isActive": true,
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectId": null,
+    "consultantOrder": 1,
+    "scheduleRaw": "09:00 A 18:00",
+    "weekLabel": "Semana 4",
+    "comment": "UNIGIS / Licencia",
+    "weekStart": "2026-08-24",
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "linkedTaskId": null,
+    "projectCode": null,
+    "divisionName": "",
+    "description": "LICENCIA",
+    "tenantId": "3",
+    "scheduleStart": "09:00",
+    "dayType": "DH",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "needsDateReview": false,
+    "scheduleEnd": "18:00",
+    "client": "UNIGIS",
+    "weekNumber": 35,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "importedFromExcel": true,
+    "result": "Hecho",
+    "weekMonth": "Semana 4-AGO 2026",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "j59DBFkD9vthBSGRL8y1",
     "tenantId": "3",
     "date": {
@@ -49428,6 +52013,53 @@
     }
   },
   {
+    "id": "jMgxThvydG6hqkFM0xH3",
+    "dayType": "DH",
+    "activityType": "Reunión UNIGIS",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->PLANNING SEMANAL IB",
+    "scheduleStart": "10:00",
+    "projectColor": "#ef4444",
+    "scheduleRaw": "10:00 A 11:00",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "weekMonth": "Semana 4-AGO 2026",
+    "needsDateReview": false,
+    "consultantName": "IÑAKI IRABURU",
+    "divisionId": "",
+    "projectName": "UNIGIS",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "region": "España",
+    "isActive": true,
+    "linkedTaskId": null,
+    "divisionName": "",
+    "importedFromExcel": true,
+    "result": "Hecho",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "consultantOrder": 4,
+    "yearMonth": "2026-08",
+    "client": "UNIGIS",
+    "weekNumber": 35,
+    "scheduledHours": 1,
+    "comment": "UNIGIS / Planning semanal IB",
+    "tenantId": "3",
+    "weekStart": "2026-08-24",
+    "scheduleEnd": "11:00",
+    "projectCode": "UNI",
+    "description": "PLANNING SEMANAL IB",
+    "weekLabel": "Semana 4",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "jOkVP6jLbEdMJubpFl7V",
     "needsDateReview": false,
     "client": "UNIGIS",
@@ -49519,6 +52151,53 @@
     "updatedAt": {
       "_seconds": 1784652128,
       "_nanoseconds": 121000000
+    }
+  },
+  {
+    "id": "jUmtOiW1rUR2X1OWVSiw",
+    "weekStart": "2026-08-24",
+    "isActive": true,
+    "jiraRecord": "Tarea: SPAR->REPORTAR SOP POR ERROR ABM DOMICILIOORDEN",
+    "comment": "SPAR / Reportar SOP por error ABM domicilioOrden",
+    "client": "SPAR",
+    "weekLabel": "Semana 4",
+    "result": "Hecho",
+    "projectName": "SPAR",
+    "scheduleStart": "12:00",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "projectId": "WcF8wTccm1LkaFBfWvug",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "divisionId": "",
+    "scheduleRaw": "12:00 A 12:30",
+    "scheduledHours": 0.5,
+    "yearMonth": "2026-08",
+    "consultantOrder": 3,
+    "needsDateReview": false,
+    "importedFromExcel": true,
+    "scheduleEnd": "12:30",
+    "weekMonth": "Semana 4-AGO 2026",
+    "tenantId": "3",
+    "description": "REPORTAR SOP POR ERROR ABM DOMICILIOORDEN",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "weekNumber": 35,
+    "projectCode": "SPR",
+    "activityType": "Tareas a Realizar",
+    "region": "España",
+    "consultantName": "ERIC WALTHER",
+    "dayType": "DH",
+    "projectColor": "#f59e0b",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -49894,6 +52573,53 @@
     "updatedAt": {
       "_seconds": 1788427636,
       "_nanoseconds": 279000000
+    }
+  },
+  {
+    "id": "jnrudIhIFuWs7vxkULvk",
+    "projectCode": "SPR",
+    "description": "AJUSTAR CALENDARIO DE ENTREGA 2DA VENTANA HORARIA",
+    "divisionId": "",
+    "divisionName": "",
+    "isActive": true,
+    "linkedTaskId": null,
+    "consultantName": "ERIC WALTHER",
+    "scheduleEnd": "12:00",
+    "client": "SPAR",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantOrder": 3,
+    "jiraRecord": "Tarea: SPAR->AJUSTAR CALENDARIO DE ENTREGA 2DA VENTANA HORARIA",
+    "weekMonth": "Semana 4-AGO 2026",
+    "dayType": "DH",
+    "result": "Hecho",
+    "projectColor": "#f59e0b",
+    "yearMonth": "2026-08",
+    "projectName": "SPAR",
+    "scheduleStart": "09:00",
+    "region": "España",
+    "tenantId": "3",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "scheduledHours": 3,
+    "needsDateReview": false,
+    "activityType": "Tareas a Realizar",
+    "comment": "SPAR / Ajustar calendario de entrega 2da ventana horaria",
+    "projectId": "WcF8wTccm1LkaFBfWvug",
+    "weekNumber": 35,
+    "scheduleRaw": "09:00 A 12:00",
+    "weekLabel": "Semana 4",
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "importedFromExcel": true,
+    "weekStart": "2026-08-24",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -53772,6 +56498,53 @@
     }
   },
   {
+    "id": "nMC1NPxBET3F8qyqtjnz",
+    "projectId": null,
+    "needsDateReview": false,
+    "projectName": "UNIGIS",
+    "weekNumber": 35,
+    "yearMonth": "2026-08",
+    "comment": "UNIGIS / Licencia",
+    "weekStart": "2026-08-24",
+    "projectColor": null,
+    "scheduleRaw": "09:00 A 18:00",
+    "consultantId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "isActive": true,
+    "consultantName": "GONZALO CASTRO",
+    "weekLabel": "Semana 4",
+    "activityType": "Vacaciones",
+    "region": "España",
+    "dayType": "DH",
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "description": "LICENCIA",
+    "projectCode": null,
+    "result": "Hecho",
+    "client": "UNIGIS",
+    "scheduleEnd": "18:00",
+    "importedFromExcel": true,
+    "scheduledHours": 9,
+    "weekMonth": "Semana 4-AGO 2026",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "tenantId": "3",
+    "divisionId": "",
+    "scheduleStart": "09:00",
+    "consultantOrder": 5,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "nMtwgiqsTi7AscbdFAhY",
     "tenantId": "3",
     "date": {
@@ -54562,6 +57335,53 @@
     }
   },
   {
+    "id": "obtgNllZBeqZAKT9X5Oi",
+    "description": "AVANCE EPS REPORTADOS",
+    "dayType": "DH",
+    "projectCode": "LGF",
+    "activityType": "Tareas a Realizar",
+    "tenantId": "3",
+    "importedFromExcel": true,
+    "scheduleEnd": "16:00",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "consultantOrder": 3,
+    "projectColor": "#71717a",
+    "region": "España",
+    "consultantName": "ERIC WALTHER",
+    "weekMonth": "Semana 4-AGO 2026",
+    "weekNumber": 35,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "divisionId": "",
+    "projectId": "bGeacYFR1Fk4xv0Yh9XV",
+    "client": "LOGIFRIO",
+    "isActive": true,
+    "linkedTaskId": null,
+    "divisionName": "",
+    "projectName": "Logifrio",
+    "scheduleStart": "15:00",
+    "result": "Hecho",
+    "yearMonth": "2026-08",
+    "weekStart": "2026-08-24",
+    "scheduleRaw": "15:00 A 16:00",
+    "needsDateReview": false,
+    "comment": "Logifrio / Avance Eps reportados",
+    "weekLabel": "Semana 4",
+    "scheduledHours": 1,
+    "jiraRecord": "Tarea: LOGIFRIO->AVANCE EPS REPORTADOS",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "ocStVhLUkKApJV2UmwvX",
     "tenantId": "3",
     "date": {
@@ -55264,6 +58084,53 @@
     }
   },
   {
+    "id": "p1j4iDalen1OYeE2AbVN",
+    "scheduledHours": 1,
+    "projectColor": null,
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "activityType": "Reunión Interna",
+    "region": "España",
+    "weekMonth": "Semana 4-AGO 2026",
+    "isActive": true,
+    "scheduleEnd": "12:00",
+    "projectCode": null,
+    "weekNumber": 35,
+    "scheduleStart": "11:00",
+    "comment": "Logifrio / Revisión de Eps con equipo",
+    "needsDateReview": false,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "description": "REVISIÓN DE EPS CON EQUIPO",
+    "importedFromExcel": true,
+    "projectId": null,
+    "consultantOrder": 3,
+    "dayType": "DH",
+    "divisionName": "",
+    "consultantName": "ERIC WALTHER",
+    "linkedTaskId": null,
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "divisionId": "",
+    "scheduleRaw": "11:00 A 12:00",
+    "yearMonth": "2026-08",
+    "jiraRecord": "Reunión Interna: LOGIFRIO->REVISIÓN DE EPS CON EQUIPO",
+    "weekStart": "2026-08-24",
+    "result": "Hecho",
+    "client": "LOGIFRIO",
+    "projectName": "LOGIFRIO",
+    "weekLabel": "Semana 4",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "p88sdVoPsofpTq9s5cPy",
     "scheduleStart": "11:00",
     "client": "SMSA",
@@ -55682,6 +58549,53 @@
     "updatedAt": {
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
+    }
+  },
+  {
+    "id": "pjP8buwFvjoKsB5qheM5",
+    "client": "UNIGIS",
+    "weekNumber": 35,
+    "consultantOrder": 1,
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "isActive": true,
+    "result": "Hecho",
+    "scheduleRaw": "09:00 A 18:00",
+    "projectColor": null,
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "importedFromExcel": true,
+    "activityType": "Vacaciones",
+    "projectName": "UNIGIS",
+    "comment": "UNIGIS / Licencia",
+    "weekMonth": "Semana 4-AGO 2026",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "yearMonth": "2026-08",
+    "tenantId": "3",
+    "dayType": "DH",
+    "projectId": null,
+    "jiraRecord": "Vacaciones: UNIGIS->LICENCIA",
+    "scheduleStart": "09:00",
+    "divisionId": "",
+    "scheduledHours": 9,
+    "scheduleEnd": "18:00",
+    "region": "España",
+    "weekLabel": "Semana 4",
+    "needsDateReview": false,
+    "projectCode": null,
+    "linkedTaskId": null,
+    "divisionName": "",
+    "description": "LICENCIA",
+    "weekStart": "2026-08-24",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -56382,6 +59296,53 @@
     "updatedAt": {
       "_seconds": 1782313666,
       "_nanoseconds": 229000000
+    }
+  },
+  {
+    "id": "q1vRXw7rqD1nChsKAgdF",
+    "projectColor": "#ef4444",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "EUP",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "description": "RESOLUCIÓN DUDAS CLIENTE",
+    "needsDateReview": false,
+    "comment": "Europastry / Resolución dudas cliente",
+    "scheduledHours": 1.5,
+    "weekMonth": "Semana 4-AGO 2026",
+    "activityType": "Reunión Cliente",
+    "tenantId": "3",
+    "scheduleEnd": "10:30",
+    "result": "Hecho",
+    "weekNumber": 35,
+    "client": "EUROPASTRY",
+    "consultantName": "IÑAKI IRABURU",
+    "projectName": "EUROPASTRY",
+    "weekLabel": "Semana 4",
+    "isActive": true,
+    "importedFromExcel": true,
+    "linkedTaskId": null,
+    "weekStart": "2026-08-24",
+    "divisionName": "",
+    "region": "España",
+    "divisionId": "",
+    "date": {
+      "_seconds": 1787695200,
+      "_nanoseconds": 0
+    },
+    "jiraRecord": "Reunión Cliente: EUROPASTRY->RESOLUCIÓN DUDAS CLIENTE",
+    "scheduleRaw": "09:00 A 10:30",
+    "yearMonth": "2026-08",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "consultantOrder": 4,
+    "dayType": "DH",
+    "scheduleStart": "09:00",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -58488,6 +61449,53 @@
     }
   },
   {
+    "id": "rqtK2AaRZw920JeFslsD",
+    "projectColor": "#71717a",
+    "projectId": "bGeacYFR1Fk4xv0Yh9XV",
+    "projectCode": "LGF",
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "scheduledHours": 1,
+    "region": "España",
+    "description": "SEGUIMIENTO SEMANAL DE PROYECTO",
+    "activityType": "Reunión Cliente",
+    "consultantOrder": 6,
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "scheduleEnd": "18:00",
+    "yearMonth": "2026-08",
+    "isActive": true,
+    "weekStart": "2026-08-24",
+    "importedFromExcel": true,
+    "weekLabel": "Semana 4",
+    "comment": "Logifrio / Seguimiento semanal de proyecto",
+    "weekNumber": 35,
+    "projectName": "Logifrio",
+    "scheduleStart": "17:00",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "divisionId": "",
+    "dayType": "DH",
+    "consultantName": "JORGE MARTINEZ",
+    "client": "LOGIFRIO",
+    "weekMonth": "Semana 4-AGO 2026",
+    "needsDateReview": false,
+    "jiraRecord": "Reunión Cliente: LOGIFRIO->SEGUIMIENTO SEMANAL DE PROYECTO",
+    "scheduleRaw": "17:00 A 18:00",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "result": "Por Hacer",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "rrsjmmcC1Pk6tzI9nNdZ",
     "tenantId": "3",
     "date": {
@@ -58579,6 +61587,53 @@
     "updatedAt": {
       "_seconds": 1788427636,
       "_nanoseconds": 279000000
+    }
+  },
+  {
+    "id": "s3FIzEoPXtZKgePcHAW2",
+    "region": "España",
+    "weekStart": "2026-08-24",
+    "needsDateReview": false,
+    "consultantName": "ERIC WALTHER",
+    "weekLabel": "Semana 4",
+    "isActive": true,
+    "scheduleEnd": "11:00",
+    "weekNumber": 35,
+    "dayType": "DH",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "yearMonth": "2026-08",
+    "scheduleStart": "10:00",
+    "description": "PLANNING SEMANAL IB",
+    "importedFromExcel": true,
+    "divisionName": "",
+    "projectCode": "UNI",
+    "linkedTaskId": null,
+    "divisionId": "",
+    "tenantId": "3",
+    "scheduledHours": 1,
+    "comment": "UNIGIS / Planning semanal IB",
+    "weekMonth": "Semana 4-AGO 2026",
+    "scheduleRaw": "10:00 A 11:00",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "consultantOrder": 3,
+    "client": "UNIGIS",
+    "projectColor": "#ef4444",
+    "result": "Hecho",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->PLANNING SEMANAL IB",
+    "projectName": "UNIGIS",
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "activityType": "Reunión UNIGIS",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -59515,6 +62570,53 @@
     "updatedAt": {
       "_seconds": 1784652130,
       "_nanoseconds": 228000000
+    }
+  },
+  {
+    "id": "swuquLN4suVktYJD5lBU",
+    "importedFromExcel": true,
+    "consultantOrder": 4,
+    "region": "España",
+    "projectName": "EUROPASTRY",
+    "dayType": "DH",
+    "scheduledHours": 1,
+    "activityType": "Tareas a Realizar",
+    "weekNumber": 35,
+    "tenantId": "3",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectColor": "#ef4444",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "weekMonth": "Semana 4-AGO 2026",
+    "scheduleRaw": "11:00 A 12:00",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "yearMonth": "2026-08",
+    "consultantName": "IÑAKI IRABURU",
+    "scheduleEnd": "12:00",
+    "divisionId": "",
+    "projectCode": "EUP",
+    "scheduleStart": "11:00",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "description": "SEGUIMIENTO DE PRUEBAS Y FEEDBACK CLIENTE",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "weekLabel": "Semana 4",
+    "client": "EUROPASTRY",
+    "isActive": true,
+    "result": "Hecho",
+    "jiraRecord": "Tarea: EUROPASTRY->SEGUIMIENTO DE PRUEBAS Y FEEDBACK CLIENTE",
+    "needsDateReview": false,
+    "weekStart": "2026-08-24",
+    "comment": "Europastry / Seguimiento de pruebas y feedback cliente",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -60685,6 +63787,53 @@
     }
   },
   {
+    "id": "tkaZcI0Q4TSrzVvFmofu",
+    "description": "AJUSTAR CALENDARIO DE ENTREGA 2DA VENTANA HORARIA",
+    "projectCode": "SPR",
+    "scheduledHours": 1,
+    "tenantId": "3",
+    "scheduleEnd": "12:00",
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "divisionId": "",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "jiraRecord": "Tarea: SPAR->AJUSTAR CALENDARIO DE ENTREGA 2DA VENTANA HORARIA",
+    "result": "Hecho",
+    "weekMonth": "Semana 4-AGO 2026",
+    "needsDateReview": false,
+    "dayType": "DH",
+    "client": "SPAR",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "scheduleStart": "11:00",
+    "projectId": "WcF8wTccm1LkaFBfWvug",
+    "consultantOrder": 3,
+    "projectName": "SPAR",
+    "region": "España",
+    "isActive": true,
+    "yearMonth": "2026-08",
+    "comment": "SPAR / Ajustar calendario de entrega 2da ventana horaria",
+    "consultantName": "ERIC WALTHER",
+    "activityType": "Tareas a Realizar",
+    "scheduleRaw": "11:00 A 12:00",
+    "importedFromExcel": true,
+    "weekStart": "2026-08-24",
+    "weekNumber": 35,
+    "projectColor": "#f59e0b",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "weekLabel": "Semana 4",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "tm7Rr21VqeYU8whWNcyJ",
     "consultantOrder": 3,
     "comment": "UNIGIS / Planning semanal IB",
@@ -61614,6 +64763,53 @@
     }
   },
   {
+    "id": "ugejJxmgUudH4G3c7GB4",
+    "scheduleEnd": "10:30",
+    "activityType": "Tareas a Realizar",
+    "weekNumber": 35,
+    "yearMonth": "2026-08",
+    "client": "EUROPASTRY",
+    "result": "Hecho",
+    "needsDateReview": false,
+    "projectColor": "#ef4444",
+    "description": "AVANCE REPORTES Y DUDAS",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectCode": "EUP",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "weekLabel": "Semana 4",
+    "importedFromExcel": true,
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "scheduledHours": 1.5,
+    "dayType": "DH",
+    "tenantId": "3",
+    "weekStart": "2026-08-24",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "comment": "Europastry / Avance reportes y dudas",
+    "jiraRecord": "Tarea: EUROPASTRY->AVANCE REPORTES Y DUDAS",
+    "projectName": "EUROPASTRY",
+    "scheduleStart": "09:00",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "region": "España",
+    "divisionId": "",
+    "isActive": true,
+    "consultantOrder": 4,
+    "weekMonth": "Semana 4-AGO 2026",
+    "scheduleRaw": "09:00 A 10:30",
+    "consultantName": "IÑAKI IRABURU",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "uiadX2FDSwaE5f5KKHfo",
     "tenantId": "3",
     "date": {
@@ -62032,6 +65228,53 @@
     "updatedAt": {
       "_seconds": 1788427636,
       "_nanoseconds": 279000000
+    }
+  },
+  {
+    "id": "vOJhLMArLemnIF2wnEk1",
+    "tenantId": "3",
+    "result": "Hecho",
+    "consultantOrder": 4,
+    "projectName": "SMSA",
+    "projectId": "c0HRtaCkKXxeiQf897sY",
+    "yearMonth": "2026-08",
+    "client": "SMSA",
+    "scheduleStart": "09:00",
+    "weekNumber": 35,
+    "scheduleRaw": "09:00 A 11:00",
+    "dayType": "DH",
+    "divisionName": "",
+    "weekStart": "2026-08-24",
+    "linkedTaskId": null,
+    "importedFromExcel": true,
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "consultantName": "IÑAKI IRABURU",
+    "weekLabel": "Semana 4",
+    "description": "AVANCE REPORTES Y NOTIFICACIONES",
+    "comment": "SMSA / Avance reportes y notificaciones",
+    "projectCode": "SMSA",
+    "divisionId": "",
+    "scheduleEnd": "11:00",
+    "isActive": true,
+    "scheduledHours": 2,
+    "activityType": "Tareas a Realizar",
+    "weekMonth": "Semana 4-AGO 2026",
+    "region": "España",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "jiraRecord": "Tarea: SMSA->AVANCE REPORTES Y NOTIFICACIONES",
+    "needsDateReview": false,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectColor": "#f97316",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -62548,6 +65791,53 @@
     "updatedAt": {
       "_seconds": 1788427636,
       "_nanoseconds": 279000000
+    }
+  },
+  {
+    "id": "vclGPgJTVsLaEtFUSuAq",
+    "scheduledHours": 9,
+    "scheduleRaw": "09:00 A 18:00",
+    "comment": "UNIGIS / Licencia paternidad",
+    "importedFromExcel": true,
+    "tenantId": "3",
+    "weekNumber": 35,
+    "activityType": "Especial",
+    "weekMonth": "Semana 4-AGO 2026",
+    "result": "Hecho",
+    "projectName": "UNIGIS",
+    "projectColor": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "consultantOrder": 1,
+    "client": "UNIGIS",
+    "projectId": null,
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "isActive": true,
+    "needsDateReview": false,
+    "jiraRecord": "Especial: UNIGIS->LICENCIA PATERNIDAD",
+    "consultantName": "JESUS MARQUEZ",
+    "region": "España",
+    "scheduleStart": "09:00",
+    "yearMonth": "2026-08",
+    "projectCode": null,
+    "divisionName": "",
+    "weekStart": "2026-08-24",
+    "linkedTaskId": null,
+    "description": "LICENCIA PATERNIDAD",
+    "divisionId": "",
+    "dayType": "DH",
+    "weekLabel": "Semana 4",
+    "scheduleEnd": "18:00",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -63343,6 +66633,100 @@
     }
   },
   {
+    "id": "wFGzxSi0JuDsHD0OR5TZ",
+    "divisionId": "",
+    "scheduleStart": "09:00",
+    "isActive": true,
+    "scheduleRaw": "09:00 A 11:00",
+    "importedFromExcel": true,
+    "scheduledHours": 2,
+    "consultantOrder": 4,
+    "divisionName": "",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "jiraRecord": "Tarea: SMSA->AVANCE REPORTES Y NOTIFICACIONES",
+    "dayType": "DH",
+    "projectName": "SMSA",
+    "weekMonth": "Semana 4-AGO 2026",
+    "region": "España",
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "yearMonth": "2026-08",
+    "result": "Hecho",
+    "tenantId": "3",
+    "comment": "SMSA / Avance reportes y notificaciones",
+    "client": "SMSA",
+    "needsDateReview": false,
+    "projectId": "c0HRtaCkKXxeiQf897sY",
+    "weekNumber": 35,
+    "activityType": "Tareas a Realizar",
+    "weekLabel": "Semana 4",
+    "scheduleEnd": "11:00",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "consultantName": "IÑAKI IRABURU",
+    "projectCode": "SMSA",
+    "description": "AVANCE REPORTES Y NOTIFICACIONES",
+    "projectColor": "#f97316",
+    "weekStart": "2026-08-24",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
+    "id": "wIcBS3Qtdqraemys81wk",
+    "weekStart": "2026-08-24",
+    "scheduleRaw": "11:00 A 12:00",
+    "date": {
+      "_seconds": 1787522400,
+      "_nanoseconds": 0
+    },
+    "consultantOrder": 6,
+    "activityType": "Reunión Interna",
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "weekLabel": "Semana 4",
+    "projectColor": null,
+    "projectId": null,
+    "client": "LOGIFRIO",
+    "projectName": "LOGIFRIO",
+    "consultantName": "JORGE MARTINEZ",
+    "weekNumber": 35,
+    "dayType": "DH",
+    "result": "Hecho",
+    "tenantId": "3",
+    "yearMonth": "2026-08",
+    "weekMonth": "Semana 4-AGO 2026",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "scheduleStart": "11:00",
+    "region": "España",
+    "importedFromExcel": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "comment": "Logifrio / Revisión de Eps con equipo",
+    "divisionId": "",
+    "jiraRecord": "Reunión Interna: LOGIFRIO->REVISIÓN DE EPS CON EQUIPO",
+    "isActive": true,
+    "scheduledHours": 1,
+    "description": "REVISIÓN DE EPS CON EQUIPO",
+    "projectCode": null,
+    "scheduleEnd": "12:00",
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "wJQecPo0J3TiIRJba4Qo",
     "tenantId": "3",
     "date": {
@@ -63713,6 +67097,53 @@
     "updatedAt": {
       "_seconds": 1782291635,
       "_nanoseconds": 195000000
+    }
+  },
+  {
+    "id": "wYcdrS6zyDllmskq0Lfz",
+    "projectColor": "#ef4444",
+    "description": "SESIONES DE CONFIGURACIÓN Y PRUEBAS",
+    "projectCode": "EUP",
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "scheduleEnd": "17:00",
+    "comment": "Europastry / Sesiones de configuración y pruebas",
+    "activityType": "Reunión Cliente",
+    "divisionId": "",
+    "tenantId": "3",
+    "jiraRecord": "Reunión Cliente: EUROPASTRY->SESIONES DE CONFIGURACIÓN Y PRUEBAS",
+    "weekMonth": "Semana 4-AGO 2026",
+    "result": "Hecho",
+    "date": {
+      "_seconds": 1787781600,
+      "_nanoseconds": 0
+    },
+    "consultantName": "JORGE MARTINEZ",
+    "scheduleStart": "16:00",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "client": "EUROPASTRY",
+    "needsDateReview": false,
+    "consultantOrder": 6,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "isActive": true,
+    "importedFromExcel": true,
+    "projectName": "EUROPASTRY",
+    "divisionName": "",
+    "linkedTaskId": null,
+    "region": "España",
+    "yearMonth": "2026-08",
+    "scheduleRaw": "16:00 A 17:00",
+    "weekStart": "2026-08-24",
+    "scheduledHours": 1,
+    "dayType": "DH",
+    "weekLabel": "Semana 4",
+    "weekNumber": 35,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -66101,6 +69532,53 @@
     }
   },
   {
+    "id": "yMX1zLuZIsaPs1Mrhj0A",
+    "consultantOrder": 3,
+    "tenantId": "3",
+    "region": "España",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "weekMonth": "Semana 4-AGO 2026",
+    "date": {
+      "_seconds": 1787608800,
+      "_nanoseconds": 0
+    },
+    "scheduledHours": 1,
+    "divisionName": "",
+    "linkedTaskId": null,
+    "scheduleEnd": "14:00",
+    "projectCode": "SPR",
+    "weekNumber": 35,
+    "comment": "SPAR / Hoja de ruta",
+    "description": "HOJA DE RUTA",
+    "weekLabel": "Semana 4",
+    "scheduleStart": "13:00",
+    "isActive": true,
+    "dayType": "DH",
+    "importedFromExcel": true,
+    "weekStart": "2026-08-24",
+    "scheduleRaw": "13:00 A 14:00",
+    "divisionId": "",
+    "activityType": "Tareas a Realizar",
+    "yearMonth": "2026-08",
+    "client": "SPAR",
+    "jiraRecord": "Tarea: SPAR->HOJA DE RUTA",
+    "projectColor": "#f59e0b",
+    "projectName": "SPAR",
+    "consultantName": "ERIC WALTHER",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "projectId": "WcF8wTccm1LkaFBfWvug",
+    "result": "Hecho",
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    }
+  },
+  {
     "id": "yMoGIWXfoKvSWSnJTJZf",
     "tenantId": "3",
     "date": {
@@ -67138,10 +70616,8 @@
     "scheduleStart": "09:00",
     "scheduleRaw": "09:00 A 10:00",
     "isActive": true,
-    "divisionName": "",
     "weekMonth": "Semana 5-AGO 2026",
     "importedFromExcel": true,
-    "projectCode": null,
     "client": "UNIGIS",
     "weekNumber": 36,
     "dayType": "DH",
@@ -67150,7 +70626,6 @@
       "_nanoseconds": 0
     },
     "scheduleEnd": "10:00",
-    "projectColor": null,
     "scheduledHours": 1,
     "activityType": "Reunión Interna",
     "projectName": "UNIGIS",
@@ -67158,10 +70633,7 @@
     "jiraRecord": "Reunión Interna: UNIGIS->SINCRONIZACIÓN DE PROYECTOS CON JORGE",
     "weekLabel": "Semana 5",
     "needsDateReview": false,
-    "result": "Por Hacer",
-    "projectId": null,
     "yearMonth": "2026-08",
-    "divisionId": "",
     "comment": "UNIGIS / Sincronización de proyectos con Jorge",
     "weekStart": "2026-08-31",
     "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
@@ -67173,9 +70645,15 @@
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Hecho",
+    "projectCode": "UNI",
+    "divisionName": "Consultoría",
+    "projectColor": "#ef4444",
+    "divisionId": "Consultoría",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788430744,
+      "_nanoseconds": 836000000
     }
   },
   {
@@ -67223,6 +70701,53 @@
     "updatedAt": {
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
+    }
+  },
+  {
+    "id": "z6f5qqW3RF53niKyCUse",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "divisionId": "",
+    "result": "Hecho",
+    "description": "PLANNING SEMANAL IB",
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "weekStart": "2026-08-24",
+    "dayType": "DH",
+    "activityType": "Reunión UNIGIS",
+    "client": "UNIGIS",
+    "scheduleEnd": "11:00",
+    "scheduleStart": "10:00",
+    "weekLabel": "Semana 4",
+    "needsDateReview": false,
+    "scheduledHours": 1,
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "date": {
+      "_seconds": 1787868000,
+      "_nanoseconds": 0
+    },
+    "tenantId": "3",
+    "yearMonth": "2026-08",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->PLANNING SEMANAL IB",
+    "projectName": "UNIGIS",
+    "weekMonth": "Semana 4-AGO 2026",
+    "linkedTaskId": null,
+    "divisionName": "",
+    "consultantOrder": 6,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "importedFromExcel": true,
+    "weekNumber": 35,
+    "scheduleRaw": "10:00 A 11:00",
+    "comment": "UNIGIS / Planning semanal IB",
+    "consultantName": "JORGE MARTINEZ",
+    "isActive": true,
+    "region": "España",
+    "createdAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
+    },
+    "updatedAt": {
+      "_seconds": 1788430235,
+      "_nanoseconds": 447000000
     }
   },
   {
@@ -67933,18 +71458,15 @@
     "region": "España",
     "weekStart": "2026-08-31",
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "divisionName": "",
     "scheduleStart": "17:00",
     "comment": "UNIGIS / Alineación Servicios + IT + Producto mensual",
     "weekLabel": "Semana 1",
     "linkedTaskId": null,
     "needsDateReview": false,
-    "projectId": null,
     "description": "ALINEACIÓN SERVICIOS + IT + PRODUCTO MENSUAL",
     "consultantOrder": 1,
     "activityType": "Reunión UNIGIS",
     "client": "UNIGIS",
-    "projectColor": null,
     "jiraRecord": "Reunión UNIGIS: UNIGIS->ALINEACIÓN SERVICIOS + IT + PRODUCTO MENSUAL",
     "date": {
       "_seconds": 1788300000,
@@ -67952,9 +71474,6 @@
     },
     "isActive": true,
     "scheduledHours": 1,
-    "divisionId": "",
-    "projectCode": null,
-    "result": "Por Hacer",
     "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "weekMonth": "Semana 1-SEP 2026",
     "weekNumber": 36,
@@ -67969,9 +71488,15 @@
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Hecho",
+    "projectCode": "UNI",
+    "divisionName": "Consultoría",
+    "projectColor": "#ef4444",
+    "divisionId": "Consultoría",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788431012,
+      "_nanoseconds": 35000000
     }
   },
   {
@@ -68164,7 +71689,6 @@
   {
     "id": "zyWgjXN7IhHzgtRn61wO",
     "consultantOrder": 1,
-    "result": "Por Hacer",
     "scheduleRaw": "12:00 A 13:00",
     "date": {
       "_seconds": 1788127200,
@@ -68174,11 +71698,8 @@
     "jiraRecord": "Tarea: DEHEUS->PREPARACIÓN INFORMACIÓN DE MAESTROS Y APIS UNIGIS",
     "weekMonth": "Semana 5-AGO 2026",
     "scheduledHours": 1,
-    "projectCode": null,
-    "divisionId": "",
     "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "dayType": "DH",
-    "projectName": "DEHEUS",
     "tenantId": "3",
     "needsDateReview": false,
     "scheduleEnd": "13:00",
@@ -68187,13 +71708,10 @@
     "comment": "DeHeus / Preparación información de maestros y APIS Unigis",
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "description": "PREPARACIÓN INFORMACIÓN DE MAESTROS Y APIS UNIGIS",
-    "projectColor": null,
     "region": "España",
     "activityType": "Tareas a Realizar",
     "weekLabel": "Semana 5",
-    "projectId": null,
     "isActive": true,
-    "divisionName": "",
     "importedFromExcel": true,
     "weekNumber": 36,
     "client": "DEHEUS",
@@ -68203,9 +71721,16 @@
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
     },
+    "result": "Hecho",
+    "projectCode": "DHE",
+    "divisionName": "Consultoría",
+    "projectColor": "#06b6d4",
+    "divisionId": "Consultoría",
+    "projectName": "DE HEUS",
+    "projectId": "sZDav2CndgdmhfYc8BTt",
     "updatedAt": {
-      "_seconds": 1788428870,
-      "_nanoseconds": 716000000
+      "_seconds": 1788430761,
+      "_nanoseconds": 238000000
     }
   }
 ]

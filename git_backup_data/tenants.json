@@ -61,15 +61,6 @@
     "isActive": true,
     "createdAt": "2026-01-09T14:32:26.949Z",
     "aiDailyLimit": 200,
-    "logos": [
-      {
-        "id": "2htd8hd7",
-        "label": "Logo Principal",
-        "url": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/tenants%2F3%2Flogos%2F1772987356850_Logo_uni_blanco.png?alt=media&token=4881e38b-99a5-4402-a499-99fe43feeb6d",
-        "storagePath": "tenants/3/logos/1772987356850_Logo_uni_blanco.png",
-        "uploadedAt": "2026-03-08T16:29:20.376Z"
-      }
-    ],
     "logoUrl": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/tenants%2F3%2Flogos%2F1772987356850_Logo_uni_blanco.png?alt=media&token=4881e38b-99a5-4402-a499-99fe43feeb6d",
     "unitaskToolsEnabled": true,
     "aiEnabled": true,
@@ -80,9 +71,25 @@
       "soap",
       "univehiclecreator"
     ],
+    "logos": [
+      {
+        "id": "2htd8hd7",
+        "label": "Logo Principal",
+        "url": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/tenants%2F3%2Flogos%2F1772987356850_Logo_uni_blanco.png?alt=media&token=4881e38b-99a5-4402-a499-99fe43feeb6d",
+        "storagePath": "tenants/3/logos/1772987356850_Logo_uni_blanco.png",
+        "uploadedAt": "2026-03-08T16:29:20.376Z"
+      },
+      {
+        "id": "b9815c94",
+        "label": "Marca de agua (UniFlux)",
+        "url": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/tenants%2F3%2Flogos%2F1788445773152_unigis-logo-transparente.png?alt=media&token=0cb1b184-e5f0-4ab6-972f-5cd22c9d768c",
+        "storagePath": "tenants/3/logos/1788445773152_unigis-logo-transparente.png",
+        "uploadedAt": "2026-09-03T14:29:34.647Z"
+      }
+    ],
     "updatedAt": {
-      "_seconds": 1785432954,
-      "_nanoseconds": 46000000
+      "_seconds": 1788445774,
+      "_nanoseconds": 648000000
     }
   },
   {
