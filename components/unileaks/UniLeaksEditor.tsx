@@ -189,7 +189,23 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, o
     });
 
     const currentNoteIdRef = useRef<string | null>(null);
+    // Re-entrancy lock for handleSave: a ref (not state) so it's visible synchronously
+    // to any save triggered while a previous one is still in flight — prevents two
+    // concurrent "create" calls (both seeing note.id === "") from producing two docs.
+    const isSavingRef = useRef<boolean>(false);
+    // Set when an edit arrives while isSavingRef is true — that edit wasn't part of
+    // the payload already in flight, and setAutoSaveStatus('saved')/('dirty') alone
+    // won't re-arm the debounce effect (refs don't trigger renders, and going
+    // 'dirty'->'saved' is a real change but going 'dirty'->'dirty' from onUpdate mid-flight
+    // is a no-op state-wise). handleSave checks this itself once it's done and, if set,
+    // immediately re-saves so the residual edit is never silently dropped.
+    const pendingChangeDuringSaveRef = useRef<boolean>(false);
     const isSettingContentRef = useRef<boolean>(false);
+
+    const markDirty = () => {
+        setAutoSaveStatus('dirty');
+        if (isSavingRef.current) pendingChangeDuringSaveRef.current = true;
+    };
     const downloadMenuRef = useRef<HTMLDivElement>(null);
 
     // Image zoom click is now handled in handleDOMEvents below
@@ -369,7 +385,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, o
         onUpdate: ({ editor }) => {
             if (!isSettingContentRef.current) {
                 setContent(editor.getHTML());
-                setAutoSaveStatus('dirty');
+                markDirty();
             }
         },
         onSelectionUpdate: ({ editor }) => {
@@ -656,8 +672,10 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, o
 
     // --- AUTO-SAVE LOGIC ---
     useEffect(() => {
-        // Only trigger if dirty and not already saving
-        if (autoSaveStatus !== 'dirty' || isSaving) return;
+        // Only trigger if dirty and not already saving (check the ref too: a save can be
+        // in flight — autoSaveStatus 'saving' — and still get flipped back to 'dirty' by
+        // onUpdate on the next keystroke, which must NOT re-arm a second concurrent save).
+        if (autoSaveStatus !== 'dirty' || isSaving || isSavingRef.current) return;
 
         const timer = setTimeout(() => {
             handleSave(true); // true = isAutoSave
@@ -671,6 +689,17 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, o
             if (!isAutoSave) showToast("Atención", "Escribe un título o contenido antes de guardar", "info");
             return;
         }
+
+        // Re-entrancy guard: if a save is already in flight, don't start another.
+        // Set synchronously (ref, not state) so a save triggered milliseconds later
+        // in the same tick sees it immediately, unlike state which only updates on
+        // next render — that gap is exactly what let two "create" calls race before.
+        if (isSavingRef.current) return;
+        isSavingRef.current = true;
+        // Anything captured into noteDataToSave below is "in flight" as of now — reset
+        // so markDirty() can tell apart edits already covered by this save from ones
+        // that arrive while it's still pending.
+        pendingChangeDuringSaveRef.current = false;
 
         if (isAutoSave) setAutoSaveStatus('saving');
         else setIsSaving(true);
@@ -687,8 +716,16 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, o
                 isInternal
             };
 
-            // Only send id if it's not a new note (new notes have empty id locally)
-            if (!note.id) {
+            // Source of truth for "does this note already exist in Firestore?" is
+            // currentNoteIdRef, not the note.id prop — the prop only updates after
+            // onSaveSuccess round-trips through the parent, which lags behind the
+            // ref by a render. Using the stale prop here is what let a second save
+            // (for what is really the same still-being-created note) fall through
+            // to addDoc and create a duplicate document.
+            const existingId = currentNoteIdRef.current || note.id;
+            if (existingId) {
+                noteDataToSave.id = existingId;
+            } else {
                 delete noteDataToSave.id;
             }
 
@@ -716,6 +753,17 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, o
             setAutoSaveStatus('error');
         } finally {
             setIsSaving(false);
+            isSavingRef.current = false;
+
+            // An edit landed while this save was in flight — it isn't in what we just
+            // sent. setAutoSaveStatus('saved') above may have overwritten the 'dirty'
+            // that edit set, and even if not, a ref changing doesn't re-run the
+            // debounce effect — so without this, that residual edit would sit
+            // unsaved until the user happens to type again. Persist it now.
+            if (pendingChangeDuringSaveRef.current) {
+                pendingChangeDuringSaveRef.current = false;
+                handleSave(isAutoSave);
+            }
         }
     };
 
@@ -833,7 +881,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, o
             type: 'dataTable',
             attrs: { headers, rows },
         }).run();
-        setAutoSaveStatus('dirty');
+        markDirty();
         setShowSheetModal(false);
         setPendingWorkbook(null);
         setXlsxSheets([]);
@@ -890,7 +938,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, o
                     value={title}
                     onChange={(e) => {
                         setTitle(e.target.value);
-                        setAutoSaveStatus('dirty');
+                        markDirty();
                     }}
                     placeholder="Título de la nota..."
                     className="w-full text-[36px] font-bold bg-transparent border-none outline-none mb-4 text-black placeholder-[var(--color-text-faint)] print:text-4xl print:mb-4"
