@@ -1868,22 +1868,6 @@
     }
   },
   {
-    "id": "WUrY2YN8l72NooR8GIvK",
-    "folderId": "XmLtRe8vOPTyw6NhQJGI",
-    "isInternal": true,
-    "title": "Aitana BC",
-    "isPublic": false,
-    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "projectId": "aAb2HIajQVhXnLAzmVo8",
-    "tenantId": "3",
-    "createdAt": null,
-    "content": "<p><strong>REUNIÓN AITANA</strong></p><ul data-list-type=\"disc\"><li><p><s>Porqué hace falta Producto? Que necesita recibir <span spellcheck=\"false\" data-type=\"authorized-word\" class=\"authorized-word-hint border-b border-dotted border-emerald-500/30\">Dinamycs para conocer el concepto?</span></s></p><ul data-list-type=\"disc\"><li><p>confirmado que son los conceptos.</p></li></ul></li><li><p><span spellcheck=\"false\" data-type=\"authorized-word\" class=\"authorized-word-hint border-b border-dotted border-emerald-500/30\">Preguntar por la interfaz de conductores</span></p><ul data-list-type=\"disc\"><li><p>Sin confirmar desde donde nos debe llegar.</p></li><li><p></p></li></ul></li><li><p><span spellcheck=\"false\" data-type=\"authorized-word\" class=\"authorized-word-hint border-b border-dotted border-emerald-500/30\">Tenemos que darles las credenciales de conexión para que puedan entrar y validar.</span></p></li><li><p><span spellcheck=\"false\" data-type=\"authorized-word\" class=\"authorized-word-hint border-b border-dotted border-emerald-500/30\">Solicitarles usuarios para conectar</span></p></li></ul><p><strong>Recepción de datos desde BC</strong></p><ul data-list-type=\"disc\"><li><p>Clave primaria es el dato univoco del registro. Clave única de BC.</p><ul data-list-type=\"disc\"><li><p>Producto</p></li><li><p>cliente</p></li><li><p>proveedor</p></li><li><p>Vehículo</p></li></ul></li></ul><p><strong>Envío desde Unigis</strong></p><ul data-list-type=\"disc\"><li><p>pedido de venta</p></li><li><p>pedido de compra</p></li></ul><p>Solicitan la estructura que tenemos para poder generar la factura. Piden el envío de la información de cabecera y las lineas.</p><p><strong>TRANSPAIS:</strong></p><p>-Solicitar Activar Service Traces en el app.config&nbsp;</p><p>-Token fijo: 38-78-75-CB-4A-8</p><p>-URL: <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://eu-test.unigis.com/TRANSPAIS/\">https://eu-test.unigis.com/TRANSPAIS/</a></p><p>-Pueden hacer pruebas directas en nuestro Swagger: <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://eu-test.unigis.com/TRANSPAIS/admin/swagger\">https://eu-test.unigis.com/TRANSPAIS/admin/swagger</a></p>",
-    "updatedAt": {
-      "_seconds": 1788515256,
-      "_nanoseconds": 127000000
-    }
-  },
-  {
     "id": "WZj47wFEFMWBhPHjJju1",
     "folderId": "XtdYAt9iAAphCYlp8kIX",
     "tenantId": "3",
@@ -2249,7 +2233,6 @@
     "id": "aNuIFcADpwruQL5OLFzm",
     "title": "Aitana BC",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
-    "content": "",
     "tenantId": "3",
     "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "isInternal": true,
@@ -2259,9 +2242,10 @@
       "_seconds": 1788514558,
       "_nanoseconds": 268000000
     },
+    "content": "<p><strong>REUNIÓN AITANA</strong></p><ul data-list-type=\"disc\"><li><p><s>Porqué hace falta Producto? Que necesita recibir <span spellcheck=\"false\" data-type=\"authorized-word\" class=\"authorized-word-hint border-b border-dotted border-emerald-500/30\">Dinamycs para conocer el concepto?</span></s></p><ul data-list-type=\"disc\"><li><p>confirmado que son los conceptos.</p></li></ul></li><li><p><span spellcheck=\"false\" data-type=\"authorized-word\" class=\"authorized-word-hint border-b border-dotted border-emerald-500/30\">Preguntar por la interfaz de conductores</span></p><ul data-list-type=\"disc\"><li><p>Sin confirmar desde donde nos debe llegar.</p></li><li><p></p></li></ul></li><li><p><span spellcheck=\"false\" data-type=\"authorized-word\" class=\"authorized-word-hint border-b border-dotted border-emerald-500/30\">Tenemos que darles las credenciales de conexión para que puedan entrar y validar.</span></p></li><li><p><span spellcheck=\"false\" data-type=\"authorized-word\" class=\"authorized-word-hint border-b border-dotted border-emerald-500/30\">Solicitarles usuarios para conectar</span></p></li></ul><p><strong>Recepción de datos desde BC</strong></p><ul data-list-type=\"disc\"><li><p>Clave primaria es el dato univoco del registro. Clave única de BC.</p><ul data-list-type=\"disc\"><li><p>Producto</p></li><li><p>cliente</p></li><li><p>proveedor</p></li><li><p>Vehículo</p></li></ul></li></ul><p><strong>Envío desde Unigis</strong></p><ul data-list-type=\"disc\"><li><p>pedido de venta</p></li><li><p>pedido de compra</p></li></ul><p>Solicitan la estructura que tenemos para poder generar la factura. Piden el envío de la información de cabecera y las lineas.</p><p><strong>TRANSPAIS:</strong></p><p>-Solicitar Activar Service Traces en el app.config&nbsp;</p><p>-Token fijo: 38-78-75-CB-4A-8</p><p>-URL: <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://eu-test.unigis.com/TRANSPAIS/\">https://eu-test.unigis.com/TRANSPAIS/</a></p><p>-Pueden hacer pruebas directas en nuestro Swagger: <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://eu-test.unigis.com/TRANSPAIS/admin/swagger\">https://eu-test.unigis.com/TRANSPAIS/admin/swagger</a></p>",
     "updatedAt": {
-      "_seconds": 1788514558,
-      "_nanoseconds": 268000000
+      "_seconds": 1788529119,
+      "_nanoseconds": 318000000
     }
   },
   {
@@ -3218,6 +3202,22 @@
     "updatedAt": {
       "_seconds": 1782118663,
       "_nanoseconds": 538000000
+    }
+  },
+  {
+    "id": "ofZWf1X7bcdf8rELFvvI",
+    "isInternal": true,
+    "folderId": "XT2d3o2b7qVi3d6nSdbS",
+    "isPublic": false,
+    "title": "Revisión de la revisión de logistica inversa",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "createdAt": null,
+    "content": "<ul data-list-type=\"disc\"><li><p>Detectamos que se obvia el estado \"Sin respuesta\"</p></li><li><p></p></li></ul><p></p>",
+    "updatedAt": {
+      "_seconds": 1788532711,
+      "_nanoseconds": 973000000
     }
   },
   {
