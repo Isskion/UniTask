@@ -12397,6 +12397,53 @@
     }
   },
   {
+    "id": "lf9mFoZdK6SZ3IQ1OmTE",
+    "order": 1788852670.463,
+    "ancestorIds": [],
+    "status": "pending",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "TSP",
+    "type": "task",
+    "endDate": "2026-09-09T22:00:00.000Z",
+    "dependencies": [],
+    "raci": {
+      "informed": [],
+      "accountable": [],
+      "responsible": [],
+      "consulted": []
+    },
+    "friendlyId": "TRA-48",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "creationSource": "manual_main",
+    "actualEffort": null,
+    "tenantId": "3",
+    "techDescription": "Revisar carpeta de documentación de tarifas de Transpais y ver si hace falta nuevo documetno de tarifas.",
+    "progressV13": {
+      "planned": 0,
+      "actual": 0
+    },
+    "progress": 0,
+    "taskNumber": 48,
+    "acceptanceCriteria": [
+      {
+        "text": "Criterio de aceptación 1",
+        "completed": false,
+        "id": "1"
+      }
+    ],
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "title": "Revisar carpeta de documentación de tarifas",
+    "createdAt": {
+      "_seconds": 1788852687,
+      "_nanoseconds": 944000000
+    },
+    "updatedAt": {
+      "_seconds": 1788852687,
+      "_nanoseconds": 944000000
+    }
+  },
+  {
     "id": "lmY0tfzjuhoTOWIJnECo",
     "weekId": "2026-01-14",
     "relatedJournalEntryId": "2_2026-01-14",
@@ -14189,10 +14236,10 @@
     "endDate": "2026-06-18T22:00:00.000Z",
     "status": "in_progress",
     "techDescription": "Documentación necesaria en la operativa. Documentación vehículos, conductores, etc.\n•\tCMR\n•\tCarta de Porte\n•\tOrden del Cliente (Impresión del Portic, Albaranes del Cliente, etc) \n•\tDocumentos de carga (ADR, Packing list, etc.)\n",
-    "title": "Documentos necesarios Distribución",
+    "title": "Documentos necesarios ",
     "updatedAt": {
-      "_seconds": 1782298459,
-      "_nanoseconds": 237000000
+      "_seconds": 1788858812,
+      "_nanoseconds": 504000000
     }
   },
   {
