@@ -554,7 +554,6 @@
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "projectCode": "TSP",
     "techDescription": "Tipo Parada\tEstado\tMotivo\nCARGA EN REMITENTE\tCargado en remitente\t\nCARGA EN REMITENTE\tCargado Parcial en remitente\tRevisión TRANSPAIS\nCARGA EN REMITENTE\tNo Cargado en remitente\tRevisión TRANSPAIS\nCARGA EN DEPÓSITO SALIDA\tCargado en depósito salida\t\nCARGA EN DEPÓSITO SALIDA\tCargado Parcial en depósito salida\tRevisión TRANSPAIS\nCARGA EN DEPÓSITO SALIDA\tNo Cargado en depósito salida\tRevisión TRANSPAIS\nCARGA EN DEPÓSITO LLEGADA\tCargado en depósito llegada\t\nCARGA EN DEPÓSITO LLEGADA\tCargado Parcial en depósito llegada\tRevisión TRANSPAIS\nCARGA EN DEPÓSITO LLEGADA\tNo Cargado en depósito llegada\tRevisión TRANSPAIS\nENTREGA EN CONSIGNATARIO\tEntrega en depósito salida\t\nENTREGA EN CONSIGNATARIO\tEntrega Parcial en depósito salida\tRevisión TRANSPAIS\nENTREGA EN CONSIGNATARIO\tNo Entregado en depósito salida\tRevisión TRANSPAIS\nENTREGA EN DEPÓSITO SALIDA\tEntrega en depósito llegada\t\nENTREGA EN DEPÓSITO SALIDA\tEntrega Parcial en depósito llegada\tRevisión TRANSPAIS\nENTREGA EN DEPÓSITO SALIDA\tNo Entregado en depósito llegada\tRevisión TRANSPAIS\nENTREGA EN DEPÓSITO LLEGADA\tEntrega en depósito llegada\t\nENTREGA EN DEPÓSITO LLEGADA\tEntrega Parcial en depósito llegada\tRevisión TRANSPAIS\nENTREGA EN DEPÓSITO LLEGADA\tNo Entregado en depósito llegada\tRevisión TRANSPAIS\n",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-43",
     "taskNumber": 43,
@@ -564,10 +563,16 @@
       "_nanoseconds": 469000000
     },
     "attributes": {},
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 10,
+    "closedAt": {
+      "_seconds": 1788874501,
+      "_nanoseconds": 532000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1786111719,
-      "_nanoseconds": 225000000
+      "_seconds": 1788874501,
+      "_nanoseconds": 532000000
     }
   },
   {
@@ -12400,7 +12405,6 @@
     "id": "lf9mFoZdK6SZ3IQ1OmTE",
     "order": 1788852670.463,
     "ancestorIds": [],
-    "status": "pending",
     "isActive": true,
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "projectCode": "TSP",
@@ -12438,9 +12442,11 @@
       "_seconds": 1788852687,
       "_nanoseconds": 944000000
     },
+    "attributes": {},
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1788852687,
-      "_nanoseconds": 944000000
+      "_seconds": 1788866291,
+      "_nanoseconds": 27000000
     }
   },
   {
@@ -15130,6 +15136,59 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "z3NM4dEL7d1MPtAuYJFP",
+    "type": "task",
+    "title": "Crear empresas Transpais",
+    "acceptanceCriteria": [
+      {
+        "text": "Criterio de aceptación 1",
+        "id": "1",
+        "completed": false
+      }
+    ],
+    "raci": {
+      "informed": [],
+      "consulted": [],
+      "accountable": [],
+      "responsible": []
+    },
+    "taskNumber": 49,
+    "tenantId": "3",
+    "order": 1788862100.301,
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "isActive": true,
+    "dependencies": [],
+    "ancestorIds": [],
+    "friendlyId": "TRA-49",
+    "progress": 0,
+    "endDate": "2026-09-09T22:00:00.000Z",
+    "creationSource": "manual_main",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "TSP",
+    "progressV13": {
+      "planned": 0,
+      "actual": 0
+    },
+    "createdAt": {
+      "_seconds": 1788863395,
+      "_nanoseconds": 586000000
+    },
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "techDescription": "18\tNo Determinada\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\t1\tNULL\tNULL\tNULL\n19\tTRANSPAIS SA\tNULL\tPol Ind. Argenteria Parcela D-H\t1\tLA SELVA DEL CAMP\tA43201755\tNULL\tTarragona\t43470\t0\tNULL\tNULL\tTRANSPAIS\n20\tARRADAL DEL PINAR SL\tNULL\tPol Ind Argentería - Parcela D-H\tNULL\tLA SELVA DEL CAMP\tB43648138\tNULL\tTarragona\t43470\t0\tNULL\tNULL\tARRADAL DEL PINAR\n21\tHYPERTRANS LOGISTICS CORP. SL.\tNULL\tCAPITAN HAYA, 1\tNULL\tMADRID\tB87750295\tNULL\tMadrid\t28020\t0\tNULL\tNULL\tHYPERTRANS LOGISTICS\n22\tSAS TRANSPAIS FRANCE\tNULL\t1, RUE DE LA PIERRE PERCEE (BATIMENT 795)\tNULL\tMONTOIR DE BRETAGNE\tFR67490239829\tNULL\tLoire-Atlantique\t44550\t0\tNULL\tNULL\tTRANSPAIS FRANCE (MONTOIR)\n23\tTRANSPAIS ATLANTICO SA\tNULL\tPOL. IND. DEL REBULLON S/N\tNULL\tMOS (SANTA EULALIA)\tA36617678\tNULL\tPontevedra\t36415\t0\tNULL\tNULL\tTRANSPAIS ATLANTICO\n24\tTRANSPAIS BULGARIA EEOOD\tNULL\tUL TARGOVSKA 119 BL 6 VH A ET 1 AP1\tNULL\tDOLNA BANIA\t202930221\tNULL\tSofia\t2040\t0\tNULL\tNULL\tTRANSPAIS BULGARIA\n25\tTRANSPAIS FRANCE SA\tNULL\t6, RUE DENIS PAPIN\tNULL\tENSISHEIM\tA43201755\tNULL\tHaut-Rhin\t68190\t0\tNULL\tNULL\tTRANSPAIS FRANCE\n26\tTRANSPAIS OPERADOR LOGISTICO SL\tNULL\tPol. Ind. Argenteria - Parcela D-H\tNULL\tLA SELVA DEL CAMP\tB43497031\tNULL\tTarragona\t43470\t0\tNULL\tNULL\tTRANSPAIS OPERADOR LOGISTICO\n27\tTRANSPAIS POLSKA SP. Z O.O.\tNULL\tUL. GRENADIEROW 13/305\tNULL\tLUBLIN\tPL7010766380\tNULL\tLublin\t20-331\t0\tNULL\tNULL\tTRANSPAIS POLSKA\n28\tTRANSPAIS SOLUCIONES LOGISTICAS SL\tNULL\tALUMINI S/N\tNULL\tLA SELVA DEL CAMP\tB55690432\tNULL\tTarragona\t43470\t0\tNULL\tNULL\tTRANSPAIS SOLUCIONES LOGIST",
+    "actualEffort": 5,
+    "attributes": {},
+    "closedAt": {
+      "_seconds": 1788866181,
+      "_nanoseconds": 448000000
+    },
+    "status": "completed",
+    "updatedAt": {
+      "_seconds": 1788866181,
+      "_nanoseconds": 448000000
     }
   },
   {
