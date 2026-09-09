@@ -189,6 +189,7 @@ For each step/node in the sub-flow, you must determine the following details:
 CRITICAL RULES:
 - Do NOT invent or make up connections. The connections (edges) in the JSON graph are authoritative and mathematically correct. Use the visual image ONLY to read background context, swimlanes, and details that are not in the raw text.
 - Match each step to its corresponding Node ID in the graph using the 'linkedNodeId' field.
+- The GraphJSON may include a "contextNotes" array: free-floating rule/annotation boxes from the diagram that are NOT wired into the flow with arrows (each has "text", the ID of the nearest real node "nearNodeId", and its "swimlane"). These are NOT process steps on their own and must NEVER be turned into their own row in "steps". Instead, fold their "text" into the "rule", "exception", "precondition" or "operativeDesc" field of whichever step corresponds to "nearNodeId" — pick whichever field the note's content actually is (a condition/threshold → rule; a failure/alternate path → exception; a required prior state → precondition; general clarification → operativeDesc).
 `;
 
         const referer = 'http://localhost:3000';

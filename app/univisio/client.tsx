@@ -29,7 +29,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-import { TableRow, ParsedNode, ParsedEdge, Doubt, UniVisioSession, Project, NodeCoverageMap, NodeCoverageStatus } from '@/types';
+import { TableRow, ParsedNode, ParsedEdge, ParsedAnnotation, Doubt, UniVisioSession, Project, NodeCoverageMap, NodeCoverageStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useTenantQuery } from '@/hooks/useTenantQuery';
 import { getDocs, collection } from 'firebase/firestore';
@@ -320,6 +320,19 @@ const SortableRow = ({
     );
 };
 
+// Shared by pendingAnnotations and findRowIndexForNode below — a plain module-level
+// function so both can call the exact same matching rule without one having to be
+// declared (and kept in sync) before the other inside the component body. Visio shape IDs
+// repeat across pages/files, so this only matches a row from the currently selected page
+// (a row with no pagePath is legacy/pre-migration data and matches any page).
+function findRowIndexForNodeId(rows: TableRow[], nodeId: string | null, currentPage: string): number {
+    if (!nodeId) return -1;
+    return rows.findIndex(r =>
+        (r.linkedNodeId === nodeId || r.coveredNodeIds?.includes(nodeId)) &&
+        (!r.pagePath || r.pagePath === currentPage)
+    );
+}
+
 export default function ClientPage() {
     const { theme } = useTheme();
     const isLight = theme === 'light';
@@ -348,10 +361,22 @@ export default function ClientPage() {
     const [startNodeId, setStartNodeId] = useState<string | null>(null);
     const [excludedNodeIds, setExcludedNodeIds] = useState<Set<string>>(new Set());
     const [traversalMode, setTraversalMode] = useState<'forward' | 'backward' | 'undirected'>('forward');
+
+    // Accessory info: rule/note boxes found in the diagram that aren't wired into the flow.
+    // Re-derived on every parse (never persisted) — same lifecycle as nodes/edges.
+    const [annotations, setAnnotations] = useState<ParsedAnnotation[]>([]);
+    const [showAnnotationsPanel, setShowAnnotationsPanel] = useState<boolean>(false);
+    const [appliedAnnotationIds, setAppliedAnnotationIds] = useState<Set<string>>(new Set());
     
     const [parsingStatus, setParsingStatus] = useState<string>('');
     const [isParsing, setIsParsing] = useState<boolean>(false);
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
+    // Drives the "Aprobar e Integrar" button's disabled state. approveDraftBatch itself is
+    // fully synchronous, so this can't protect against two invocations sharing the exact
+    // same tick — the ref guard inside approveDraftBatch covers that. What this actually
+    // prevents is a second real click (a separate browser event) landing on the button
+    // before React has re-rendered it away after the first click resolves.
+    const [isApprovingBatch, setIsApprovingBatch] = useState<boolean>(false);
 
     // Sidebar chat
     const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model'; content: string }[]>([]);
@@ -363,6 +388,9 @@ export default function ClientPage() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const keepProgressRef = useRef<boolean>(false);
+    // Re-entrancy guard for approveDraftBatch: a ref (not state) so a double-click firing
+    // before React re-renders still sees the flag synchronously, unlike closed-over state.
+    const isApprovingBatchRef = useRef<boolean>(false);
 
     // DND Kit Sensors & Handlers
     const sensors = useSensors(
@@ -479,6 +507,8 @@ export default function ClientPage() {
         setDoubts([]);
         setNodes([]);
         setEdges([]);
+        setAnnotations([]);
+        setAppliedAnnotationIds(new Set());
         setSwimlanes([]);
         setCycles([]);
         setNodeMap({});
@@ -507,6 +537,8 @@ export default function ClientPage() {
         setCycles(session.cycles || []);
         setNodes([]); // Nodes and edges are not loaded from DB
         setEdges([]);
+        setAnnotations([]); // Same lifecycle as nodes/edges — re-derived only on re-upload
+        setAppliedAnnotationIds(new Set());
         if (session.nodeMap) {
             setNodeMap(session.nodeMap);
         } else {
@@ -592,6 +624,8 @@ export default function ClientPage() {
                 setCycles([]);
                 setNodes([]);
                 setEdges([]);
+                setAnnotations([]);
+                setAppliedAnnotationIds(new Set());
                 setNodeMap({});
                 setFile(null);
                 setIsImageMode(false);
@@ -614,9 +648,15 @@ export default function ClientPage() {
     // Expose dynamic analysis batch size
     const lotSize = 40;
 
+    // Node IDs identified as accessory annotations (rule/note boxes outside the flow) —
+    // excluded from batching below so they stop eating a "step" slot in Gemini's output.
+    // A node that was already integrated into tableRows in a past session keeps its
+    // 'covered' status regardless of this set, so nothing already saved is affected.
+    const annotationNodeIds = useMemo(() => new Set(annotations.map(a => a.id)), [annotations]);
+
     // Computed sub-flows (lotes)
     const lotes = useMemo(() => {
-        const activeNodes = nodes.filter(n => !excludedNodeIds.has(n.id));
+        const activeNodes = nodes.filter(n => !excludedNodeIds.has(n.id) && !annotationNodeIds.has(n.id));
         if (activeNodes.length === 0) return [];
         const result = [];
         for (let i = 0; i < activeNodes.length; i += lotSize) {
@@ -628,7 +668,7 @@ export default function ClientPage() {
             });
         }
         return result;
-    }, [nodes, excludedNodeIds]);
+    }, [nodes, excludedNodeIds, annotationNodeIds]);
 
     const availableStates = useMemo(() => {
         const states = new Set<string>();
@@ -763,6 +803,26 @@ export default function ClientPage() {
             }));
     }, [nodeMap, nodes, edges, tableRows.length]);
 
+    // Accessory annotations still waiting for a decision (insert / apply / dismiss),
+    // enriched with the nearest step already integrated for that annotation, if any.
+    // Uses the module-level findRowIndexForNodeId helper (not the component's own
+    // findRowIndexForNode below, which closes over state and is declared later) so both
+    // places share one matching rule instead of drifting apart.
+    const pendingAnnotations = useMemo(() => {
+        return annotations
+            .filter(a => !appliedAnnotationIds.has(a.id))
+            .map(a => {
+                const nearestNode = a.nearestNodeId ? nodes.find(n => n.id === a.nearestNodeId) : undefined;
+                const rowIdx = findRowIndexForNodeId(tableRows, a.nearestNodeId, selectedPage);
+                return {
+                    ...a,
+                    nearestNodeLabel: nearestNode?.label || null,
+                    nearestStep: rowIdx >= 0 ? tableRows[rowIdx].step : null,
+                    nearestRowIndex: rowIdx
+                };
+            });
+    }, [annotations, appliedAnnotationIds, nodes, tableRows, selectedPage]);
+
     const mergeNewRows = (
         prevRows: TableRow[], 
         newRows: TableRow[], 
@@ -866,11 +926,15 @@ export default function ClientPage() {
         try {
             const skippedIds = new Set(skippedList.map(n => n.id));
             const subEdges = edges.filter(e => skippedIds.has(e.from) || skippedIds.has(e.to));
-            
+            const contextNotes = annotations
+                .filter(a => a.nearestNodeId && skippedIds.has(a.nearestNodeId))
+                .map(a => ({ text: a.text, nearNodeId: a.nearestNodeId, swimlane: a.swimlane }));
+
             const graphContext = {
                 nodes: skippedList,
                 edges: subEdges,
-                swimlanes
+                swimlanes,
+                contextNotes
             };
             
             const response = await analyzeSubflowWithGemini(JSON.stringify(graphContext));
@@ -1076,6 +1140,11 @@ export default function ClientPage() {
 
         setNodes([]);
         setEdges([]);
+        // Unconditional like nodes/edges above: only the VSDX path re-populates annotations,
+        // so switching to an SVG/PNG/JPG upload must not leave stale notes from a
+        // previously loaded VSDX pointing at node IDs that no longer exist in this file.
+        setAnnotations([]);
+        setAppliedAnnotationIds(new Set());
         setActiveLoteIndex(0);
 
         const ext = selectedFile.name.split('.').pop()?.toLowerCase();
@@ -1245,10 +1314,39 @@ export default function ClientPage() {
                     if (connData.from && connData.to) {
                         const textEl = shape.getElementsByTagNameNS('*', 'Text')[0];
                         const label = textEl ? textEl.textContent?.trim() || '' : '';
+
+                        // Direction defaults to Begin→End (the order the connector was
+                        // dragged in), but that's only correct if the arrowhead actually
+                        // sits at the End point. Visio lets an author draw a connector
+                        // "backwards" and just flip which end shows the arrowhead, which
+                        // silently reverses the real direction if we trust Begin/End alone.
+                        // Read explicit BeginArrow/EndArrow overrides on the shape (when
+                        // present) and swap in that case.
+                        // Note: a connector using its master's default arrow (no override
+                        // on this shape) can't be resolved here without also parsing
+                        // visio/masters/*.xml — those keep the Begin→End default below.
+                        let from = connData.from;
+                        let to = connData.to;
+                        let beginArrowV: string | null = null;
+                        let endArrowV: string | null = null;
+                        const arrowCells = shape.getElementsByTagNameNS('*', 'Cell');
+                        for (let c = 0; c < arrowCells.length; c++) {
+                            const cellName = arrowCells[c].getAttribute('N');
+                            if (cellName === 'BeginArrow') beginArrowV = arrowCells[c].getAttribute('V');
+                            else if (cellName === 'EndArrow') endArrowV = arrowCells[c].getAttribute('V');
+                        }
+                        const hasBeginArrow = !!beginArrowV && beginArrowV !== '0';
+                        const hasEndArrow = !!endArrowV && endArrowV !== '0';
+                        if (hasBeginArrow && !hasEndArrow) {
+                            // Arrowhead only at Begin → the connector visually points End → Begin
+                            from = connData.to;
+                            to = connData.from;
+                        }
+
                         extractedEdges.push({
                             id,
-                            from: connData.from,
-                            to: connData.to,
+                            from,
+                            to,
                             label
                         });
                     }
@@ -1261,13 +1359,18 @@ export default function ClientPage() {
                 const textEl = shape.getElementsByTagNameNS('*', 'Text')[0];
                 const label = textEl ? textEl.textContent?.trim() || '' : '';
 
-                // Get coordinates (PinX / PinY cells)
+                // Get coordinates (PinX / PinY cells). Visio's <Cell> elements name
+                // themselves via the "N" attribute (e.g. <Cell N='PinX' V='...'/>) — there
+                // is no "Name" attribute on Cell (unlike <Shape>, which does have one). This
+                // was silently reading null for every node and defaulting x/y to 0,0; fixed
+                // here since the annotation proximity-matching added below depends on real
+                // coordinates to find each note's nearest step.
                 let x = 0;
                 let y = 0;
                 const cells = shape.getElementsByTagNameNS('*', 'Cell');
                 for (let j = 0; j < cells.length; j++) {
                     const cell = cells[j];
-                    const cellName = cell.getAttribute('Name');
+                    const cellName = cell.getAttribute('N');
                     if (cellName === 'PinX') {
                         x = parseFloat(cell.getAttribute('V') || '0') * 80;
                     } else if (cellName === 'PinY') {
@@ -1316,6 +1419,44 @@ export default function ClientPage() {
                 n.label !== `ID ${n.id}` || connectedIds.has(n.id)
             );
 
+            // Accessory info: labeled shapes with NO connections at all — usually rule/note
+            // boxes dropped near the flow rather than actual process steps. They stay part
+            // of parsedNodes/nodes exactly as before (so node IDs, coverage and any
+            // historical row links are untouched); they're additionally surfaced here as
+            // annotations so the UI/Gemini can fold their text into the nearest real step
+            // instead of silently dropping it or, worse, turning it into its own step.
+            const connectedNodesForProximity = parsedNodes.filter(n => connectedIds.has(n.id));
+            const extractedAnnotations: ParsedAnnotation[] = parsedNodes
+                .filter(n => !connectedIds.has(n.id))
+                .map(n => {
+                    let nearestNodeId: string | null = null;
+                    let nearestDist = Infinity;
+                    connectedNodesForProximity.forEach(cn => {
+                        const d = Math.hypot(cn.position.x - n.position.x, cn.position.y - n.position.y);
+                        if (d < nearestDist) {
+                            nearestDist = d;
+                            nearestNodeId = cn.id;
+                        }
+                    });
+                    return {
+                        id: n.id,
+                        text: n.label,
+                        x: n.position.x,
+                        y: n.position.y,
+                        swimlane: n.swimlane,
+                        nearestNodeId
+                    };
+                });
+            // Same lifecycle as nodes/edges: tied to the currently loaded file, not
+            // accumulated across "conservar progreso" re-uploads (those only carry tableRows
+            // forward, the underlying graph is always replaced by whatever was just parsed).
+            setAnnotations(extractedAnnotations);
+            setAppliedAnnotationIds(new Set());
+            // Open the panel by default when there's anything to review — a labeled but
+            // disconnected shape could be a genuine step whose connector never got drawn,
+            // not just a note, so don't leave it collapsed and easy to miss.
+            if (extractedAnnotations.length > 0) setShowAnnotationsPanel(true);
+
             // Execute topological sorts and loops detection
             setParsingStatus('Analizando dependencias causales y ciclos...');
             const orderedNodes = topologicalSort(parsedNodes, extractedEdges);
@@ -1351,7 +1492,7 @@ export default function ClientPage() {
             }
 
             // Auto-generate preliminary doubts
-            generatePreliminaryDoubts(orderedNodes, extractedEdges, cyclesList);
+            generatePreliminaryDoubts(orderedNodes, extractedEdges, cyclesList, extractedAnnotations, pagePath);
 
             setParsingStatus('Grafo estructurado cargado correctamente.');
             setIsParsing(false);
@@ -1773,7 +1914,7 @@ export default function ClientPage() {
     };
 
     // Proactively generate doubt cards based on the topological graph
-    const generatePreliminaryDoubts = (nodesList: ParsedNode[], edgesList: ParsedEdge[], cyclesList: string[][]) => {
+    const generatePreliminaryDoubts = (nodesList: ParsedNode[], edgesList: ParsedEdge[], cyclesList: string[][], annotationsList: ParsedAnnotation[] = [], scopePagePath: string = '') => {
         const generatedDoubts: Doubt[] = [];
 
         // 1. Identify isolated nodes
@@ -1824,6 +1965,23 @@ export default function ClientPage() {
             }
         });
 
+        // 4. Accessory annotations excluded from batch analysis. A labeled-but-disconnected
+        // shape is usually a rule/note box, but it could just as well be a real step whose
+        // connector never got drawn or failed to parse — the heuristic can't tell those
+        // apart, so flag every one instead of silently dropping it from the flow.
+        annotationsList.forEach(a => {
+            generatedDoubts.push({
+                // Scoped by page/file: Visio shape IDs repeat across pages and across
+                // separate "conservar progreso" re-uploads, so an unqualified id here could
+                // dedupe-away a genuinely different annotation from another file that
+                // happens to reuse the same raw shape id.
+                id: `annotation-${scopePagePath || 'nopage'}-${a.id}`,
+                severity: 'low',
+                message: `Caja de texto sin conexión detectada ("${a.text.slice(0, 60)}${a.text.length > 60 ? '…' : ''}"): se trata como nota/regla y NO se envía como paso a la IA. Si en realidad es un paso real del flujo, revísalo en el panel "Anotaciones y Reglas Detectadas".`,
+                nodeId: a.id
+            });
+        });
+
         if (keepProgressRef.current) {
             setDoubts(prev => {
                 const existingIds = new Set(prev.map(d => d.id));
@@ -1849,10 +2007,17 @@ export default function ClientPage() {
             const subNodes = nodes.filter(n => activeNodeIds.has(n.id));
             const subEdges = edges.filter(e => activeNodeIds.has(e.from) || activeNodeIds.has(e.to));
 
+            // Accessory rule/note boxes nearest to a node in this lote — passed as extra
+            // context so Gemini folds them into the nearest step instead of ignoring them.
+            const contextNotes = annotations
+                .filter(a => a.nearestNodeId && activeNodeIds.has(a.nearestNodeId))
+                .map(a => ({ text: a.text, nearNodeId: a.nearestNodeId, swimlane: a.swimlane }));
+
             const graphContext = {
                 nodes: subNodes,
                 edges: subEdges,
-                swimlanes
+                swimlanes,
+                contextNotes
             };
 
             const response = await analyzeSubflowWithGemini(JSON.stringify(graphContext));
@@ -1907,34 +2072,81 @@ export default function ClientPage() {
     };
 
     const approveDraftBatch = () => {
-        if (!activeBatchUnderReview) return;
-        const activeNodeIds = new Set(activeBatchUnderReview.nodeIds);
-        
-        const coveredInThisCall = new Set<string>();
-        draftRows.forEach(step => {
-            step.coveredNodeIds?.forEach(id => coveredInThisCall.add(id));
-            if (step.linkedNodeId) coveredInThisCall.add(step.linkedNodeId);
-        });
+        // Defensive guards + logging added after a report of a batch's steps vanishing on
+        // integration instead of joining the existing rows. mergeNewRows can't drop rows by
+        // construction, so if this ever happens again these logs pin down exactly which
+        // piece was empty/stale instead of failing silently.
+        if (!activeBatchUnderReview) {
+            console.error('[UniVisio] approveDraftBatch: no hay activeBatchUnderReview — abortando sin tocar tableRows.');
+            alert('No se pudo integrar el lote: no hay un lote en revisión activo. Vuelve a analizar el lote e inténtalo de nuevo.');
+            return;
+        }
+        if (draftRows.length === 0) {
+            console.error('[UniVisio] approveDraftBatch: draftRows está vacío para el lote', activeBatchUnderReview.index, '— no hay nada que integrar.');
+            alert('No se pudo integrar el lote: no hay pasos en el borrador. Nada se ha modificado; vuelve a analizar el lote.');
+            return;
+        }
+        // Re-entrancy guard. approveDraftBatch is fully synchronous, so this ref can only
+        // ever be true if something calls this function again from within its own call
+        // stack (e.g. a future refactor adding a nested call) — it does NOT protect against
+        // two separate clicks, since the ref is already reset by the time a second, later
+        // click's handler starts running. The real protection against a second real click —
+        // computing the merge twice off the same stale `tableRows` and one setTableRows(...)
+        // call clobbering the other — is the button's `disabled={isApprovingBatch}` below,
+        // which stops the browser from dispatching a second click at all once React commits
+        // the disabled state from the first one.
+        if (isApprovingBatchRef.current) {
+            console.warn('[UniVisio] approveDraftBatch: ya hay una integración en curso, se ignora el clic duplicado.');
+            return;
+        }
+        isApprovingBatchRef.current = true;
+        setIsApprovingBatch(true);
 
-        setNodeMap(prev => {
-            const next = { ...prev };
-            activeNodeIds.forEach(id => {
-                if (coveredInThisCall.has(id)) {
-                    next[id] = 'covered';
-                } else if (next[id] === 'pending') {
-                    next[id] = 'skipped';
-                }
+        try {
+            const activeNodeIds = new Set(activeBatchUnderReview.nodeIds);
+            const rowsToIntegrate = draftRows;
+            const prevCount = tableRows.length;
+
+            // Compute the merge eagerly, synchronously, right here — NOT inside a
+            // setTableRows functional updater. React invokes a functional updater later,
+            // during its own reconciliation, outside this function's call stack: a throw in
+            // there would skip this catch entirely while setDraftRows/setActiveBatchUnderReview
+            // (fired unconditionally right after) would still discard the draft anyway.
+            // Computing it here means any failure is caught before touching any state, so
+            // the draft genuinely survives a failed integration as the alert below promises.
+            const merged = mergeNewRows(tableRows, rowsToIntegrate, activeNodeIds);
+
+            const coveredInThisCall = new Set<string>();
+            rowsToIntegrate.forEach(step => {
+                step.coveredNodeIds?.forEach(id => coveredInThisCall.add(id));
+                if (step.linkedNodeId) coveredInThisCall.add(step.linkedNodeId);
             });
-            return next;
-        });
 
-        setTableRows(prev => {
+            setNodeMap(prev => {
+                const next = { ...prev };
+                activeNodeIds.forEach(id => {
+                    if (coveredInThisCall.has(id)) {
+                        next[id] = 'covered';
+                    } else if (next[id] === 'pending') {
+                        next[id] = 'skipped';
+                    }
+                });
+                return next;
+            });
+
             setIsDirty(true);
-            return mergeNewRows(prev, draftRows, activeNodeIds);
-        });
-        
-        setDraftRows([]);
-        setActiveBatchUnderReview(null);
+            setTableRows(merged);
+            console.log(`[UniVisio] Lote ${activeBatchUnderReview.index} integrado: ${prevCount} pasos previos + ${rowsToIntegrate.length} nuevos = ${merged.length} pasos totales.`);
+
+            setDraftRows([]);
+            setActiveBatchUnderReview(null);
+        } catch (e: any) {
+            console.error('[UniVisio] approveDraftBatch: fallo al integrar el lote', activeBatchUnderReview, e);
+            alert(`Error al integrar el lote: ${e?.message || e}. El borrador NO se ha descartado, puedes reintentar.`);
+        } finally {
+            isApprovingBatchRef.current = false;
+            setIsApprovingBatch(false);
+        }
     };
 
     const discardDraftBatch = () => {
@@ -1984,8 +2196,10 @@ export default function ClientPage() {
                 setDoubts([]);
                 setNodes([]);
                 setEdges([]);
+                setAnnotations([]);
+                setAppliedAnnotationIds(new Set());
                 setCycles([]);
-                
+
                 const uniqueActors = Array.from(new Set(newRows.map(r => r.actor || 'General').filter(Boolean)));
                 setSwimlanes(uniqueActors.length > 0 ? uniqueActors : ['General']);
 
@@ -2205,6 +2419,102 @@ export default function ClientPage() {
             copy.splice(index + 1, 0, newRow);
             return copy.map((row, i) => ({ ...row, id: row.id || `${Date.now()}-${i}-${Math.random()}`, step: i + 1 }));
         });
+    };
+
+    // --- Accessory annotations: apply detected rule/note boxes into the table ---
+
+    const findRowIndexForNode = (nodeId: string | null): number =>
+        findRowIndexForNodeId(tableRows, nodeId, selectedPage);
+
+    // Appends the annotation's text into an existing step's field instead of creating a
+    // whole new row — for a note that clearly just qualifies/limits that one step.
+    const applyAnnotationToStep = (annotation: ParsedAnnotation, rowIndex: number, field: 'rule' | 'exception' | 'precondition' | 'operativeDesc') => {
+        if (rowIndex < 0 || rowIndex >= tableRows.length) return;
+        const current = (tableRows[rowIndex][field] || '').toString();
+        // Gemini was already given this exact annotation as context when this step's batch
+        // was analyzed (see contextNotes in runSemanticAnalysis) and told to fold it in, so
+        // this button is almost always reinforcing something already there. This can't
+        // reliably detect a paraphrased duplicate, but it does catch the near-verbatim case
+        // (Gemini often copies notes close to verbatim) instead of silently doubling it up.
+        const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+        if (current && normalize(current).includes(normalize(annotation.text))) {
+            alert(`Este texto ya parece estar en el campo del Paso ${tableRows[rowIndex].step}. No se ha añadido de nuevo para evitar duplicarlo — revísalo a mano si crees que hace falta.`);
+            return;
+        }
+        setIsDirty(true);
+        setTableRows(prev => prev.map((row, i) => {
+            if (i !== rowIndex) return row;
+            const isEmptyPlaceholder = !current || current === '-';
+            const merged = isEmptyPlaceholder ? annotation.text : `${current} | ${annotation.text}`;
+            return { ...row, [field]: merged };
+        }));
+        setAppliedAnnotationIds(prev => new Set(prev).add(annotation.id));
+        // The annotation's own shape id would otherwise stay 'orphan' in nodeMap forever,
+        // even though its content now lives in the table — close that loop for coverage.
+        setNodeMap(prev => ({ ...prev, [annotation.id]: 'covered' }));
+    };
+
+    // Inserts the annotation as its own "NOTA / REGLA" row right after the nearest step —
+    // for a note that reads like standalone context rather than a tweak to one field.
+    const insertAnnotationAsNoteRow = (annotation: ParsedAnnotation) => {
+        setIsDirty(true);
+        setTableRows(prev => {
+            // Resolved against `prev` (the updater's own argument), not the outer `tableRows`
+            // closure — if another queued update landed first, `prev` can already differ from
+            // what this function saw at call time, and splicing at an index computed from
+            // stale state would land the note next to the wrong step.
+            const nearestIdx = findRowIndexForNodeId(prev, annotation.nearestNodeId, selectedPage);
+            const insertAt = nearestIdx >= 0 ? nearestIdx : prev.length - 1;
+            const noteRow: TableRow = {
+                id: `${Date.now()}-${Math.random()}`,
+                step: 0, // placeholder — every row's `step` is recomputed below from its final position
+                title: 'NOTA / REGLA DEL DIAGRAMA',
+                subtitle: 'Anotación detectada fuera del flujo conectado',
+                systems: '-',
+                phase: prev[insertAt]?.phase || 'FASE GENERAL',
+                stateChanges: [],
+                conditionalPaths: [],
+                actor: prev[insertAt]?.actor || annotation.swimlane || 'General',
+                origin: '-',
+                destination: '-',
+                event: '-',
+                resultState: '-',
+                actionType: 'Nota',
+                precondition: '-',
+                exception: '-',
+                rule: annotation.text,
+                // Deliberately left unlinked (matches handleInsertRow's own manually-added
+                // rows), not annotation.id: an annotation node sits at an arbitrary spot in
+                // the topological order (it has no edges, so Kahn's algorithm queues it with
+                // every other zero-indegree node, unrelated to its spatial nearestNodeId).
+                // Anchoring a future mergeNewRows() to that position could pull unrelated
+                // batches out of place, and linking it to nearestNodeId instead would risk a
+                // later re-analysis of that node's lote filtering this note out entirely.
+                // This row already got its correct position directly, via the splice below.
+                linkedNodeId: '',
+                pagePath: selectedPage,
+                confidence: 1.0,
+                interfaceRefs: [],
+                isLoop: false,
+                loopNote: null,
+                operativeDesc: annotation.text
+            };
+            const copy = [...prev];
+            copy.splice(insertAt + 1, 0, noteRow);
+            return copy.map((row, i) => ({ ...row, id: row.id || `${Date.now()}-${i}-${Math.random()}`, step: i + 1 }));
+        });
+        setAppliedAnnotationIds(prev => new Set(prev).add(annotation.id));
+        setNodeMap(prev => ({ ...prev, [annotation.id]: 'covered' }));
+    };
+
+    // Hides an annotation from the panel without touching the table — for notes the user
+    // has judged irrelevant or already covered by hand.
+    const dismissAnnotation = (annotationId: string) => {
+        setAppliedAnnotationIds(prev => new Set(prev).add(annotationId));
+        // 'skipped' rather than 'covered': nothing was actually incorporated, a human
+        // just decided this one doesn't need to be — same meaning 'skipped' already
+        // carries elsewhere (e.g. approveDraftBatch) for a deliberately-excluded node.
+        setNodeMap(prev => ({ ...prev, [annotationId]: 'skipped' }));
     };
 
     const moveRow = (index: number, direction: 'up' | 'down') => {
@@ -2763,6 +3073,67 @@ export default function ClientPage() {
                             )}
                         </div>
                     )}
+
+                    {/* Accessory Annotations Panel: rule/note boxes found outside the connected flow */}
+                    {annotations.length > 0 && (
+                        <div className="flex flex-col gap-3 bg-zinc-950/40 border border-zinc-800/80 rounded-xl p-4">
+                            <button
+                                onClick={() => setShowAnnotationsPanel(!showAnnotationsPanel)}
+                                className="w-full flex justify-between items-center text-[10px] font-black text-zinc-400 hover:text-zinc-200 uppercase tracking-widest border-b border-zinc-800/60 pb-1.5 transition-colors"
+                            >
+                                <span>Anotaciones y Reglas Detectadas ({pendingAnnotations.length}/{annotations.length})</span>
+                                <span>{showAnnotationsPanel ? '▲' : '▼'}</span>
+                            </button>
+                            <div className="text-[9px] text-zinc-500 -mt-1">
+                                Cajas de texto sueltas del diagrama (sin flechas) — suelen ser reglas o
+                                aclaraciones. Ya se pasan como contexto a Gemini al analizar el lote
+                                correspondiente; aquí también puedes insertarlas a mano en un paso ya integrado.
+                            </div>
+
+                            {showAnnotationsPanel && (
+                                pendingAnnotations.length === 0 ? (
+                                    <div className="text-[10px] text-zinc-500 italic py-2 text-center">
+                                        Todas las anotaciones detectadas ya se han aplicado o descartado.
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-2 max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                                        {pendingAnnotations.map(a => (
+                                            <div key={a.id} className="bg-amber-950/10 border border-amber-500/20 rounded-lg p-2.5 flex flex-col gap-1.5 text-[10px]">
+                                                <div className="text-zinc-200">{a.text}</div>
+                                                <div className="text-[9px] text-zinc-500 italic">
+                                                    Cerca de: {a.nearestNodeLabel || '(sin nodo cercano)'}
+                                                    {a.nearestStep ? ` · Paso ${a.nearestStep} ya integrado` : ' · aún no integrado'}
+                                                </div>
+                                                {a.nearestRowIndex >= 0 && (
+                                                    <div className="text-[9px] text-amber-500/80">
+                                                        ⚠️ La IA ya tuvo esta nota como contexto al analizar el Paso {a.nearestStep} — puede que ya esté reflejada en su Regla/Excepción. Revisa antes de añadir para no duplicarla.
+                                                    </div>
+                                                )}
+                                                <div className="flex flex-wrap gap-1.5 mt-0.5">
+                                                    {a.nearestRowIndex >= 0 && (
+                                                        <>
+                                                            <button onClick={() => applyAnnotationToStep(a, a.nearestRowIndex, 'rule')} className="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-[9px] font-semibold">
+                                                                + Regla igualmente (Paso {a.nearestStep})
+                                                            </button>
+                                                            <button onClick={() => applyAnnotationToStep(a, a.nearestRowIndex, 'exception')} className="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[9px] font-semibold">
+                                                                + Excepción igualmente
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    <button onClick={() => insertAnnotationAsNoteRow(a)} className="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[9px] font-semibold">
+                                                        Insertar como paso de nota
+                                                    </button>
+                                                    <button onClick={() => dismissAnnotation(a.id)} className="px-2 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-500 rounded text-[9px]">
+                                                        Descartar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Center Workspace: Table rendering */}
@@ -3076,9 +3447,9 @@ export default function ClientPage() {
                                                 <button onClick={discardDraftBatch} className={cn("px-4 py-2 rounded-lg text-xs font-semibold transition-colors", isLight ? "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50" : "bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800")}>
                                                     Descartar Lote
                                                 </button>
-                                                <button onClick={approveDraftBatch} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-amber-950 rounded-lg text-xs font-bold transition-colors shadow-lg hover:shadow-amber-500/20 flex items-center gap-2">
+                                                <button onClick={approveDraftBatch} disabled={isApprovingBatch} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-amber-950 rounded-lg text-xs font-bold transition-colors shadow-lg hover:shadow-amber-500/20 flex items-center gap-2">
                                                     <CheckCircle className="w-4 h-4" />
-                                                    Aprobar e Integrar
+                                                    {isApprovingBatch ? 'Integrando...' : 'Aprobar e Integrar'}
                                                 </button>
                                             </div>
                                         </div>

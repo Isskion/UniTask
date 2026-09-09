@@ -739,6 +739,18 @@ export interface ParsedEdge {
     label: string;
 }
 
+// Accessory information found in the diagram that is NOT part of the connected flow
+// (free-floating boxes with rules, exceptions or clarifications). Re-derived on every
+// parse of the source file — never persisted — same lifecycle as ParsedNode/ParsedEdge.
+export interface ParsedAnnotation {
+    id: string;
+    text: string;
+    x: number;
+    y: number;
+    swimlane: string;
+    nearestNodeId: string | null;
+}
+
 export interface Doubt {
     id: string;
     severity: 'critical' | 'medium' | 'low';
