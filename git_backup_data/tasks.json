@@ -6238,6 +6238,53 @@
     }
   },
   {
+    "id": "LjAY4RFUQKhhroDbqyT2",
+    "progress": 0,
+    "techDescription": "Solicitar las areas de efecto para trasnportes propios y terceros para definir quién debe hacer cada transporte.\n\n1. Que areas existen?\n2. Quien actua en cada una de ellas?",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "informed": [],
+      "consulted": []
+    },
+    "creationSource": "manual_main",
+    "taskNumber": 50,
+    "projectCode": "TSP",
+    "dependencies": [],
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "isActive": true,
+    "ancestorIds": [],
+    "friendlyId": "TRA-50",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "order": 1788940962.538,
+    "status": "pending",
+    "type": "task",
+    "title": "Configurar zonas de efecto de los depositos",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "completed": false,
+        "text": "Criterio de aceptación 1"
+      }
+    ],
+    "actualEffort": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "endDate": "2026-09-17T22:00:00.000Z",
+    "createdAt": {
+      "_seconds": 1788941043,
+      "_nanoseconds": 977000000
+    },
+    "updatedAt": {
+      "_seconds": 1788941043,
+      "_nanoseconds": 977000000
+    }
+  },
+  {
     "id": "M2kNIq9Xq490yqlJW6Lx",
     "weekId": "2026-01-27",
     "relatedDailyStatusId": "3_2026-01-27_1769515038787",
