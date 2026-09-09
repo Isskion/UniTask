@@ -5852,6 +5852,20 @@
     }
   },
   {
+    "id": "cSqhtC5Xpx6VnFtDX3s7",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "details": "Estado cambiado de Revisión a Aprobación Final",
+    "type": "status_change",
+    "userEmail": "daniel.delamo@unigis.com",
+    "tenantId": "3",
+    "taskId": "qPu1s8JdZyZE7KL0demH",
+    "createdAt": {
+      "_seconds": 1788963903,
+      "_nanoseconds": 618000000
+    }
+  },
+  {
     "id": "cToZd2k8Rh1POcMt7K8J",
     "taskId": "jVQmAPJDhLKhRysca9Pe",
     "tenantId": "3",
