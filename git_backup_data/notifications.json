@@ -2185,6 +2185,21 @@
     }
   },
   {
+    "id": "maXx059E8abAlxCvyg0v",
+    "read": false,
+    "taskId": "lf9mFoZdK6SZ3IQ1OmTE",
+    "message": "Your task TRA-48 - \"Revisar carpeta de documentación de tarifas\" has reached its deadline.",
+    "tenantId": "3",
+    "title": "Overdue Task",
+    "link": "/?view=task-manager&taskId=lf9mFoZdK6SZ3IQ1OmTE",
+    "type": "deadline_expired",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1789023046,
+      "_nanoseconds": 734000000
+    }
+  },
+  {
     "id": "meO3zBE1cDmFVLD8kOhd",
     "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "tenantId": "3",

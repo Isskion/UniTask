@@ -16880,6 +16880,21 @@
       "company": "Unigis",
       "email": "daniel.delamo@unigis.com",
       "jobTitle": "Arquitecto de solución",
+      "assignedProjectIds": [
+        "ncGXgeNYLO0Zx9x0Az4x",
+        "3Mb6nctLYF4ni6cS0jMu",
+        "sZDav2CndgdmhfYc8BTt",
+        "9iqygviz3AGJnbJOLc8E",
+        "11K4kv5QI3SVkhVwuFfo",
+        "OH4sjML9byhLuzMXSTss",
+        "Au1xfXgivgl6VYj2zscs",
+        "Gq2CQfMRws3BMBTtWR1t",
+        "IL23eIjvSIdwLgqwz0pY",
+        "c0HRtaCkKXxeiQf897sY",
+        "aAb2HIajQVhXnLAzmVo8",
+        "WcF8wTccm1LkaFBfWvug",
+        "HKnZypXlGdM0VjRLOysB"
+      ],
       "_forceSync": 1769684712914,
       "lastLogin": {
         "_seconds": 1769684909,
@@ -16917,24 +16932,7 @@
         "divisionIds": [
           "CON"
         ]
-      },
-      "assignedProjectIds": [
-        "ncGXgeNYLO0Zx9x0Az4x",
-        "3Mb6nctLYF4ni6cS0jMu",
-        "sZDav2CndgdmhfYc8BTt",
-        "9iqygviz3AGJnbJOLc8E",
-        "11K4kv5QI3SVkhVwuFfo",
-        "OH4sjML9byhLuzMXSTss",
-        "Au1xfXgivgl6VYj2zscs",
-        "Gq2CQfMRws3BMBTtWR1t",
-        "IL23eIjvSIdwLgqwz0pY",
-        "c0HRtaCkKXxeiQf897sY",
-        "aAb2HIajQVhXnLAzmVo8",
-        "WcF8wTccm1LkaFBfWvug",
-        "HKnZypXlGdM0VjRLOysB",
-        "bGeacYFR1Fk4xv0Yh9XV",
-        "DWXtB3YW0vii8A55ZQYR"
-      ]
+      }
     },
     {
       "id": "9k4a329sfZNC8AdR9XJETxbXjXU2",
@@ -20193,21 +20191,6 @@
       "createdAt": {
         "_seconds": 1769616148,
         "_nanoseconds": 167000000
-      }
-    },
-    {
-      "id": "maXx059E8abAlxCvyg0v",
-      "read": false,
-      "taskId": "lf9mFoZdK6SZ3IQ1OmTE",
-      "message": "Your task TRA-48 - \"Revisar carpeta de documentación de tarifas\" has reached its deadline.",
-      "tenantId": "3",
-      "title": "Overdue Task",
-      "link": "/?view=task-manager&taskId=lf9mFoZdK6SZ3IQ1OmTE",
-      "type": "deadline_expired",
-      "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-      "createdAt": {
-        "_seconds": 1789023046,
-        "_nanoseconds": 734000000
       }
     },
     {
@@ -102805,10 +102788,10 @@
       "projectId": "aAb2HIajQVhXnLAzmVo8",
       "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
       "taskTypeName": "Configuración // Construcción",
-      "writerTabId": "l1rui8m5tz",
+      "writerTabId": "6gupai6h8n",
       "updatedAt": {
-        "_seconds": 1789033725,
-        "_nanoseconds": 438000000
+        "_seconds": 1788963778,
+        "_nanoseconds": 870000000
       }
     }
   ],

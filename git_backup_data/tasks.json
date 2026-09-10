@@ -13506,7 +13506,6 @@
   {
     "id": "qPu1s8JdZyZE7KL0demH",
     "title": "Crear estados de parada",
-    "status": "review",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -13535,7 +13534,6 @@
     "endDate": "2026-08-27T22:00:00.000Z",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "projectCode": "TSP",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-44",
     "taskNumber": 44,
@@ -13546,9 +13544,16 @@
     },
     "techDescription": "Estado\nCargado en remitente\nCargado Parcial en remitente\nNo Cargado en remitente\nCargado en depósito salida\nCargado Parcial en depósito salida\nNo Cargado en depósito salida\nCargado en depósito llegada\nCargado Parcial en depósito llegada\nNo Cargado en depósito llegada\nEntrega en depósito salida\nEntrega Parcial en depósito salida\nNo Entregado en depósito salida\nEntrega en depósito llegada\nEntrega Parcial en depósito llegada\nNo Entregado en depósito llegada\nEntrega en Remitente\nEntrega Parcial en Remitente\nNo Entregado en Remitente\n",
     "attributes": {},
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 5,
+    "closedAt": {
+      "_seconds": 1788963903,
+      "_nanoseconds": 212000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1788346443,
-      "_nanoseconds": 277000000
+      "_seconds": 1788963903,
+      "_nanoseconds": 212000000
     }
   },
   {
@@ -14288,11 +14293,11 @@
     },
     "endDate": "2026-06-18T22:00:00.000Z",
     "status": "in_progress",
-    "techDescription": "Documentación necesaria en la operativa. Documentación vehículos, conductores, etc.\n•\tCMR\n•\tCarta de Porte\n•\tOrden del Cliente (Impresión del Portic, Albaranes del Cliente, etc) \n•\tDocumentos de carga (ADR, Packing list, etc.)\n",
     "title": "Documentos necesarios ",
+    "techDescription": "Documentación necesaria en la operativa. Documentación vehículos, conductores, etc.\n•\tCMR\n•\tCarta de Porte\n•\tOrden del Cliente (Impresión del Portic, Albaranes del Cliente, etc) \n•\tDocumentos de carga (ADR, Packing list, etc.)\n\n\nEnviado mail día 24/06 a equipo TSP. Insisto 09/09",
     "updatedAt": {
-      "_seconds": 1788858812,
-      "_nanoseconds": 504000000
+      "_seconds": 1788964871,
+      "_nanoseconds": 974000000
     }
   },
   {
