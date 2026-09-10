@@ -270,10 +270,10 @@
     "folderId": "XmLtRe8vOPTyw6NhQJGI",
     "createdAt": null,
     "type": "note",
-    "content": "<p>Crear campo de pedido_Dyn para albergar el cliente original cuando se modifique por necesidades.</p><p></p>",
+    "content": "<p>Crear campo de pedido_Dyn para albergar el cliente original cuando se modifique por necesidades.</p><p></p><ul data-list-type=\"disc\"><li><p>Revisión de maestros :</p><ul data-list-type=\"disc\"><li><p>Conductores (Aitana??)</p><ul data-list-type=\"disc\"><li><p>Zonas de acción</p></li><li><p>Duermen siempre en casa?</p></li><li><p>Mas factores a tener en cuenta</p></li></ul></li><li><p>Vehículos(Aitana)</p><ul data-list-type=\"disc\"><li><p>Entendemos que vienen de Aitana, enlace con gestor de flota.</p></li><li><p>alta / modirficación...</p></li></ul></li><li><p>Transportes(Aitana)</p><ul data-list-type=\"disc\"><li><p>Se asignan a operaciones?</p></li></ul></li><li><p>Clientes Dadores (Aitana)</p></li><li><p>Clientes Orden (Aitana)</p></li></ul></li></ul><p></p><p></p>",
     "updatedAt": {
-      "_seconds": 1783940613,
-      "_nanoseconds": 375000000
+      "_seconds": 1789050838,
+      "_nanoseconds": 328000000
     }
   },
   {
