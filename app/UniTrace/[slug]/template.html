@@ -246,8 +246,27 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 .undo-cond.ok{background:var(--tl2);color:var(--tl)}
 .undo-cond.blk{background:var(--re2);color:var(--re)}
 .undo-cond.wrn{background:var(--am2);color:var(--am)}
+/* ── Stored Procedures (split view: lista / objetivo+parámetros / código T-SQL) ── */
+.sp-split{display:grid;grid-template-columns:230px 1fr;gap:14px;align-items:start}
+.sp-sidebar{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);max-height:680px;overflow-y:auto}
+.sp-item{display:block;width:100%;text-align:left;padding:9px 12px;border:none;border-bottom:1px solid var(--bd);background:none;cursor:pointer;font-family:inherit;font-size:12.5px;color:var(--tx)}
+.sp-item:last-child{border-bottom:none}
+.sp-item:hover{background:var(--sf2)}
+.sp-item.sel{background:var(--bl2);color:var(--bl);font-weight:500}
+.sp-item .sp-item-cat{display:block;font-size:10px;color:var(--tx3);margin-top:2px;font-weight:400}
+.sp-item.sel .sp-item-cat{color:var(--bl3)}
+.sp-detail{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.sp-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);padding:16px;min-width:0}
+.sp-card h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--tx2);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.sp-card p{font-size:13px;color:var(--tx);line-height:1.5;margin-bottom:14px;white-space:pre-wrap;word-break:break-word}
+.sp-params{font-family:monospace;font-size:12px;background:var(--sf2);border-radius:6px;padding:8px 10px;white-space:pre-wrap;word-break:break-word}
+.sp-sql-wrap pre{max-height:600px;overflow:auto;background:#1e1e1e;border-radius:var(--r);padding:14px;margin:0}
+.sp-sql-wrap pre code.hljs{font-family:Consolas,monospace;font-size:12px;line-height:1.55;background:none;padding:0}
+.sp-lines{font-size:11px;color:var(--tx3);margin-bottom:8px}
+@media (max-width:900px){.sp-split{grid-template-columns:1fr}.sp-detail{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/atom-one-dark.min.css">
 </head>
 <body>
 <div id="unitrace-gate" class="unitrace-gate" style="display:none">
@@ -289,6 +308,7 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
   <button onclick="showTab('depositos',this)"><span class="dot" style="background:#0F6E56"></span>Depósitos</button>
   <button onclick="showTab('planificador',this);ensurePlanInit()"><span class="dot" style="background:#854F0B"></span>Planificador</button>
   <button onclick="showTab('grupos',this);ensureGruposSimInit()"><span class="dot" style="background:#A32D2D"></span>Grupos de Usuario</button>
+  <button onclick="showTab('sps',this)"><span class="dot" style="background:#2563EB"></span>Stored Procedures</button>
 </nav>
 <main>
 
@@ -456,6 +476,25 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
   <div id="gsim-result" style="margin-top:14px"></div>
 </div>
 
+<div id="tab-sps" class="tab">
+  <div class="toolbar">
+    <div class="tl-l"><span class="stitle">Stored Procedures</span>
+      <input type="text" class="search" placeholder="Buscar por nombre, parámetro u objetivo..." id="q-sps" oninput="renderSps()">
+      <select id="f-sps-cat" onchange="renderSps()" style="width:auto">
+        <option value="">Todas las categorías</option>
+      </select>
+      <span class="tdm" id="sps-count"></span>
+    </div>
+    <button class="btn btn-p" onclick="openModal('storedProcedures',null)">+ Nuevo SP</button>
+  </div>
+  <p class="sdesc">Catálogo de Stored Procedures T-SQL del backend del cliente: objetivo de negocio, parámetros de entrada y evento/transición que los dispara, con el código completo listo para copiar.</p>
+  <div id="stats-sps" class="stats"></div>
+  <div class="sp-split">
+    <div class="sp-sidebar" id="sp-list"></div>
+    <div class="sp-detail" id="sp-detail"></div>
+  </div>
+</div>
+
 </main>
 
 <div class="bd-wrap" id="bd" onclick="bdClick(event)">
@@ -471,9 +510,10 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
 <script>
-const DEFAULT_DATA = {"estados":[],"jornadas":[],"matriz":[],"transiciones":[],"plantillas":[],"depositos":[],"zonas":[],"rutas":[],"grupos":[],"operaciones":[],"transicionesTsp":[]};
-const DEFAULT_NEXT = {"estados":1,"jornadas":1,"matriz":1,"transiciones":1,"plantillas":1,"depositos":1,"zonas":1,"rutas":1,"grupos":1,"operaciones":1,"transicionesTsp":1};
+const DEFAULT_DATA = {"estados":[],"jornadas":[],"matriz":[],"transiciones":[],"plantillas":[],"depositos":[],"zonas":[],"rutas":[],"grupos":[],"operaciones":[],"transicionesTsp":[],"storedProcedures":[]};
+const DEFAULT_NEXT = {"estados":1,"jornadas":1,"matriz":1,"transiciones":1,"plantillas":1,"depositos":1,"zonas":1,"rutas":1,"grupos":1,"operaciones":1,"transicionesTsp":1,"storedProcedures":1};
 
 let data, nextIds, curSection, editId;
 
@@ -528,7 +568,7 @@ function init() {
       // Un cliente en blanco (recién creado) llega con data:{} desde el backend — ninguna de
       // estas claves existe todavía. Cada una debe quedar como array vacío, nunca undefined,
       // o las funciones de render (data.X.filter/.map sin guarda) explotan con TypeError.
-      ['estados','jornadas','matriz','transiciones','plantillas','depositos','zonas','rutas','grupos','operaciones','transicionesTsp'].forEach(k=>{
+      ['estados','jornadas','matriz','transiciones','plantillas','depositos','zonas','rutas','grupos','operaciones','transicionesTsp','storedProcedures'].forEach(k=>{
         if (!data[k]) data[k] = [];
         if (!nextIds[k]) nextIds[k] = DEFAULT_NEXT[k] || 1;
       });
@@ -978,7 +1018,7 @@ function renderGrupos() {
   document.getElementById('tbl-grupos').innerHTML = h;
 }
 
-function renderAll() { renderEstados(); renderJornadas(); renderMatriz(); renderTransiciones(); renderMatrizEstados(); renderMatrizTransiciones(); renderPlantillas(); renderDepositos(); renderZonas(); renderRutas(); renderGrupos(); renderGruposMatrix(); }
+function renderAll() { renderEstados(); renderJornadas(); renderMatriz(); renderTransiciones(); renderMatrizEstados(); renderMatrizTransiciones(); renderPlantillas(); renderDepositos(); renderZonas(); renderRutas(); renderGrupos(); renderGruposMatrix(); renderSps(); }
 
 /* ── utils ── */
 function pill(txt, cls) { return '<span class="pill ' + cls + '">' + esc(txt) + '</span>'; }
@@ -1000,6 +1040,78 @@ function gv(id) { const el = document.getElementById(id); return el ? el.value.t
 function gb(id) { const el = document.getElementById(id); return el ? el.checked : false; }
 function sv(id, val) { const el = document.getElementById(id); if (el) el.value = String(val||''); }
 function sb(id, val) { const el = document.getElementById(id); if (el) el.checked = !!val; }
+
+/* ── STORED PROCEDURES ── */
+let curSp = null;
+const SP_CAT_PALETTE = ['p-bl','p-tl','p-am','p-co','p-gr','p-pu','p-gy','p-re'];
+function spCategories() { return Array.from(new Set((data.storedProcedures||[]).map(s=>s.category||'General'))).sort(); }
+function spCatColor(cat) { const cats = spCategories(); const idx = cats.indexOf(cat||'General'); return SP_CAT_PALETTE[idx < 0 ? 0 : idx % SP_CAT_PALETTE.length]; }
+
+function renderSpCategoryOptions() {
+  const sel = document.getElementById('f-sps-cat');
+  if (!sel) return;
+  const cur = sel.value;
+  const opts = spCategories().map(c => '<option value="' + esc(c) + '"' + (c === cur ? ' selected' : '') + '>' + esc(c) + '</option>').join('');
+  sel.innerHTML = '<option value="">Todas las categorías</option>' + opts;
+}
+
+function renderSps() {
+  if (!document.getElementById('sp-list')) return; // pestaña aún no montada en el DOM
+  renderSpCategoryOptions();
+  const q = (document.getElementById('q-sps')||{value:''}).value.toLowerCase();
+  const cat = (document.getElementById('f-sps-cat')||{value:''}).value;
+  const all = data.storedProcedures || [];
+  const rows = all.filter(s => (!cat || (s.category||'General') === cat) &&
+    (!q || s.name.toLowerCase().includes(q) || (s.params||'').toLowerCase().includes(q) || (s.objetivo||'').toLowerCase().includes(q)));
+  document.getElementById('stats-sps').innerHTML = statsHtml(all) +
+    '<div class="sc"><div class="sl">Categorías</div><div class="sv">' + spCategories().length + '</div></div>';
+  const countEl = document.getElementById('sps-count');
+  if (countEl) countEl.textContent = rows.length + ' de ' + all.length;
+  const list = document.getElementById('sp-list');
+  rows.sort((a,b) => a.name.localeCompare(b.name));
+  if (!rows.length) { list.innerHTML = emptyHtml(all.length ? 'Sin resultados para ese filtro.' : 'Sin Stored Procedures cargados todavía.'); document.getElementById('sp-detail').innerHTML = ''; return; }
+  if (!rows.some(s => s.id === curSp)) curSp = rows[0].id;
+  list.innerHTML = rows.map(s => '<button class="sp-item' + (curSp===s.id?' sel':'') + '" onclick="selectSp(' + s.id + ')">' + esc(s.name) + '<span class="sp-item-cat">' + esc(s.category||'General') + '</span></button>').join('');
+  renderSpDetail(curSp);
+}
+
+function selectSp(id) { curSp = id; renderSps(); }
+
+function renderSpDetail(id) {
+  const el = document.getElementById('sp-detail');
+  const sp = (data.storedProcedures||[]).find(s => s.id === id);
+  if (!sp) { el.innerHTML = ''; return; }
+  const lines = (sp.code||'').split('\n').length;
+  el.innerHTML =
+    '<div class="sp-card">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:12px">' +
+        '<div><div style="font-size:15px;font-weight:600;font-family:monospace;word-break:break-word">dbo.' + esc(sp.name) + '</div><div style="margin-top:4px">' + pill(sp.category||'General', spCatColor(sp.category)) + '</div></div>' +
+        '<div class="tda"><button class="bi ed" title="Editar" onclick="openModal(\'storedProcedures\',' + sp.id + ')">✎</button><button class="bi dl" title="Eliminar" onclick="delItem(\'storedProcedures\',' + sp.id + ')">🗑</button></div>' +
+      '</div>' +
+      '<h4>🎯 Objetivo de negocio</h4><p>' + esc(sp.objetivo||'—') + '</p>' +
+      '<h4>⚙️ Parámetros detectados</h4><p class="sp-params">' + esc(sp.params||'— Sin parámetros —') + '</p>' +
+      '<h4>⚡ Disparador / Evento operativo</h4><p>' + (sp.trigger ? esc(sp.trigger) : '<span class="no-trig">No identificado</span>') + '</p>' +
+      '<h4>📑 Descripción y lógica de negocio</h4><p>' + esc(sp.descripcion||'—') + '</p>' +
+    '</div>' +
+    '<div class="sp-card">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+        '<h4 style="margin:0">💾 Código T-SQL</h4>' +
+        '<button class="btn btn-sm" onclick="copySpCode(' + sp.id + ',this)">📋 Copiar SQL</button>' +
+      '</div>' +
+      '<div class="sp-lines">' + lines + ' líneas</div>' +
+      '<div class="sp-sql-wrap"><pre><code class="language-sql" id="sp-code-' + sp.id + '">' + esc(sp.code||'') + '</code></pre></div>' +
+    '</div>';
+  if (window.hljs) { try { hljs.highlightElement(document.getElementById('sp-code-'+sp.id)); } catch(e) {} }
+}
+
+function copySpCode(id, btn) {
+  const sp = (data.storedProcedures||[]).find(s => s.id === id);
+  if (!sp) return;
+  navigator.clipboard.writeText(sp.code||'').then(() => {
+    if (!btn) return;
+    const t = btn.textContent; btn.textContent = '✓ Copiado'; setTimeout(() => { btn.textContent = t; }, 1200);
+  }).catch(() => alert('No se pudo copiar automáticamente. Selecciona el código manualmente.'));
+}
 
 /* ── ESTADOS ── */
 const ENT_ORDER = ['Pedido','Orden','Ruta','Viaje','Parada'];
@@ -1573,7 +1685,7 @@ function mtMxClick(orig, dest) {
 function openModal(section, id) {
   curSection = section; editId = id;
   const item = id !== null ? data[section].find(x => x.id === id) : null;
-  const titles = {estados:'estado', jornadas:'regla de jornada', matriz:'regla de matriz', transiciones:'transición', depositos:'depósito (COL)', zonas:'zona de influencia', rutas:'ruta inter-COL', grupos:'grupo de usuario', transicionesTsp:'transición (matriz de transiciones)', operaciones:'operación'};
+  const titles = {estados:'estado', jornadas:'regla de jornada', matriz:'regla de matriz', transiciones:'transición', depositos:'depósito (COL)', zonas:'zona de influencia', rutas:'ruta inter-COL', grupos:'grupo de usuario', transicionesTsp:'transición (matriz de transiciones)', operaciones:'operación', storedProcedures:'stored procedure'};
   document.getElementById('m-title').textContent = (id !== null ? 'Editar ' : 'Nuevo ') + titles[section];
   document.getElementById('m-body').innerHTML = buildForm(section, item);
   document.getElementById('bd').classList.add('on');
@@ -1846,6 +1958,25 @@ function buildForm(sec, item) {
       '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-opact"'+(item?(item.activo?' checked':''):' checked')+'><span class="tog-s"></span></label></div>';
   }
 
+  if (sec === 'storedProcedures') {
+    // Categorías propuestas por defecto + las que ya existan en los datos del cliente
+    // (para que un SP nuevo pueda reutilizar una categoría ya creada a mano).
+    const defCats = ['Pedidos y Órdenes','Viajes y Paradas','Tarifación y Liquidación','Incidencias y Costos','Devoluciones y Re-entregas','Sincronización y Validaciones','Automatizaciones y Jobs','Interfaces y Utilidades','General'];
+    const allCats = Array.from(new Set(defCats.concat(spCategories())));
+    const curCat = item ? item.category : 'General';
+    const catOpts = allCats.map(c => '<option'+(curCat===c?' selected':'')+'>'+esc(c)+'</option>').join('');
+    return '<div class="frow">'+
+      '<div class="fg"><label class="fl">Nombre SP <span class="req">*</span></label><input type="text" id="f-spnom" value="'+esc(item?item.name:'')+'" placeholder="ValidarPedido" style="font-family:monospace"></div>'+
+      '<div class="fg"><label class="fl">Categoría</label><select id="f-spcat">'+catOpts+'</select></div>'+
+      '</div>'+
+      '<div class="fg"><label class="fl">Parámetros</label><input type="text" id="f-spparams" value="'+esc(item?item.params:'')+'" placeholder="@IdPedido INT, @IdViaje INT" style="font-family:monospace"></div>'+
+      '<div class="fg"><label class="fl">Objetivo de negocio</label><textarea id="f-spobj" style="min-height:50px">'+esc(item?item.objetivo:'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">Disparador / Evento operativo</label><input type="text" id="f-sptrig" value="'+esc(item?item.trigger:'')+'" placeholder="ej: Transición 22 → 61, job nocturno..."></div>'+
+      '<div class="fg"><label class="fl">Descripción y lógica de negocio</label><textarea id="f-spdesc" style="min-height:70px">'+esc(item?item.descripcion:'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">Código T-SQL</label><textarea id="f-spcode" style="min-height:220px;font-family:monospace;font-size:12px;white-space:pre">'+esc(item?item.code:'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-spact"'+(item?(item.activo!==false?' checked':''):' checked')+'><span class="tog-s"></span></label></div>';
+  }
+
   return '';
 }
 
@@ -1953,6 +2084,17 @@ function saveModal() {
   } else if (sec === 'operaciones') {
     if (!gv('f-opnom')) { alert('El nombre es obligatorio.'); return; }
     item = { nombre: gv('f-opnom'), descripcion: gv('f-opdesc'), color: gv('f-opcolor') || 'bl', activo: gb('f-opact') };
+  } else if (sec === 'storedProcedures') {
+    const nombre = gv('f-spnom');
+    if (!nombre) { alert('El nombre del SP es obligatorio.'); return; }
+    const dupSp = data.storedProcedures.find(s => s.name.toLowerCase() === nombre.toLowerCase() && s.id !== editId);
+    if (dupSp) { alert('Ya existe un SP con ese nombre.'); return; }
+    item = {
+      name: nombre, category: gv('f-spcat') || 'General', params: gv('f-spparams'),
+      objetivo: gv('f-spobj'), trigger: gv('f-sptrig'), descripcion: gv('f-spdesc'),
+      code: document.getElementById('f-spcode').value, // sin trim: preserva indentación/saltos del SQL
+      activo: gb('f-spact')
+    };
   }
 
   const wasNewOperacion = sec === 'operaciones' && editId === null;
