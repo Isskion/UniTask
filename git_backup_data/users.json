@@ -157,21 +157,6 @@
     "company": "Unigis",
     "email": "daniel.delamo@unigis.com",
     "jobTitle": "Arquitecto de solución",
-    "assignedProjectIds": [
-      "ncGXgeNYLO0Zx9x0Az4x",
-      "3Mb6nctLYF4ni6cS0jMu",
-      "sZDav2CndgdmhfYc8BTt",
-      "9iqygviz3AGJnbJOLc8E",
-      "11K4kv5QI3SVkhVwuFfo",
-      "OH4sjML9byhLuzMXSTss",
-      "Au1xfXgivgl6VYj2zscs",
-      "Gq2CQfMRws3BMBTtWR1t",
-      "IL23eIjvSIdwLgqwz0pY",
-      "c0HRtaCkKXxeiQf897sY",
-      "aAb2HIajQVhXnLAzmVo8",
-      "WcF8wTccm1LkaFBfWvug",
-      "HKnZypXlGdM0VjRLOysB"
-    ],
     "_forceSync": 1769684712914,
     "lastLogin": {
       "_seconds": 1769684909,
@@ -209,7 +194,24 @@
       "divisionIds": [
         "CON"
       ]
-    }
+    },
+    "assignedProjectIds": [
+      "ncGXgeNYLO0Zx9x0Az4x",
+      "3Mb6nctLYF4ni6cS0jMu",
+      "sZDav2CndgdmhfYc8BTt",
+      "9iqygviz3AGJnbJOLc8E",
+      "11K4kv5QI3SVkhVwuFfo",
+      "OH4sjML9byhLuzMXSTss",
+      "Au1xfXgivgl6VYj2zscs",
+      "Gq2CQfMRws3BMBTtWR1t",
+      "IL23eIjvSIdwLgqwz0pY",
+      "c0HRtaCkKXxeiQf897sY",
+      "aAb2HIajQVhXnLAzmVo8",
+      "WcF8wTccm1LkaFBfWvug",
+      "HKnZypXlGdM0VjRLOysB",
+      "bGeacYFR1Fk4xv0Yh9XV",
+      "DWXtB3YW0vii8A55ZQYR"
+    ]
   },
   {
     "id": "9k4a329sfZNC8AdR9XJETxbXjXU2",
