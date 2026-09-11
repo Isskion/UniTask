@@ -20,6 +20,16 @@
     }
   },
   {
+    "id": "0J0CucBmG3G0Nrb0sO0T",
+    "word": "deca",
+    "tenantId": "3",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1789122258,
+      "_nanoseconds": 763000000
+    }
+  },
+  {
     "id": "0YyoP03XFRRF2R0FEaLd",
     "tenantId": "3",
     "word": "valorminimo",
