@@ -2022,7 +2022,6 @@
   },
   {
     "id": "Y6kzMMdjEzwpuzvoN1ql",
-    "title": "",
     "projectId": "bGeacYFR1Fk4xv0Yh9XV",
     "tenantId": "3",
     "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
@@ -2030,10 +2029,12 @@
     "isInternal": true,
     "folderId": null,
     "createdAt": null,
-    "content": "<p>Revisar enunciados de REQ</p><p>Preguntar a Carlos si se puede dar de imprimir dos documentos al tiempo</p><p></p>",
+    "title": "Documento de paso a Soporte",
+    "type": "note",
+    "content": "<p>Reunión día 20260911</p><ul data-list-type=\"disc\"><li><p>Jaime facilita documento de paso a soporte de Argentina</p></li><li><p>Jorge me facilitará los SP de producción</p><ul data-list-type=\"disc\"><li><p>Daniel los analiza y prepara un Flujo de procesos según lectura de SP.</p></li><li><p>Jorge ayuda a Daniel con el flujo para encasillar cada proceso en su punto del camino.</p></li></ul></li><li><p></p></li></ul><p></p>",
     "updatedAt": {
-      "_seconds": 1778240828,
-      "_nanoseconds": 393000000
+      "_seconds": 1789118709,
+      "_nanoseconds": 649000000
     }
   },
   {
