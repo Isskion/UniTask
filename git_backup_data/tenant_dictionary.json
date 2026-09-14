@@ -2850,6 +2850,16 @@
     }
   },
   {
+    "id": "mGtJ2G8JFBIm7dvcx6Wd",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "word": "geoposición",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1789377123,
+      "_nanoseconds": 965000000
+    }
+  },
+  {
     "id": "mK63UOtEKo1iWQLBqTC1",
     "tenantId": "3",
     "word": "baf",
@@ -2987,6 +2997,16 @@
     "createdAt": {
       "_seconds": 1780053140,
       "_nanoseconds": 219000000
+    }
+  },
+  {
+    "id": "nxG2s8i31ClQ7xFcjnIe",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "word": "vehículosaitana",
+    "createdAt": {
+      "_seconds": 1789376606,
+      "_nanoseconds": 366000000
     }
   },
   {
