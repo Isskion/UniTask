@@ -1,26 +1,38 @@
 'use client';
 
-import React, { useState } from 'react';
-import { 
-    Sparkles, 
-    ShieldAlert, 
-    CheckCircle, 
-    ArrowRight, 
-    Copy, 
-    Download, 
-    Cpu, 
-    User, 
-    RefreshCw, 
-    Lightbulb, 
+import React, { useState, useRef } from 'react';
+import {
+    Sparkles,
+    ShieldAlert,
+    CheckCircle,
+    ArrowRight,
+    Copy,
+    Download,
+    Cpu,
+    User,
+    RefreshCw,
+    Lightbulb,
     FileText,
     AlertTriangle,
     Eye,
     ChevronRight,
-    ArrowLeft
+    ArrowLeft,
+    Upload,
+    X,
+    Zap
 } from 'lucide-react';
-import { analyzeTextForAI, humanizeText } from './actions';
+import { analyzeTextForAI, humanizeText, extractTextFromDocument } from './actions';
 import { useAuth } from '@/context/AuthContext';
 import { getRoleLevel, RoleLevel } from '@/types';
+
+// A partir de este tamaño el backend trocea el documento en fragmentos y los procesa
+// en paralelo, así que avisamos al usuario de qué esperar.
+const CHUNKING_THRESHOLD = 6000;
+// Umbral de score de IA a partir del cual seguimos ofreciendo "Re-humanizar".
+const RE_HUMANIZE_THRESHOLD = 25;
+const MAX_HUMANIZE_ITERATIONS = 3;
+const ACCEPTED_EXTENSIONS = '.pdf,.docx,.txt,.md';
+const MAX_FILE_SIZE_MB = 8;
 
 interface AIHighlight {
     sentence: string;
@@ -53,6 +65,15 @@ export default function AIDetectorPage() {
     const [activeTab, setActiveTab] = useState<'detector' | 'comparador'>('detector');
     const [copySuccess, setCopySuccess] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+
+    // Documento subido (en vez de texto pegado a mano)
+    const [fileName, setFileName] = useState('');
+    const [isExtracting, setIsExtracting] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Iteraciones de humanización sobre el mismo texto (para bajar el score sin volver a pegar nada)
+    const [humanizeIteration, setHumanizeIteration] = useState(0);
+    const [isReHumanizing, setIsReHumanizing] = useState(false);
 
     if (loading) {
         return (
@@ -98,7 +119,8 @@ export default function AIDetectorPage() {
         setAnalysis(null);
         setHumanizedText('');
         setHumanizedAnalysis(null);
-        
+        setHumanizeIteration(0);
+
         try {
             const res = await analyzeTextForAI(inputText);
             if (res.success && res.result) {
@@ -123,13 +145,15 @@ export default function AIDetectorPage() {
         setIsHumanizing(true);
         setHumanizedText('');
         setHumanizedAnalysis(null);
-        
+        setHumanizeIteration(0);
+
         try {
             // 1. Humanizar el texto
             const res = await humanizeText(inputText, tone);
             if (res.success && res.humanizedText) {
                 const textResult = res.humanizedText.trim();
                 setHumanizedText(textResult);
+                setHumanizeIteration(1);
                 setActiveTab('comparador');
 
                 // 2. Analizar el texto humanizado inmediatamente para ver la mejora
@@ -147,10 +171,94 @@ export default function AIDetectorPage() {
         }
     };
 
+    // Vuelve a pasar el texto YA humanizado por otra pasada de humanización, sin que el
+    // usuario tenga que copiarlo de vuelta al textarea. Pensado para cuando el score
+    // sigue alto tras la primera pasada.
+    const handleReHumanize = async () => {
+        if (!humanizedText.trim()) return;
+        setErrorMessage('');
+        setIsReHumanizing(true);
+
+        try {
+            const res = await humanizeText(humanizedText, tone);
+            if (res.success && res.humanizedText) {
+                const textResult = res.humanizedText.trim();
+                setHumanizedText(textResult);
+                setHumanizedAnalysis(null);
+                setHumanizeIteration((prev) => prev + 1);
+
+                const analysisRes = await analyzeTextForAI(textResult);
+                if (analysisRes.success && analysisRes.result) {
+                    setHumanizedAnalysis(analysisRes.result);
+                }
+            } else {
+                setErrorMessage(res.error || 'Error al re-humanizar el texto.');
+            }
+        } catch (e: any) {
+            setErrorMessage(e.message || 'Error de conexión.');
+        } finally {
+            setIsReHumanizing(false);
+        }
+    };
+
+    // Extrae el texto de un documento subido (PDF/DOCX/TXT) y lo carga en el textarea
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = ''; // permite volver a seleccionar el mismo archivo más tarde
+        if (!file) return;
+
+        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+            setErrorMessage(`El documento supera los ${MAX_FILE_SIZE_MB}MB. Prueba a dividirlo o pega el texto directamente.`);
+            return;
+        }
+
+        setErrorMessage('');
+        setIsExtracting(true);
+        setAnalysis(null);
+        setHumanizedText('');
+        setHumanizedAnalysis(null);
+        setHumanizeIteration(0);
+
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const base64 = btoa(
+                new Uint8Array(arrayBuffer).reduce((acc, byte) => acc + String.fromCharCode(byte), '')
+            );
+
+            const res = await extractTextFromDocument(base64, file.type, file.name);
+            if (res.success && res.text) {
+                setInputText(res.text);
+                setFileName(file.name);
+            } else {
+                setErrorMessage(res.error || 'No se pudo leer el documento.');
+            }
+        } catch (e: any) {
+            setErrorMessage(e.message || 'Error al procesar el archivo.');
+        } finally {
+            setIsExtracting(false);
+        }
+    };
+
+    const handleClearFile = () => {
+        setFileName('');
+        setInputText('');
+        setAnalysis(null);
+        setHumanizedText('');
+        setHumanizedAnalysis(null);
+        setHumanizeIteration(0);
+    };
+
     const handleCopy = (text: string) => {
         navigator.clipboard.writeText(text);
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
+    };
+
+    // Nombra la descarga a partir del documento original subido, si lo hay
+    const getHumanizedFileName = () => {
+        if (!fileName) return 'documento_humanizado.txt';
+        const baseName = fileName.replace(/\.[^/.]+$/, '');
+        return `${baseName}_humanizado.txt`;
     };
 
     const handleDownload = (text: string, filename: string) => {
@@ -336,12 +444,61 @@ export default function AIDetectorPage() {
                                     </span>
                                 </div>
 
+                                {/* Selector de documento */}
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept={ACCEPTED_EXTENSIONS}
+                                        onChange={handleFileSelect}
+                                        className="hidden"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isExtracting || isAnalyzing || isHumanizing}
+                                        className="flex items-center space-x-2 text-xs font-semibold text-zinc-200 bg-zinc-950 border border-dashed border-zinc-700 hover:border-purple-500/60 hover:text-purple-300 disabled:opacity-40 px-3.5 h-9 rounded-lg transition-colors"
+                                    >
+                                        {isExtracting ? (
+                                            <RefreshCw className="h-3.5 w-3.5 animate-spin text-purple-400" />
+                                        ) : (
+                                            <Upload className="h-3.5 w-3.5" />
+                                        )}
+                                        <span>{isExtracting ? 'Leyendo documento…' : 'Subir documento (PDF, DOCX, TXT)'}</span>
+                                    </button>
+
+                                    {fileName && (
+                                        <span className="flex items-center space-x-1.5 text-[11px] font-mono text-purple-300 bg-purple-500/10 border border-purple-500/20 pl-2.5 pr-1.5 h-7 rounded-lg">
+                                            <FileText className="h-3 w-3 shrink-0" />
+                                            <span className="max-w-[180px] truncate">{fileName}</span>
+                                            <button
+                                                type="button"
+                                                onClick={handleClearFile}
+                                                title="Quitar documento"
+                                                className="p-0.5 rounded hover:bg-purple-500/20 text-purple-300 hover:text-white transition-colors"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </span>
+                                    )}
+                                </div>
+
                                 <textarea
                                     className="w-full h-80 bg-zinc-950/60 border border-zinc-800 rounded-xl p-4 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/30 transition-all font-mono leading-relaxed"
-                                    placeholder="Pega el informe de tu agente, las transiciones de estado o cualquier documento aquí..."
+                                    placeholder="Pega el informe de tu agente, las transiciones de estado o cualquier documento aquí... o sube un archivo arriba."
                                     value={inputText}
-                                    onChange={(e) => setInputText(e.target.value)}
+                                    onChange={(e) => {
+                                        setInputText(e.target.value);
+                                        if (fileName) setFileName(''); // edición manual: deja de estar ligado al archivo
+                                    }}
                                 />
+
+                                {inputText.length > CHUNKING_THRESHOLD && (
+                                    <p className="text-[11px] text-zinc-500 flex items-center space-x-1.5 -mt-1">
+                                        <Zap className="h-3 w-3 text-amber-500 shrink-0" />
+                                        <span>Documento largo: se procesará en varios fragmentos en paralelo para ir más rápido.</span>
+                                    </p>
+                                )}
 
                                 {/* Control Bar */}
                                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2">
@@ -584,6 +741,11 @@ export default function AIDetectorPage() {
                                     <div className="flex items-center space-x-2">
                                         <Sparkles className="h-4.5 w-4.5 text-purple-400" />
                                         <h3 className="text-sm font-semibold text-zinc-100">Texto Humanizado</h3>
+                                        {humanizeIteration > 1 && (
+                                            <span className="text-[10px] font-mono text-zinc-500 bg-zinc-950 border border-zinc-800 px-1.5 py-0.5 rounded">
+                                                Pase {humanizeIteration}
+                                            </span>
+                                        )}
                                     </div>
                                     {humanizedAnalysis ? (
                                         <span className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded-md border ${getScoreBg(humanizedAnalysis.score)}`}>
@@ -601,21 +763,46 @@ export default function AIDetectorPage() {
                                     {humanizedAnalysis ? renderHighlightedText(humanizedText, humanizedAnalysis.highlights) : <p className="whitespace-pre-wrap">{humanizedText}</p>}
                                 </div>
 
+                                {humanizedAnalysis && humanizedAnalysis.score >= RE_HUMANIZE_THRESHOLD && (
+                                    <div className="flex items-center justify-between gap-3 p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                                        <p className="text-[11px] text-amber-400/90 leading-relaxed">
+                                            El score sigue en {humanizedAnalysis.score}%.{' '}
+                                            {humanizeIteration < MAX_HUMANIZE_ITERATIONS
+                                                ? 'Puedes lanzar otra pasada sobre este mismo texto sin volver a pegarlo.'
+                                                : 'Se alcanzó el máximo de pasadas automáticas; te recomendamos editar a mano los fragmentos resaltados.'}
+                                        </p>
+                                        {humanizeIteration < MAX_HUMANIZE_ITERATIONS && (
+                                            <button
+                                                onClick={handleReHumanize}
+                                                disabled={isReHumanizing}
+                                                className="shrink-0 flex items-center space-x-1.5 text-xs font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 disabled:opacity-40 px-3 h-8 rounded-lg transition-colors"
+                                            >
+                                                {isReHumanizing ? (
+                                                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                                ) : (
+                                                    <Zap className="h-3.5 w-3.5" />
+                                                )}
+                                                <span>Re-humanizar</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
                                 <div className="flex items-center justify-between pt-2">
                                     <div className="text-[11px] text-zinc-500 font-semibold flex items-center space-x-1">
                                         <User className="h-3.5 w-3.5 text-emerald-400" />
                                         <span>Tono reescrito: <span className="text-zinc-400 capitalize">{tone}</span></span>
                                     </div>
-                                    
+
                                     <div className="flex items-center space-x-3">
-                                        <button 
-                                            onClick={() => handleDownload(humanizedText, "documento_humanizado.txt")}
+                                        <button
+                                            onClick={() => handleDownload(humanizedText, getHumanizedFileName())}
                                             className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors flex items-center space-x-1 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-lg"
                                         >
                                             <Download className="h-3.5 w-3.5" />
                                             <span>Descargar</span>
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => handleCopy(humanizedText)}
                                             className="text-xs text-zinc-100 hover:text-white transition-colors flex items-center space-x-1 bg-purple-600 hover:bg-purple-500 px-3 py-1.5 rounded-lg shadow-lg shadow-purple-500/10"
                                         >
