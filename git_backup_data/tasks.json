@@ -12467,7 +12467,6 @@
     "friendlyId": "TRA-48",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "creationSource": "manual_main",
-    "actualEffort": null,
     "tenantId": "3",
     "techDescription": "Revisar carpeta de documentación de tarifas de Transpais y ver si hace falta nuevo documetno de tarifas.",
     "progressV13": {
@@ -12490,10 +12489,16 @@
       "_nanoseconds": 944000000
     },
     "attributes": {},
-    "status": "in_progress",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 4,
+    "closedAt": {
+      "_seconds": 1789044895,
+      "_nanoseconds": 707000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1788866291,
-      "_nanoseconds": 27000000
+      "_seconds": 1789044895,
+      "_nanoseconds": 707000000
     }
   },
   {

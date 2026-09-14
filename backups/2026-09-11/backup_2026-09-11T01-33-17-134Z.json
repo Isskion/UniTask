@@ -25946,14 +25946,16 @@
     },
     {
       "id": "3_2026-09-09",
+      "generalNotes": "",
+      "updatedAt": "2026-09-09T13:17:01.979Z",
+      "createdAt": "2026-09-09T13:15:04.647Z",
       "date": "2026-09-09",
-      "tenantId": "3",
       "projects": [
         {
-          "name": "TRANSPAIS",
-          "projectId": "aAb2HIajQVhXnLAzmVo8",
-          "status": "active",
           "conclusions": "",
+          "nextSteps": "",
+          "status": "active",
+          "projectId": "aAb2HIajQVhXnLAzmVo8",
           "blocks": [
             {
               "id": "default",
@@ -25962,13 +25964,11 @@
               "isCollapsed": false
             }
           ],
-          "pmNotes": "Transpais - Seguimiento semanal 09-09-2026\n\nPORTIC -- > confirmado el mapeo, queda definir una tabla de conversión de las refercnias externas para hacer matching entre pedidos de portic y Unigis.\n\nInterfaces:\n-> Aitana Business Central: Se dan accesos al equipo para accesos a Swagger. Comienzan pruebas.\n-> Webfleet: Funcionando en test, validada recpeción de GPS. Sensores funcionando, a falta de cambiar etiquetas de campos para acomodarlo a la visión del usuario.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. En desarrollo, aproximada la entrega para Q4, no confirmada a falta de una reunión interna.\n\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. En construcción\n-> Internacional: Entregado documento con anotaciones respondidas. En construcción\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos. En espera e Generix.\n------------\n\nGenerix en stand by por temas contractuales.\n\nTranspais nos envía los grupos de usuario por operación para integrar en el sistema. Recibidos los adminitradores, a falta de los grupos.",
-          "nextSteps": ""
+          "name": "TRANSPAIS",
+          "pmNotes": "Transpais - Seguimiento semanal 09-09-2026\n\nPORTIC -- > confirmado el mapeo, queda definir una tabla de conversión de las refercnias externas para hacer matching entre pedidos de portic y Unigis.\n\nInterfaces:\n-> Aitana Business Central: Se dan accesos al equipo para accesos a Swagger. Comienzan pruebas.\n-> Webfleet: Funcionando en test, validada recpeción de GPS. Sensores funcionando, a falta de cambiar etiquetas de campos para acomodarlo a la visión del usuario.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. En desarrollo, aproximada la entrega para Q4, no confirmada a falta de una reunión interna.\n\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. En construcción\n-> Internacional: Entregado documento con anotaciones respondidas. En construcción\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos. En espera e Generix.\n------------\n\nGenerix en stand by por temas contractuales.\n\nTranspais nos envía los grupos de usuario por operación para integrar en el sistema. Recibidos los adminitradores, a falta de los grupos."
         }
       ],
-      "generalNotes": "",
-      "createdAt": "2026-09-09T13:15:04.647Z",
-      "updatedAt": "2026-09-14T08:07:02.010Z"
+      "tenantId": "3"
     },
     {
       "id": "4_2026-01-12",
@@ -102810,10 +102810,10 @@
       "projectId": "aAb2HIajQVhXnLAzmVo8",
       "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
       "taskTypeName": "Configuración // Construcción",
-      "writerTabId": "og6iyjr16gn",
+      "writerTabId": "ocfuvd7jzop",
       "updatedAt": {
-        "_seconds": 1789380710,
-        "_nanoseconds": 585000000
+        "_seconds": 1789054898,
+        "_nanoseconds": 593000000
       }
     }
   ],
@@ -118171,16 +118171,6 @@
       }
     },
     {
-      "id": "0J0CucBmG3G0Nrb0sO0T",
-      "word": "deca",
-      "tenantId": "3",
-      "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-      "createdAt": {
-        "_seconds": 1789122258,
-        "_nanoseconds": 763000000
-      }
-    },
-    {
       "id": "0YyoP03XFRRF2R0FEaLd",
       "tenantId": "3",
       "word": "valorminimo",
@@ -121001,16 +120991,6 @@
       }
     },
     {
-      "id": "mGtJ2G8JFBIm7dvcx6Wd",
-      "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-      "word": "geoposición",
-      "tenantId": "3",
-      "createdAt": {
-        "_seconds": 1789377123,
-        "_nanoseconds": 965000000
-      }
-    },
-    {
       "id": "mK63UOtEKo1iWQLBqTC1",
       "tenantId": "3",
       "word": "baf",
@@ -121148,16 +121128,6 @@
       "createdAt": {
         "_seconds": 1780053140,
         "_nanoseconds": 219000000
-      }
-    },
-    {
-      "id": "nxG2s8i31ClQ7xFcjnIe",
-      "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-      "tenantId": "3",
-      "word": "vehículosaitana",
-      "createdAt": {
-        "_seconds": 1789376606,
-        "_nanoseconds": 366000000
       }
     },
     {
@@ -123203,10 +123173,10 @@
       "folderId": "XmLtRe8vOPTyw6NhQJGI",
       "createdAt": null,
       "type": "note",
-      "content": "<p>Crear campo de pedido_Dyn para albergar el cliente original cuando se modifique por necesidades.</p><p></p><ul data-list-type=\"disc\"><li><p>Revisión de maestros :</p><ul data-list-type=\"disc\"><li><p>Conductores (Aitana)</p><ul data-list-type=\"disc\"><li><p>Zonas de acción</p><ul data-list-type=\"disc\"><li><p>Por operacion?</p></li><li><p>Las zonas serán comunes en las operaciones?</p></li><li><p>Duermen siempre en casa?</p></li></ul></li><li><p>Gestión de documentación</p></li><li><p>Mas factores a tener en cuenta</p></li></ul></li><li><p>Vehículos (Aitana)</p><ul data-list-type=\"disc\"><li><p>Entendemos que vienen de Aitana, enlace con gestor de flota.</p></li><li><p>alta / modificación...</p></li><li><p>Gestión de documentación</p></li><li><p><strong>¿Se asignan a operaciones?</strong></p></li></ul></li><li><p>Transportes (Aitana)</p><ul data-list-type=\"disc\"><li><p><strong>¿Se asignan a operaciones?</strong></p></li><li><p>Validar docuemnto de transportistas -- Unigis.</p></li></ul></li><li><p>Clientes Dadores (Aitana)</p><ul data-list-type=\"disc\"><li><p>Geoposición<span spellcheck=\"false\" data-type=\"authorized-word\" class=\"authorized-word-hint border-b border-dotted border-emerald-500/30\">, no nos la van a servir.</span></p></li><li><p><span spellcheck=\"false\" data-type=\"authorized-word\" class=\"authorized-word-hint border-b border-dotted border-emerald-500/30\">Definir si el proceso automatico será desatendido.</span></p></li></ul></li><li><p>Clientes Orden (Aitana)</p><ul data-list-type=\"disc\"><li><p>Geoposición, no nos la van a servir.</p></li><li><p><span spellcheck=\"false\" data-type=\"authorized-word\" class=\"authorized-word-hint border-b border-dotted border-emerald-500/30\">Definir si el proceso automatico será desatendido.</span></p></li></ul></li></ul></li></ul><p></p><p></p>",
+      "content": "<p>Crear campo de pedido_Dyn para albergar el cliente original cuando se modifique por necesidades.</p><p></p><ul data-list-type=\"disc\"><li><p>Revisión de maestros :</p><ul data-list-type=\"disc\"><li><p>Conductores (Aitana??)</p><ul data-list-type=\"disc\"><li><p>Zonas de acción</p></li><li><p>Duermen siempre en casa?</p></li><li><p>Mas factores a tener en cuenta</p></li></ul></li><li><p>Vehículos(Aitana)</p><ul data-list-type=\"disc\"><li><p>Entendemos que vienen de Aitana, enlace con gestor de flota.</p></li><li><p>alta / modirficación...</p></li></ul></li><li><p>Transportes(Aitana)</p><ul data-list-type=\"disc\"><li><p>Se asignan a operaciones?</p></li></ul></li><li><p>Clientes Dadores (Aitana)</p></li><li><p>Clientes Orden (Aitana)</p></li></ul></li></ul><p></p><p></p>",
       "updatedAt": {
-        "_seconds": 1789377648,
-        "_nanoseconds": 623000000
+        "_seconds": 1789050838,
+        "_nanoseconds": 328000000
       }
     },
     {
@@ -124955,6 +124925,7 @@
     },
     {
       "id": "Y6kzMMdjEzwpuzvoN1ql",
+      "title": "",
       "projectId": "bGeacYFR1Fk4xv0Yh9XV",
       "tenantId": "3",
       "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
@@ -124962,12 +124933,10 @@
       "isInternal": true,
       "folderId": null,
       "createdAt": null,
-      "title": "Documento de paso a Soporte",
-      "type": "note",
-      "content": "<p>Reunión día 20260911</p><ul data-list-type=\"disc\"><li><p>Jaime facilita documento de paso a soporte de Argentina</p></li><li><p>Jorge me facilitará los SP de producción</p><ul data-list-type=\"disc\"><li><p>Daniel los analiza y prepara un Flujo de procesos según lectura de SP.</p></li><li><p>Jorge ayuda a Daniel con el flujo para encasillar cada proceso en su punto del camino.</p></li></ul></li><li><p></p></li></ul><p></p>",
+      "content": "<p>Revisar enunciados de REQ</p><p>Preguntar a Carlos si se puede dar de imprimir dos documentos al tiempo</p><p></p>",
       "updatedAt": {
-        "_seconds": 1789118709,
-        "_nanoseconds": 649000000
+        "_seconds": 1778240828,
+        "_nanoseconds": 393000000
       }
     },
     {
@@ -126220,10 +126189,10 @@
       "isPublic": false,
       "type": "note",
       "title": "20260616 -- Datos a enviar",
-      "content": "<p><span style=\"font-size: 14px;\">De acuerdo con la normativa legal de la </span><strong>Dirección General de Transporte Terrestre</strong><span style=\"font-size: 14px;\"> del Ministerio de Transportes y Movilidad Sostenible de España (</span><em>Ley 16/1987 LOTT, Real Decreto 1211/1990 ROTT, Orden FOM/2861/2012 y la Ley de Movilidad Sostenible</em><span style=\"font-size: 14px;\">), a continuación te desgloso los </span><strong>campos y datos obligatorios</strong><span style=\"font-size: 14px;\"> que debe registrar y reportar el sistema para garantizar el cumplimiento normativo pleno en carretera e inspecciones.</span></p><h3><strong>1. Documento de Control Administrativo (DCA / DeCA)</strong></h3><p><em>(Obligatorio para todo transporte de mercancías por carretera. A partir del </em><strong><em>5 de octubre de 2026</em></strong><em> será </em><strong><em>100% obligatorio en formato digital</em></strong><em>).</em></p><ul data-list-type=\"disc\"><li><p><strong>Cargador Contractual:</strong></p><ul data-list-type=\"disc\"><li><p>Nombre o Denominación Social.</p></li><li><p>NIF / CIF.</p></li><li><p>Domicilio completo.</p></li></ul></li><li><p><strong>Transportista Efectivo:</strong></p><ul data-list-type=\"disc\"><li><p>Nombre o Denominación Social.</p></li><li><p>NIF / CIF.</p></li><li><p>Número de Autorización de Transporte (Tarjeta MDPE/MDER/OTL).</p></li></ul></li><li><p><strong>Origen y Destino:</strong></p><ul data-list-type=\"disc\"><li><p>Dirección completa del lugar de carga (Origen).</p></li><li><p>Dirección completa del lugar de descarga (Destino).</p></li></ul></li><li><p><strong>Detalle de la Mercancía:</strong></p><ul data-list-type=\"disc\"><li><p>Naturaleza de la mercancía.</p></li><li><p>Peso bruto total (en kg) o volumen (en m³).</p></li><li><p>Número de bultos / palés.</p></li></ul></li><li><p><strong>Fecha y Hora:</strong></p><ul data-list-type=\"disc\"><li><p>Fecha de realización del servicio y hora de inicio de expedición.</p></li></ul></li><li><p><strong>Matrículas del Conjunto de Transporte:</strong></p><ul data-list-type=\"disc\"><li><p>Matrícula del vehículo tractor.</p></li><li><p>Matrícula del remolque o semirremolque (en conjuntos articulados).</p></li></ul></li><li><p><strong>Trazabilidad de Cambios en Ruta:</strong></p><ul data-list-type=\"disc\"><li><p>En caso de transbordo o cambio de camión, debe registrarse el histórico garantizando la trazabilidad.</p></li></ul></li></ul><hr><h3><strong>2. Carta de Porte Nacional / e-CMR (Internacional)</strong></h3><p><em>(Ley 15/2009 de Contrato de Transporte Terrestre de Mercancías y Convenio CMR).</em></p><ul data-list-type=\"disc\"><li><p><strong>Destinatario:</strong> Nombre/Razón Social, NIF y Dirección de entrega.</p></li><li><p><strong>Mercancías Peligrosas (ADR) - <em>si aplica</em>:</strong></p><ul data-list-type=\"disc\"><li><p>Número ONU.</p></li><li><p>Denominación técnica oficial de la sustancia.</p></li><li><p>Clase de peligro y grupo de embalaje.</p></li></ul></li><li><p><strong>Cadena de Frío / Temperatura (ATP/Reefer) - <em>si aplica</em>:</strong></p><ul data-list-type=\"disc\"><li><p>Temperatura requerida de transporte (ºC).</p></li><li><p>Registro de temperatura en continuo.</p></li></ul></li><li><p><strong>Reservas y Firmas:</strong></p><ul data-list-type=\"disc\"><li><p>Reservas del transportista a la recepción del contenedor/mercancía.</p></li><li><p>Firma digital del cargador, transportista y consignatario/destinatario.</p></li></ul></li></ul><hr><h3><strong>3. Conductor y Control Operativo (Reglamento CE 561/2006 y ROTT)</strong></h3><ul data-list-type=\"disc\"><li><p><strong>Conductor:</strong></p><ul data-list-type=\"disc\"><li><p>Nombre y Apellidos completos.</p></li><li><p>DNI / NIE / NIF.</p></li><li><p>Número de Tarjeta de Tacógrafo Digital del conductor.</p></li><li><p>Certificado CAP (Certificado de Aptitud Profesional) vigente.</p></li></ul></li><li><p><strong>Tiempos de Conducción y Descanso:</strong></p><ul data-list-type=\"disc\"><li><p>Registro de horas de inicio/fin de jornada, pausas y descansos.</p></li></ul></li></ul><hr><h3><strong>4. Requisitos para Inspecciones de Transporte en Carretera</strong></h3><ol><li><p><strong>Acceso Telemático Rápido:</strong> El sistema debe ser capaz de generar una <strong>URL de verificación pública segura</strong> o un <strong>Código QR</strong> para que los inspectores de transporte o la Guardia Civil de Tráfico puedan validar el documento digital sin necesidad de imprimir papel.</p></li><li><p><strong>Histórico y Custodia Legal:</strong> La empresa está obligada por ley a <strong>conservar y custodiar los documentos digitales de control durante un plazo mínimo de 12 meses</strong> a disposición de la administración.</p></li></ol><p></p><p></p><p><strong>PUNTOS VISTO CON GERARDO EN REUNIÓN</strong></p><ul data-list-type=\"disc\"><li><p>Esfuerzo requerido</p></li><li><p>Clientes afectados</p></li><li><p>Afectación comercial.</p></li><li><p>Tiempos de implantación.<br></p></li></ul><p><strong><span style=\"font-size: 22px;\">Propuesta de Mapeo</span></strong></p><img class=\"rounded-xl border border-border max-w-full h-auto my-4 shadow-lg cursor-zoom-in\" src=\"https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/tenants%2F3%2Funileaks%2Fimages%2Fq0pJ90BxjLEnGKzpWLHw%2F1789122038729_image.png?alt=media&amp;token=945b267e-31f7-414b-83b4-7a64302272f4\"><p></p>",
+      "content": "<p><span style=\"font-size: 14px;\">De acuerdo con la normativa legal de la </span><strong>Dirección General de Transporte Terrestre</strong><span style=\"font-size: 14px;\"> del Ministerio de Transportes y Movilidad Sostenible de España (</span><em>Ley 16/1987 LOTT, Real Decreto 1211/1990 ROTT, Orden FOM/2861/2012 y la Ley de Movilidad Sostenible</em><span style=\"font-size: 14px;\">), a continuación te desgloso los </span><strong>campos y datos obligatorios</strong><span style=\"font-size: 14px;\"> que debe registrar y reportar el sistema para garantizar el cumplimiento normativo pleno en carretera e inspecciones.</span></p><h3><strong>1. Documento de Control Administrativo (DCA / DeCA)</strong></h3><p><em>(Obligatorio para todo transporte de mercancías por carretera. A partir del </em><strong><em>5 de octubre de 2026</em></strong><em> será </em><strong><em>100% obligatorio en formato digital</em></strong><em>).</em></p><ul data-list-type=\"disc\"><li><p><strong>Cargador Contractual:</strong></p><ul data-list-type=\"disc\"><li><p>Nombre o Denominación Social.</p></li><li><p>NIF / CIF.</p></li><li><p>Domicilio completo.</p></li></ul></li><li><p><strong>Transportista Efectivo:</strong></p><ul data-list-type=\"disc\"><li><p>Nombre o Denominación Social.</p></li><li><p>NIF / CIF.</p></li><li><p>Número de Autorización de Transporte (Tarjeta MDPE/MDER/OTL).</p></li></ul></li><li><p><strong>Origen y Destino:</strong></p><ul data-list-type=\"disc\"><li><p>Dirección completa del lugar de carga (Origen).</p></li><li><p>Dirección completa del lugar de descarga (Destino).</p></li></ul></li><li><p><strong>Detalle de la Mercancía:</strong></p><ul data-list-type=\"disc\"><li><p>Naturaleza de la mercancía.</p></li><li><p>Peso bruto total (en kg) o volumen (en m³).</p></li><li><p>Número de bultos / palés.</p></li></ul></li><li><p><strong>Fecha y Hora:</strong></p><ul data-list-type=\"disc\"><li><p>Fecha de realización del servicio y hora de inicio de expedición.</p></li></ul></li><li><p><strong>Matrículas del Conjunto de Transporte:</strong></p><ul data-list-type=\"disc\"><li><p>Matrícula del vehículo tractor.</p></li><li><p>Matrícula del remolque o semirremolque (en conjuntos articulados).</p></li></ul></li><li><p><strong>Trazabilidad de Cambios en Ruta:</strong></p><ul data-list-type=\"disc\"><li><p>En caso de transbordo o cambio de camión, debe registrarse el histórico garantizando la trazabilidad.</p></li></ul></li></ul><hr><h3><strong>2. Carta de Porte Nacional / e-CMR (Internacional)</strong></h3><p><em>(Ley 15/2009 de Contrato de Transporte Terrestre de Mercancías y Convenio CMR).</em></p><ul data-list-type=\"disc\"><li><p><strong>Destinatario:</strong> Nombre/Razón Social, NIF y Dirección de entrega.</p></li><li><p><strong>Mercancías Peligrosas (ADR) - <em>si aplica</em>:</strong></p><ul data-list-type=\"disc\"><li><p>Número ONU.</p></li><li><p>Denominación técnica oficial de la sustancia.</p></li><li><p>Clase de peligro y grupo de embalaje.</p></li></ul></li><li><p><strong>Cadena de Frío / Temperatura (ATP/Reefer) - <em>si aplica</em>:</strong></p><ul data-list-type=\"disc\"><li><p>Temperatura requerida de transporte (ºC).</p></li><li><p>Registro de temperatura en continuo.</p></li></ul></li><li><p><strong>Reservas y Firmas:</strong></p><ul data-list-type=\"disc\"><li><p>Reservas del transportista a la recepción del contenedor/mercancía.</p></li><li><p>Firma digital del cargador, transportista y consignatario/destinatario.</p></li></ul></li></ul><hr><h3><strong>3. Conductor y Control Operativo (Reglamento CE 561/2006 y ROTT)</strong></h3><ul data-list-type=\"disc\"><li><p><strong>Conductor:</strong></p><ul data-list-type=\"disc\"><li><p>Nombre y Apellidos completos.</p></li><li><p>DNI / NIE / NIF.</p></li><li><p>Número de Tarjeta de Tacógrafo Digital del conductor.</p></li><li><p>Certificado CAP (Certificado de Aptitud Profesional) vigente.</p></li></ul></li><li><p><strong>Tiempos de Conducción y Descanso:</strong></p><ul data-list-type=\"disc\"><li><p>Registro de horas de inicio/fin de jornada, pausas y descansos.</p></li></ul></li></ul><hr><h3><strong>4. Requisitos para Inspecciones de Transporte en Carretera</strong></h3><ol><li><p><strong>Acceso Telemático Rápido:</strong> El sistema debe ser capaz de generar una <strong>URL de verificación pública segura</strong> o un <strong>Código QR</strong> para que los inspectores de transporte o la Guardia Civil de Tráfico puedan validar el documento digital sin necesidad de imprimir papel.</p></li><li><p><strong>Histórico y Custodia Legal:</strong> La empresa está obligada por ley a <strong>conservar y custodiar los documentos digitales de control durante un plazo mínimo de 12 meses</strong> a disposición de la administración.</p></li></ol><p></p><p></p><p><strong>PUNTOS VISTO CON GERARDO EN REUNIÓN</strong></p><ul data-list-type=\"disc\"><li><p>Esfuerzo requerido</p></li><li><p>Clientes afectados</p></li><li><p>Afectación comercial.</p></li><li><p>Tiempos de implantación.<br></p></li></ul><p></p>",
       "updatedAt": {
-        "_seconds": 1789122048,
-        "_nanoseconds": 319000000
+        "_seconds": 1788799780,
+        "_nanoseconds": 294000000
       }
     },
     {
