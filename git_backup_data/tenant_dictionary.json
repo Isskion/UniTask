@@ -1210,6 +1210,16 @@
     }
   },
   {
+    "id": "Ky5opVZqntXEWlX8OfXn",
+    "tenantId": "3",
+    "word": "nolock",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1789459620,
+      "_nanoseconds": 632000000
+    }
+  },
+  {
     "id": "L0v98h569bhCHehBKl7f",
     "tenantId": "3",
     "word": "fechaultimasincro",
