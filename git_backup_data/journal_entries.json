@@ -5252,6 +5252,38 @@
     "updatedAt": "2026-09-15T07:32:25.219Z"
   },
   {
+    "id": "3_2026-09-16",
+    "date": "2026-09-16",
+    "tenantId": "3",
+    "projects": [
+      {
+        "nextSteps": "",
+        "pmNotes": "Interfaz con CMA\n\nBuenos días Leonardo,\nIgualmente, muchas gracias \nNumero de work order\nOs pongo el ejemplo más sencillo, con el que tendríamos más que de sobra.\n\nBásicamente con un API (GET) que nos ofrezca un JSON por ejemplo,  no tiene porque ser necesariamente esto.\nQue nos dé un identificador (Nuestro número de orden de transporte) Formato ejemplo  YE25-12345 con los últimos datos de Longitud y latitud es suficiente. Y un cambo de tiempo de cuando es la última transmisión del dispositivo, fecha con hora y minuto \n\nEl horizonte temporal que necesitamos ver es desde que comience nuestra orden hasta que termine. Desde que se retire el cntr del puerto o deposito hasta que se devuelva. \nNo necesitamos eventos etc., los generamos nosotros\n\nQuedo a la espera de vuestros comentarios o de cualquier duda que tengáis\nAbajo un ejemplo de unos transportes vuestros de 2024 \n\n",
+        "conclusions": "",
+        "name": "TRANSPAIS",
+        "blocks": [
+          {
+            "content": "Interfaz con CMA\n\nBuenos días Leonardo,\nIgualmente, muchas gracias \nNumero de work order\nOs pongo el ejemplo más sencillo, con el que tendríamos más que de sobra.\n\nBásicamente con un API (GET) que nos ofrezca un JSON por ejemplo,  no tiene porque ser necesariamente esto.\nQue nos dé un identificador (Nuestro número de orden de transporte) Formato ejemplo  YE25-12345 con los últimos datos de Longitud y latitud es suficiente. Y un cambo de tiempo de cuando es la última transmisión del dispositivo, fecha con hora y minuto \n\nEl horizonte temporal que necesitamos ver es desde que comience nuestra orden hasta que termine. Desde que se retire el cntr del puerto o deposito hasta que se devuelva. \nNo necesitamos eventos etc., los generamos nosotros\n\nQuedo a la espera de vuestros comentarios o de cualquier duda que tengáis\nAbajo un ejemplo de unos transportes vuestros de 2024 \n\n",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "id": "default",
+            "isCollapsed": true
+          },
+          {
+            "id": "1789564682591",
+            "title": "",
+            "content": "Transpais - Seguimiento semanal 09-09-2026\n\nPORTIC -- > confirmado el mapeo, queda definir una tabla de conversión de las refercnias externas para hacer matching entre pedidos de portic y Unigis.\n\nInterfaces:\n-> Aitana Business Central: Se dan accesos al equipo para accesos a Swagger. Hemos tenido reunión el lunes, seguimos trabajando.\n   -- Sacamos de las interfaces los productos, dar solcuión a Transpias para crearlos manualmente.\n-> Webfleet: Funcionando en test, validada recpeción de GPS. Sensores funcionando, a falta de cambiar etiquetas de campos para acomodarlo a la visión del usuario.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. En desarrollo, aproximada la entrega para Q4, no confirmada a falta de una reunión interna.\n\n--> Ver la posibilidad de integrar un excel de conductores sin pasar por el ERP. Comentar en interno para dar respuesta.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. En construcción\n-> Internacional: Entregado documento con anotaciones respondidas. En construcción\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos. En espera e Generix.\n------------\n\nGenerix nos enviará consultor para comenzar proyecto\n\nTranspais nos envía los grupos de usuario por operación para integrar en el sistema. Me muestran listado y lo van a limpiar.\n\nRevisar la configuración de sucursales, nos envían mail con aclaración de la relación entre sucursales  y operaciones.",
+            "isCollapsed": false
+          }
+        ],
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "status": "active"
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-09-16T11:42:43.689Z",
+    "updatedAt": "2026-09-16T13:43:30.926Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
