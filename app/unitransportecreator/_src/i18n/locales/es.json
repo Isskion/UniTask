@@ -1,0 +1,74 @@
+{
+    "app": {
+        "title": "UNIGIS Order Creator",
+        "connect": "Conectar",
+        "connected": "Conectado",
+        "notConnected": "No conectado"
+    },
+    "login": {
+        "title": "Iniciar Sesión",
+        "url": "URL del Servicio",
+        "urlPlaceholder": "http://servidor/UNIGIS/LoginWS.asmx",
+        "username": "Usuario",
+        "password": "Contraseña",
+        "domain": "Dominio",
+        "domainPlaceholder": "PRUEBAS",
+        "connecting": "Conectando...",
+        "loginButton": "Conectar",
+        "language": "Idioma"
+    },
+    "buttons": {
+        "loadExcel": "Cargar Excel",
+        "sendSelected": "Enviar Seleccionados",
+        "sendAll": "Enviar Todos",
+        "save": "Guardar",
+        "load": "Cargar",
+        "close": "Cerrar",
+        "export": "Exportar",
+        "import": "Importar"
+    },
+    "header": {
+        "dataPanel": "Panel de Datos",
+        "xmlPreview": "Vista Previa XML",
+        "mapper": "Mapeador de Campos"
+    },
+    "mapper": {
+        "title": "Mapeador de Campos",
+        "search": "Buscar campo...",
+        "noFields": "No hay campos en esta sección",
+        "noResults": "No se encontraron campos para",
+        "loadExcelFirst": "Carga un Excel primero",
+        "noMapping": "-- No mapear --",
+        "noForce": "-- No forzar --"
+    },
+    "tabs": {
+        "order": "Orden Global",
+        "customer": "Cliente",
+        "address": "Domicilio",
+        "items": "Items",
+        "booleans": "Booleans"
+    },
+    "table": {
+        "selectAll": "Seleccionar todos",
+        "noData": "No hay datos cargados"
+    },
+    "messages": {
+        "confirmSendAll": "¿Estás seguro de enviar todos los pedidos?",
+        "confirmSendSelected": "¿Estás seguro de enviar {count} pedidos seleccionados?",
+        "sendingOrders": "Enviando pedidos...",
+        "successSent": "✅ {count} pedidos enviados correctamente",
+        "errorsSent": "❌ {errors} errores de {total} pedidos",
+        "loginSuccess": "Conectado exitosamente",
+        "loginError": "Error al conectar",
+        "noSelection": "Selecciona al menos un pedido",
+        "notAuthenticated": "Debes conectarte primero"
+    },
+    "errors": {
+        "title": "Log de Errores",
+        "reference": "Referencia",
+        "error": "Error",
+        "xmlSent": "XML Enviado",
+        "response": "Respuesta del Servidor",
+        "unauthorizedUser": "Usuario no autorizado. Contacte al administrador."
+    }
+}
