@@ -94,10 +94,21 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
     const setRowStatus = useAppStore((s) => s.setRowStatus);
     const updateRowData = useAppStore((s) => s.updateRowData);
     const setIsSending = useAppStore((s) => s.setIsSending);
+    const isSending = useAppStore((s) => s.isSending);
     const setSendCancelled = useAppStore((s) => s.setSendCancelled);
 
     useEffect(() => {
         if (rows.length === 0 && Object.keys(mapping).length === 0) return;
+        // Mientras hay un envío en curso, setRowStatus genera una referencia nueva de `rows`
+        // en cada fila (éxito o error), lo que re-disparaba este efecto constantemente. Con
+        // miles de filas y el XML de respuesta acumulado en _serverResponse de cada una, cada
+        // disparo hacía un JSON.stringify + localStorage.setItem del array COMPLETO en el hilo
+        // principal — confirmado el 2026-09-17 como causa de que la página se quedara
+        // congelada (20-30s por paso, memoria disparada) al enviar varios miles de filas.
+        // Se omite el autoguardado mientras isSending===true; en cuanto termina (éxito,
+        // cancelado o error) este mismo efecto se re-evalúa (isSending está en las deps) y
+        // guarda el estado final una sola vez.
+        if (isSending) return;
         const timeout = setTimeout(() => {
             // localStorage tiene un límite de tamaño (~5-10MB). Antes se truncaba SIEMPRE a 500
             // filas de entrada, incluso cuando el Excel entero cabía de sobra — se intenta
@@ -113,7 +124,7 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
             }
         }, 2000);
         return () => clearTimeout(timeout);
-    }, [rows, headers, mapping, booleanOverrides]);
+    }, [rows, headers, mapping, booleanOverrides, isSending]);
 
     useEffect(() => {
         try {
