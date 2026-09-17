@@ -6,6 +6,7 @@ import { useAppStore } from '@/app/uniclientedadorcreator/_src/store/appStore';
 import { parseExcelFile } from '@/app/uniclientedadorcreator/_src/utils/excelParser';
 import { generateValidationReport, type ValidationReport } from '@/app/uniclientedadorcreator/_src/utils/validation';
 import { buildXml, type BuildXmlContext } from '@/app/uniclientedadorcreator/_src/services/xmlBuilder';
+import { REQUIRED_FIELDS } from '@/app/uniclientedadorcreator/_src/data/schema';
 import { type ProgressLog } from '@/app/uniclientedadorcreator/_src/components/Modals/ProgressModal';
 import { postSoapProxy } from '@/lib/soapProxy';
 
@@ -236,6 +237,29 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
             const ref = (refCol && row[refCol]) ? row[refCol] : `Fila ${index + 1}`;
             let lastRawResponse = '', lastXml = '';
             let wasTransientFailure = false; // 502/503/504 agotando los 3 intentos — servidor caído, no dato malo
+
+            // Blindaje contra falsos positivos de UNIGIS: confirmado el 2026-09-17 que
+            // CrearClientesDadores puede devolver Result=1 (éxito "real", no ambiguo) para
+            // una fila sin RazonSocial/CUIT/Dirección — SIN crear el Cliente en UNIGIS. Peor
+            // aún, ese CUIT (si lo hay) se registra igualmente en ucdc_sent_cuits (más abajo)
+            // y a partir de ahí "Enviar resto (clave única)" lo trata como ya enviado para
+            // siempre, aunque se recargue el Excel. Así que las filas sin los campos mínimos
+            // requeridos (REQUIRED_FIELDS del schema) ni se intentan contra UNIGIS: se
+            // marcan error localmente y no contaminan el caché de CUIT enviados.
+            const missingRequired = REQUIRED_FIELDS.filter((field) => {
+                const col = mapping[field];
+                const val = col ? row[col] : undefined;
+                return !val || String(val).trim() === '';
+            });
+            if (missingRequired.length > 0) {
+                errors++;
+                const msg = `Fila sin datos mínimos (${missingRequired.join(', ')}) — no se envía a UNIGIS para evitar un falso "éxito".`;
+                setRowStatus(index, 'error', msg);
+                logs.push({ ref, status: 'error', msg });
+                setProgressSuccess(success); setProgressError(errors); setProgressLogs([...logs]);
+                continue;
+            }
+
             try {
                 const xml = buildXml(row, ctx);
                 lastXml = xml;
@@ -350,6 +374,7 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
             alert('La columna CUIT no está mapeada — no se puede deduplicar sin ella. Mapéala en el panel "Cliente Dador" antes de usar este botón.');
             return;
         }
+        const razonSocialCol = mapping['Root.ClienteDador.RazonSocial'];
         // Los CUIT ya importados con éxito cuentan como "ya existen" en UNIGIS — se combinan
         // dos fuentes: el _status en memoria de las filas actuales (rápido, cubre la sesión
         // en curso) y el registro persistente en localStorage (sobrevive a una recarga del
@@ -361,24 +386,33 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
                 if (cuit) seenCuits.add(cuit);
             }
         }
-        let alreadyImported = 0, duplicateCuit = 0, noCuit = 0;
+        let alreadyImported = 0, duplicateCuit = 0, noCuit = 0, blank = 0;
         const batch: { row: any; index: number }[] = [];
         rows.forEach((row, index) => {
             if (row._status === 'success') { alreadyImported++; return; }
             const cuit = String(row[cuitCol] ?? '').trim().toUpperCase();
-            if (!cuit) { noCuit++; batch.push({ row, index }); return; } // sin CUIT: no se puede deduplicar, se incluye igualmente
+            const razonSocial = razonSocialCol ? String(row[razonSocialCol] ?? '').trim() : '';
+            if (!cuit) {
+                // Filas totalmente vacías (sin CUIT y sin RazonSocial) no se incluyen: UNIGIS
+                // puede devolver Result=1 (éxito) para ellas sin crear nada — confirmado el
+                // 2026-09-17 — y eso contamina ucdc_sent_cuits para siempre. Sin CUIT pero
+                // con RazonSocial sí se incluyen igual, es el caso legítimo que no se puede
+                // deduplicar.
+                if (!razonSocial) { blank++; return; }
+                noCuit++; batch.push({ row, index }); return;
+            }
             if (seenCuits.has(cuit)) { duplicateCuit++; return; }
             seenCuits.add(cuit);
             batch.push({ row, index });
         });
 
         if (batch.length === 0) {
-            alert('No hay filas pendientes: todas ya están importadas o tienen un CUIT duplicado.');
+            alert(`No hay filas pendientes: todas ya están importadas, tienen un CUIT duplicado o están vacías (${blank} filas vacías ignoradas).`);
             return;
         }
         const proceed = confirm(
             `Se enviarán ${batch.length} filas nuevas (${noCuit} sin CUIT, incluidas igualmente).\n` +
-            `Se omiten ${alreadyImported} ya importadas y ${duplicateCuit} con CUIT duplicado.\n\n¿Continuar?`
+            `Se omiten ${alreadyImported} ya importadas, ${duplicateCuit} con CUIT duplicado y ${blank} vacías (sin CUIT ni RazonSocial).\n\n¿Continuar?`
         );
         if (!proceed) return;
         sendBatch(batch);
