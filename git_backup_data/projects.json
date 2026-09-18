@@ -189,10 +189,6 @@
       "_seconds": 1767970194,
       "_nanoseconds": 979000000
     },
-    "lastUpdate": {
-      "_seconds": 1767970194,
-      "_nanoseconds": 979000000
-    },
     "_migrated": true,
     "_tenantAccessKey": "3:CL:CONS",
     "connections": {
@@ -238,7 +234,14 @@
         "color": "#6366f1"
       }
     ],
-    "startDate": "2026-07-01"
+    "startDate": "2026-07-01",
+    "aliases": [
+      "EROPASTRY"
+    ],
+    "lastUpdate": {
+      "_seconds": 1789743103,
+      "_nanoseconds": 778000000
+    }
   },
   {
     "id": "Au1xfXgivgl6VYj2zscs",
@@ -829,10 +832,6 @@
       "_seconds": 1767970176,
       "_nanoseconds": 651000000
     },
-    "lastUpdate": {
-      "_seconds": 1767970176,
-      "_nanoseconds": 651000000
-    },
     "_migrated": true,
     "_tenantAccessKey": "3:CL:CONS",
     "connections": {
@@ -869,7 +868,14 @@
         "mapiToken": "38-78-75-CB-4A-8",
         "isProduction": false
       }
-    ]
+    ],
+    "aliases": [
+      "TTRANSPAIS"
+    ],
+    "lastUpdate": {
+      "_seconds": 1789743103,
+      "_nanoseconds": 120000000
+    }
   },
   {
     "id": "b1jomMQVWkW2EhNDIUch",

@@ -481,6 +481,22 @@
     }
   },
   {
+    "id": "8mpzOTPPKnqrAACvS8e4",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isPublic": false,
+    "isInternal": true,
+    "folderId": null,
+    "createdAt": null,
+    "title": "Pruebas de tarifas20260918",
+    "content": "<p><span style=\"font-size: inherit;\">Tareas a tener Resueltas el </span><strong><span style=\"font-size: inherit;\">Miércoles 23-0-9-2026</span></strong></p><p>&nbsp;</p><ul data-type=\"taskList\"><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p><span style=\"font-size: inherit;\">1.- Crear 1 Tipo de Vehículo por cada participante. Ejemplo: \"TV-JM\"</span></p></div></li><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p><span style=\"font-size: inherit;\">2.- Crear 1 Concepto, Ejemplo: 'Costo Base' (1 para todos)</span></p></div></li><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p><span style=\"font-size: inherit;\">3.- Generar 1 Tipo de Guía de Costo de Transporte (1 para todos)</span></p></div></li></ul><p><span style=\"font-size: inherit;\">4.- Utilizar 1 Operación en la que sea posible crear viajes.</span></p><p><span style=\"font-size: inherit;\">5.- Generar 1 viaje para el Tipo de vehículo propio.</span></p><p><span style=\"font-size: inherit;\">6.- Crear Una tarifa para ese tipo de Vehículo con un valor fijo (Cada quien le coloca el valor a su tipo de Vehículo).</span></p><p><span style=\"font-size: inherit;\">7.- La primera tarifa cargada tendrá Prioridad=20.</span></p><p><span style=\"font-size: inherit;\">8.- El Total se generará en una tarifa que sume la Base de Cálculo (Coloquemos la prioridad más alta, 200, por ejemplo).</span></p><p><span style=\"font-size: inherit;\">9.- Tarifar y que se genere la guia de Costo de Transporte.</span></p><p><strong><span style=\"font-size: inherit;\">NOTA:</span></strong><span style=\"font-size: inherit;\"> Todos usemos la misma tarifa totalizadora y la misma variable y el mismo concepto.</span></p><p>&nbsp;</p><p><strong><span style=\"font-size: inherit;\">Ejemplo</span></strong><span style=\"font-size: inherit;\">:</span></p><p><span style=\"font-size: inherit;\">Tarifa por Tipo Vehiculo: Tarifa.BaseCalculo= 'CostoTipoVehiculo'</span></p><p><span style=\"font-size: inherit;\">Tarifa Totalizadora: Tarifa.BaseCalculo= 'Total'</span></p><p><span style=\"font-size: inherit;\">Concepto= 'Costo Base'</span></p>",
+    "updatedAt": {
+      "_seconds": 1789742132,
+      "_nanoseconds": 816000000
+    }
+  },
+  {
     "id": "8qNGfEHtnFelMqcNduvg",
     "projectId": "HKnZypXlGdM0VjRLOysB",
     "tenantId": "3",
