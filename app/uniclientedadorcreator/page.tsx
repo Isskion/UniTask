@@ -47,15 +47,6 @@ function loadSentCuits(): Set<string> {
     } catch { return new Set(); }
 }
 
-function recordSentCuit(cuit: string) {
-    if (!cuit) return;
-    try {
-        const set = loadSentCuits();
-        set.add(cuit);
-        localStorage.setItem(SENT_CUITS_KEY, JSON.stringify(Array.from(set)));
-    } catch { /* quota */ }
-}
-
 function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isLoadingExcel, setIsLoadingExcel] = useState(false);
@@ -206,6 +197,22 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
         const logs: ProgressLog[] = [];
         const ctx = buildContext();
 
+        // CUITs ya enviados: se cargan UNA vez aquí y se acumulan en memoria durante todo el
+        // lote — antes `recordSentCuit()` hacía JSON.parse + JSON.stringify + localStorage.setItem
+        // del array COMPLETO (~1900-3900 CUITs) en CADA fila enviada con éxito, síncrono en el
+        // hilo principal. Confirmado el 2026-09-18 como la causa de que la página se quedara
+        // bloqueada a cada click durante un envío grande — el fix de ayer (2026-09-17) sólo
+        // cubrió el autoguardado del Excel, no esto. Se persiste cada PERSIST_CUITS_EVERY filas
+        // y al terminar/cancelar el lote, nunca fila por fila.
+        const pendingSentCuits = loadSentCuits();
+        const PERSIST_CUITS_EVERY = 200;
+        let sentCuitsDirty = false;
+        const persistSentCuits = () => {
+            if (!sentCuitsDirty) return;
+            try { localStorage.setItem(SENT_CUITS_KEY, JSON.stringify(Array.from(pendingSentCuits))); } catch { /* quota */ }
+            sentCuitsDirty = false;
+        };
+
         // Circuit breaker de lote: el reintento por fila (3 intentos, ~2-3s de espera) alcanza
         // para un hipo puntual del servidor, pero no para una caída real de varios minutos —
         // confirmado con datos reales el 2026-09-01 (45 filas SEGUIDAS con HTTP 503 en un envío
@@ -240,8 +247,12 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
         for (let i = 0; i < batch.length; i++) {
             if (useAppStore.getState().sendCancelled) {
                 logs.push({ ref: 'CANCELADO', status: 'warn', msg: 'Envío cancelado por el usuario' });
+                persistSentCuits();
                 setProgressLogs([...logs]); break;
             }
+            // Persistencia periódica (no por fila): cubre el caso de que el navegador se
+            // cierre/crashee a mitad de un lote grande sin perder todo lo acumulado hasta ahora.
+            if (i > 0 && i % PERSIST_CUITS_EVERY === 0) persistSentCuits();
             const { row, index } = batch[i];
             setRowStatus(index, 'sending'); setProgressCurrent(i + 1);
             const refCol = mapping['Root.ClienteDador.ReferenciaExterna'] || mapping['Root.ClienteDador.RazonSocial'];
@@ -324,7 +335,11 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
                     updateRowData(index, '_UnigisResult', resultText || 'OK');
                     logs.push({ ref, status: 'success', msg: `Cliente Dador creado (${resultText || 'OK'})` });
                     const cuitCol = mapping['Root.ClienteDador.Cuit'];
-                    if (cuitCol) recordSentCuit(String(row[cuitCol] ?? '').trim().toUpperCase());
+                    const cuitToRecord = cuitCol ? String(row[cuitCol] ?? '').trim().toUpperCase() : '';
+                    if (cuitToRecord && !pendingSentCuits.has(cuitToRecord)) {
+                        pendingSentCuits.add(cuitToRecord);
+                        sentCuitsDirty = true;
+                    }
                 } else {
                     // Antes había aquí un fallback que marcaba ÉXITO por defecto cuando no se
                     // reconocía ninguna etiqueta de resultado (con tal de que la respuesta no
@@ -370,6 +385,7 @@ function UniClienteDadorCreatorPageInner({ tenantId }: { tenantId: string }) {
             }
             setProgressSuccess(success); setProgressError(errors); setProgressLogs([...logs]);
         }
+        persistSentCuits();
         setProgressComplete(true); setIsSending(false);
     }, [mapping, orderUrl, buildContext, setRowStatus, updateRowData, setIsSending, setSendCancelled]);
 
