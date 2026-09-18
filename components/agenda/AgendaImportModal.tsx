@@ -10,6 +10,7 @@ import {
     ParsedExcelEntry, ImportPreview, ImportDiagnostics,
 } from "@/lib/agenda-import";
 import { updateConsultant } from "@/lib/agenda";
+import { getWeekLabel } from "@/lib/agenda-utils";
 import { ACTIVITY_CONFIG } from "@/types/agenda";
 import { Project, getRoleLevel } from "@/types";
 import { getActiveProjects, filterBySAMScope, updateProject } from "@/lib/projects";
@@ -65,6 +66,9 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
     // Re-analysis controls: which sheet to read + fallback Monday when Fecha_T can't be parsed
     const [selectedSheet, setSelectedSheet] = useState<string>('');
     const [weekStartOverride, setWeekStartOverride] = useState<string>('');
+    // Semana elegida dentro de una hoja "calendario continuo" (varias semanas en una sola hoja) —
+    // vacío en hojas clásicas de una sola semana, donde no hace falta elegir nada.
+    const [targetWeekStart, setTargetWeekStart] = useState<string>('');
 
     const applyPreview = useCallback((p: ImportPreview) => {
         const unknown = resolveUnknownConsultants(p.entries, consultants);
@@ -73,6 +77,7 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
         setNameResolutions({}); // force a fresh decision for every unknown name on each (re)parse
         setProjectResolutions({});
         setSelectedSheet(p.sheetName);
+        setTargetWeekStart(p.weekStart);
 
         // Pre-populate region overrides for multi-region consultants present in the Excel
         const namesInExcel = new Set(p.entries.map(e => e.consultantName.toUpperCase()));
@@ -104,7 +109,29 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
 
     const handleReanalyze = useCallback(() => {
         setPhase('parsing');
-        parseAgendaExcel(file, { sheetName: selectedSheet, weekStartOverride: weekStartOverride || undefined })
+        parseAgendaExcel(file, {
+            sheetName: selectedSheet,
+            weekStartOverride: weekStartOverride || undefined,
+            targetWeekStart: targetWeekStart || undefined,
+        })
+            .then(applyPreview)
+            .catch(err => {
+                setError(String(err?.message || err));
+                setPhase('error');
+            });
+    }, [file, selectedSheet, weekStartOverride, targetWeekStart, applyPreview]);
+
+    // Cambiar de semana dentro de una hoja "calendario continuo": vuelve a parsear con el mismo
+    // sheet/override pero un targetWeekStart distinto — no espera al botón "Reanalizar" porque
+    // elegir una semana de la lista ya es una intención explícita y no ambigua.
+    const handleWeekChange = useCallback((weekStart: string) => {
+        setTargetWeekStart(weekStart);
+        setPhase('parsing');
+        parseAgendaExcel(file, {
+            sheetName: selectedSheet,
+            weekStartOverride: weekStartOverride || undefined,
+            targetWeekStart: weekStart,
+        })
             .then(applyPreview)
             .catch(err => {
                 setError(String(err?.message || err));
@@ -296,6 +323,22 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                         >
                                             {preview.sheetNames.map(name => (
                                                 <option key={name} value={name}>{name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                                {preview.availableWeeks.length > 1 && (
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs text-muted-foreground font-medium">
+                                            Semana ({preview.availableWeeks.length} disponibles en esta hoja)
+                                        </label>
+                                        <select
+                                            value={targetWeekStart || preview.weekStart}
+                                            onChange={e => handleWeekChange(e.target.value)}
+                                            className="px-2.5 py-1.5 rounded-lg text-xs bg-secondary/40 border border-border text-foreground focus:outline-none focus:border-indigo-500/60 transition-all"
+                                        >
+                                            {preview.availableWeeks.map(w => (
+                                                <option key={w} value={w}>{getWeekLabel(new Date(w + 'T00:00:00'))} ({w})</option>
                                             ))}
                                         </select>
                                     </div>

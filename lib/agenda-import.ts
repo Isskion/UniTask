@@ -42,8 +42,12 @@ const RESULTADO_MAP: Record<string, ResultStatus> = {
     'Cancelado':  ResultStatus.CANCELADO,
 };
 
-// Day column offsets (5 fields each: Fecha_T, Actividad, Comentario, Horario, Resultado)
-const DAY_OFFSETS = [2, 7, 12, 17, 22, 27, 32];
+// Bloques de día detectados dinámicamente (ver detectDayBlocks) — sustituye a los offsets fijos
+// que asumían siempre 7 días de 5 columnas cada uno. Necesario desde 2026-09-18: el Excel de
+// Europastry introdujo un formato de "calendario continuo" (una hoja = toda la temporada,
+// Sept 2026 → Mayo 2027, cientos de bloques de día) con bloques de ancho variable (un día
+// festivo puede tener solo la columna Fecha_T, sin Actividad/Comentario/Horario/Resultado).
+// Ver [[project_agenda_continuous_calendar_2026-09-18]] en memoria.
 
 // Activity types whose "cliente" text (before " / " in Comentario) plausibly names a project.
 // Vacaciones/Viaje/Reunión Interna/Especial never carry a project — never offered for resolution.
@@ -85,12 +89,22 @@ export interface ImportPreview {
     entries: ParsedExcelEntry[];
     unknownConsultants: string[];
     diagnostics: ImportDiagnostics;
+    /** Todas las semanas (lunes, yyyy-MM-dd) con al menos una entrada válida en la hoja, ordenadas.
+     *  Longitud 1 en las hojas clásicas (una semana por hoja). >1 significa que la hoja es del
+     *  formato "calendario continuo" nuevo — `entries`/`weekStart` ya vienen filtrados a una sola
+     *  semana (la primera de esta lista, o `targetWeekStart` si se indicó); usar esta lista para
+     *  ofrecer un selector de semana y volver a parsear con otro `targetWeekStart`. */
+    availableWeeks: string[];
 }
 
 export interface ParseOptions {
     sheetName?: string;        // defaults to the first sheet
     /** Monday (yyyy-MM-dd) used to derive Fecha_T when the cell is empty/invalid (e.g. broken #REF! formulas) */
     weekStartOverride?: string;
+    /** Semana (lunes, yyyy-MM-dd) a la que restringir `entries` cuando la hoja tiene más de una
+     *  semana con datos (formato "calendario continuo"). Si se omite, se usa la primera semana
+     *  con datos encontrada en la hoja (mismo comportamiento de siempre cuando solo hay una). */
+    targetWeekStart?: string;
 }
 
 export interface ImportResult {
@@ -111,6 +125,44 @@ function parseExcelDate(raw: string): Date | null {
     return new Date(2000 + y, m - 1, d);
 }
 
+interface DayBlock {
+    fechaCol: number;
+    actividadCol: number | null;
+    comentarioCol: number | null;
+    horarioCol: number | null;
+    resultadoCol: number | null;
+}
+
+/** Detecta los bloques de día a partir de las dos filas de cabecera (fila 2 = etiqueta del día,
+ *  ej. "LUN 21/09/26 - DH (Semana 3)", solo rellena en la primera columna de cada bloque; fila 3
+ *  = subcabeceras "Fecha_T | Actividad | Comentario | Horario | Resultado"). Un bloque empieza en
+ *  cualquier columna con texto en la fila 2 y termina justo antes del siguiente. No asume un ancho
+ *  fijo: un día sin actividad puede tener solo la columna Fecha_T (bloque de 1 columna) — en ese
+ *  caso el resto de columnas quedan a `null` y esas filas se saltan limpiamente en el parseo.
+ *  Funciona igual para hojas clásicas de una sola semana (7 bloques de 5 columnas) que para el
+ *  formato de calendario continuo (cientos de bloques de ancho variable) — es una generalización
+ *  estricta de los offsets fijos que usaba antes, sin cambiar el resultado en el caso clásico. */
+function detectDayBlocks(headerRow: any[], subHeaderRow: any[]): DayBlock[] {
+    const width = Math.max(headerRow.length, subHeaderRow.length);
+    const starts: number[] = [];
+    for (let c = 2; c < width; c++) {
+        if (String(headerRow[c] ?? '').trim()) starts.push(c);
+    }
+    return starts.map((start, i) => {
+        const end = i + 1 < starts.length ? starts[i + 1] : width;
+        const block: DayBlock = { fechaCol: start, actividadCol: null, comentarioCol: null, horarioCol: null, resultadoCol: null };
+        for (let c = start; c < end; c++) {
+            const label = String(subHeaderRow[c] ?? '').trim().toLowerCase();
+            if (label === 'fecha_t') block.fechaCol = c;
+            else if (label === 'actividad') block.actividadCol = c;
+            else if (label === 'comentario') block.comentarioCol = c;
+            else if (label === 'horario') block.horarioCol = c;
+            else if (label === 'resultado') block.resultadoCol = c;
+        }
+        return block;
+    });
+}
+
 export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<ImportPreview> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -128,7 +180,13 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                     ? new Date(opts.weekStartOverride + 'T00:00:00')
                     : null;
 
-                const weekLabel = String(rows[0]?.[2] || '').trim();
+                const blocks = detectDayBlocks(rows[1] || [], rows[2] || []);
+                // Las hojas clásicas (una semana por hoja) siempre detectan 7 bloques — el
+                // fallback "Lunes de esta semana" solo tiene sentido de interpretar `dayIdx` como
+                // día de la semana (0=lunes..6=domingo) en ese caso. En el formato de calendario
+                // continuo (>7 bloques) cada bloque ya trae su propia fecha real casi siempre, así
+                // que no se intenta adivinar — el override ahí no tendría un día de la semana claro.
+                const isClassicSingleWeekSheet = blocks.length <= 7;
 
                 const diagnostics: ImportDiagnostics = {
                     sheetName,
@@ -140,8 +198,8 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
 
                 // ── Pass 1: collect every candidate cell (Actividad filled — Horario is optional,
                 // e.g. "Tareas a Realizar" rows often have no time range), keeping its real date
-                // when parseable and its day-column index (0=lunes..6=domingo) so a missing date
-                // can later be inferred from the week once it's known. ──
+                // when parseable and its block index so a missing date can later be inferred from
+                // the week once it's known (solo en hojas clásicas de una semana, ver arriba). ──
                 interface Candidate {
                     consultantName: string;
                     dayIdx: number;
@@ -159,13 +217,10 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                     if (!consultantName) continue;
                     diagnostics.consultantRows++;
 
-                    for (let dayIdx = 0; dayIdx < DAY_OFFSETS.length; dayIdx++) {
-                        const base = DAY_OFFSETS[dayIdx];
-                        const actividad  = String(row[base + 1] || '').trim();
-                        const comentario = String(row[base + 2] || '').trim();
-                        const horario    = String(row[base + 3] || '').trim();
-                        const resultado  = String(row[base + 4] || '').trim();
-
+                    for (let dayIdx = 0; dayIdx < blocks.length; dayIdx++) {
+                        const block = blocks[dayIdx];
+                        if (block.actividadCol === null) continue; // bloque "solo Fecha_T" (ej. festivo) — nada que leer
+                        const actividad  = String(row[block.actividadCol] || '').trim();
                         if (!actividad) continue;
                         diagnostics.candidateCells++;
 
@@ -175,8 +230,12 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                             continue;
                         }
 
-                        let date = parseExcelDate(String(row[base] || ''));
-                        if (!date && overrideMonday) {
+                        const comentario = block.comentarioCol !== null ? String(row[block.comentarioCol] || '').trim() : '';
+                        const horario    = block.horarioCol    !== null ? String(row[block.horarioCol]    || '').trim() : '';
+                        const resultado  = block.resultadoCol  !== null ? String(row[block.resultadoCol]  || '').trim() : '';
+
+                        let date = parseExcelDate(String(row[block.fechaCol] || ''));
+                        if (!date && overrideMonday && isClassicSingleWeekSheet) {
                             date = addDays(overrideMonday, dayIdx); // day-block order: lunes..domingo
                         }
                         if (!date) diagnostics.invalidDateCells++;
@@ -194,17 +253,18 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                 }
 
                 // ── Pass 2: figure out the week's Monday from any cell with a real date,
-                // so cells without one can still be placed on the right weekday. ──
+                // so cells without one can still be placed on the right weekday (hojas clásicas). ──
                 const firstRealDate = candidates.find(c => c.date)?.date ?? null;
-                const inferredMonday = firstRealDate ? getWeekStart(firstRealDate) : null;
+                const inferredMonday = (isClassicSingleWeekSheet && firstRealDate) ? getWeekStart(firstRealDate) : null;
 
-                // ── Pass 3: build final entries. Cells with no real date but a known week get
-                // a best-effort date (week + day column) and lose their schedule/hours — they're
-                // flagged so they can be reviewed/fixed once Fecha_T is corrected upstream. ──
-                const entries: ParsedExcelEntry[] = [];
+                // ── Pass 3: build every entry with a resolvable date (across potentially MANY
+                // weeks, en el formato de calendario continuo). Cells with no real date but a
+                // known single week get a best-effort date (week + day column) and lose their
+                // schedule/hours — flagged for review. ──
+                const allEntries: ParsedExcelEntry[] = [];
                 for (const c of candidates) {
                     if (c.date) {
-                        entries.push({
+                        allEntries.push({
                             consultantName: c.consultantName,
                             date: c.date,
                             activityType: c.activityType,
@@ -213,7 +273,7 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                             result: c.result,
                         });
                     } else if (inferredMonday) {
-                        entries.push({
+                        allEntries.push({
                             consultantName: c.consultantName,
                             date: addDays(inferredMonday, c.dayIdx),
                             activityType: c.activityType,
@@ -227,16 +287,29 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                     // still un-importable; the "Lunes de esta semana" override is the only way out.
                 }
 
-                const weekStart = entries.length
-                    ? format(getWeekStart(entries[0].date), 'yyyy-MM-dd')
-                    : '';
+                // ── Pass 4: `executeImport` escribe con un único weekStart por lote (y el dedup
+                // consulta Firestore filtrando por esa misma semana) — así que `entries` se
+                // restringe siempre a UNA semana, igual que antes. Si la hoja trae varias (formato
+                // de calendario continuo), se listan todas en `availableWeeks` para que la UI
+                // ofrezca un selector y se pueda re-parsear con `targetWeekStart`. ──
+                const weekSet = new Set(allEntries.map(en => format(getWeekStart(en.date), 'yyyy-MM-dd')));
+                const availableWeeks = Array.from(weekSet).sort();
+                const chosenWeek = (opts?.targetWeekStart && weekSet.has(opts.targetWeekStart))
+                    ? opts.targetWeekStart
+                    : (availableWeeks[0] ?? '');
+                const entries = chosenWeek
+                    ? allEntries.filter(en => format(getWeekStart(en.date), 'yyyy-MM-dd') === chosenWeek)
+                    : allEntries; // sin ninguna fecha resoluble en toda la hoja — se deja tal cual para que el diagnóstico explique por qué
+
+                const weekStart = chosenWeek || (entries.length ? format(getWeekStart(entries[0].date), 'yyyy-MM-dd') : '');
+                const weekLabel = entries.length ? getWeekLabel(entries[0].date) : String(rows[0]?.[2] || '').trim();
 
                 if (entries.length === 0) {
                     console.warn('[agenda-import] 0 entradas parseadas — diagnóstico:', diagnostics);
                 }
 
                 // unknownConsultants resolved externally by caller (needs consultant list)
-                resolve({ sheetNames: wb.SheetNames, sheetName, weekStart, weekLabel, entries, unknownConsultants: [], diagnostics });
+                resolve({ sheetNames: wb.SheetNames, sheetName, weekStart, weekLabel, entries, unknownConsultants: [], diagnostics, availableWeeks });
             } catch (err) {
                 reject(err);
             }
