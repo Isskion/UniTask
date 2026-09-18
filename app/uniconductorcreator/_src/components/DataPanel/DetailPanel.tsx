@@ -1,0 +1,107 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useMemo } from 'react';
+import { useAppStore } from '../../store/appStore';
+
+export default function DetailPanel() {
+    const rows = useAppStore((s) => s.rows);
+    const selectedRow = useAppStore((s) => s.selectedRow);
+    const mapping = useAppStore((s) => s.mapping);
+    const navigateToField = useAppStore((s) => s.navigateToField);
+
+    const reverseMap = useMemo(() => {
+        const map: Record<string, { short: string; full: string }[]> = {};
+        for (const [field, col] of Object.entries(mapping)) {
+            if (!col) continue;
+            const key = String(col).trim().toLowerCase();
+            if (!map[key]) map[key] = [];
+            const short = field.split('.').pop() || field;
+            map[key].push({ short, full: field });
+        }
+        return map;
+    }, [mapping]);
+
+    if (selectedRow < 0 || !rows[selectedRow]) return null;
+
+    const row = rows[selectedRow];
+    const items: Record<string, any>[] = row._items || [];
+    const isGrouped = row._grouped === true;
+
+    if (!isGrouped && items.length === 0) return null;
+
+    // Collect all unique keys from the items
+    const itemHeaders = items.length > 0
+        ? Array.from(new Set(items.flatMap((item) => Object.keys(item))))
+        : [];
+
+    const formatCell = (val: any) => {
+        if (val instanceof Date || Object.prototype.toString.call(val) === '[object Date]') {
+            const yr = val.getFullYear();
+            if (yr === 1899 || yr === 1900) {
+                return `${String(val.getHours()).padStart(2, '0')}:${String(val.getMinutes()).padStart(2, '0')}`;
+            }
+            return `${yr}-${String(val.getMonth() + 1).padStart(2, '0')}-${String(val.getDate()).padStart(2, '0')}`;
+        }
+        return String(val ?? '');
+    };
+
+    return (
+        <div className="flex flex-col backdrop-blur-sm bg-white/60 border-t border-slate-200">
+            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-slate-50 to-transparent border-b border-slate-100">
+                <span className="text-sm font-bold text-slate-700">📋 Items del Pedido (Fila {selectedRow + 1})</span>
+                <span className="px-2.5 py-0.5 text-xs font-bold bg-indigo-100 text-indigo-700 rounded-full border border-indigo-200/50">
+                    {items.length} items
+                </span>
+            </div>
+
+            {items.length === 0 ? (
+                <div className="flex items-center justify-center p-6 text-sm text-slate-500 italic">
+                    Este pedido agrupado no tiene items aún. Usa &quot;Agrupar Pedidos&quot; para consolidar.
+                </div>
+            ) : (
+                <div className="overflow-auto flex-1">
+                    <table className="w-full text-sm border-collapse">
+                        <thead className="sticky top-0 z-10">
+                            <tr className="bg-gradient-to-r from-amber-50 to-orange-50/50 border-b border-amber-200/50">
+                                <th className="w-10 p-2 text-center text-xs font-bold text-amber-700 uppercase">#</th>
+                                {itemHeaders.map((h) => {
+                                    const matchKey = String(h).trim().toLowerCase();
+                                    const mappedList = reverseMap[matchKey];
+                                    const isMapped = !!mappedList;
+                                    return (
+                                        <th
+                                            key={h}
+                                            className={`p-2 text-left text-[10px] uppercase tracking-wider whitespace-nowrap transition-colors ${
+                                                isMapped 
+                                                    ? 'font-black text-indigo-700 bg-indigo-100/80 border-b-[3px] border-indigo-500 cursor-pointer hover:bg-indigo-200' 
+                                                    : 'font-bold text-amber-700/70 hover:bg-amber-100/50'
+                                            }`}
+                                            onClick={isMapped && mappedList?.length ? () => navigateToField(mappedList[0].full) : undefined}
+                                            title={isMapped && mappedList?.length ? `Mapeado a: ${mappedList.map((f) => f.full).join(', ')} (Click para ir a campo)` : undefined}
+                                        >
+                                            <div className="flex items-center gap-1.5">
+                                                {h}
+                                                {isMapped && <span className="text-[9px] opacity-70">🔗</span>}
+                                            </div>
+                                        </th>
+                                    );
+                                })}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {items.map((item, i) => (
+                                <tr key={i} className={`border-b border-slate-100 ${i % 2 === 0 ? 'bg-white' : 'bg-amber-50/20'}`}>
+                                    <td className="w-10 p-2 text-center text-xs font-mono text-slate-500">{i + 1}</td>
+                                    {itemHeaders.map((h) => (
+                                        <td key={h} className="p-2 text-sm text-slate-700 whitespace-nowrap max-w-[180px] truncate">
+                                            {formatCell(item[h])}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </div>
+    );
+}

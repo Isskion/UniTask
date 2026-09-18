@@ -1,0 +1,71 @@
+{
+    "app": {
+        "title": "UNIGIS Order Creator",
+        "connect": "Connect",
+        "connected": "Connected",
+        "notConnected": "Not Connected"
+    },
+    "login": {
+        "title": "Login",
+        "url": "Service URL",
+        "urlPlaceholder": "http://server/UNIGIS/LoginWS.asmx",
+        "username": "Username",
+        "password": "Password",
+        "domain": "Domain",
+        "domainPlaceholder": "TEST",
+        "connecting": "Connecting...",
+        "loginButton": "Connect",
+        "language": "Language"
+    },
+    "buttons": {
+        "loadExcel": "Load Excel",
+        "sendSelected": "Send Selected",
+        "sendAll": "Send All",
+        "save": "Save",
+        "load": "Load",
+        "close": "Close"
+    },
+    "header": {
+        "dataPanel": "Data Panel",
+        "xmlPreview": "XML Preview",
+        "mapper": "Field Mapper"
+    },
+    "mapper": {
+        "title": "Field Mapper",
+        "search": "Search field...",
+        "noFields": "No fields in this section",
+        "noResults": "No fields found for",
+        "loadExcelFirst": "Load an Excel file first",
+        "noMapping": "-- Do not map --",
+        "noForce": "-- Do not force --"
+    },
+    "tabs": {
+        "order": "Global Order",
+        "customer": "Customer",
+        "address": "Address",
+        "items": "Items",
+        "booleans": "Booleans"
+    },
+    "table": {
+        "selectAll": "Select all",
+        "noData": "No data loaded"
+    },
+    "messages": {
+        "confirmSendAll": "Are you sure you want to send all orders?",
+        "confirmSendSelected": "Are you sure you want to send {count} selected orders?",
+        "sendingOrders": "Sending orders...",
+        "successSent": "✅ {count} orders sent successfully",
+        "errorsSent": "❌ {errors} errors out of {total} orders",
+        "loginSuccess": "Connected successfully",
+        "loginError": "Connection error",
+        "noSelection": "Select at least one order",
+        "notAuthenticated": "You must connect first"
+    },
+    "errors": {
+        "title": "Error Log",
+        "reference": "Reference",
+        "error": "Error",
+        "xmlSent": "XML Sent",
+        "response": "Server Response"
+    }
+}

@@ -21,6 +21,7 @@ import {
     Shield,
     Building,
     Truck,
+    IdCard,
     ListTodo,
     FileText,
     LifeBuoy,
@@ -365,6 +366,11 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             {tenantId === '3' && can('uniordercreator', 'views') && (
                                 <NavLink href="/unitransportecreator" target="_blank" icon={Truck} label="UniTransporteCreator (Transporte)" />
                             )}
+                            {/* Escribe en la tabla Conductor de producción de UNIGIS/Europastry (CrearConductores) —
+                                mismo criterio de cautela que UniClienteDadorCreator/UniTransporteCreator: restringido al Tenant 3. */}
+                            {tenantId === '3' && can('uniordercreator', 'views') && (
+                                <NavLink href="/uniconductorcreator" target="_blank" icon={IdCard} label="UniConductorCreator (Conductor)" />
+                            )}
                             {can('univehiclecreator', 'views') && (
                                 <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
                             )}
@@ -602,6 +608,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 )}
                                 {tenantId === '3' && can('uniordercreator', 'views') && (
                                     <NavLink href="/unitransportecreator" target="_blank" icon={Truck} label="UniTransporteCreator (Transporte)" />
+                                )}
+                                {tenantId === '3' && can('uniordercreator', 'views') && (
+                                    <NavLink href="/uniconductorcreator" target="_blank" icon={IdCard} label="UniConductorCreator (Conductor)" />
                                 )}
                                 {can('univehiclecreator', 'views') && (
                                     <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />

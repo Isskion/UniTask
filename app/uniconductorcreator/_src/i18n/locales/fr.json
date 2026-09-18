@@ -1,0 +1,71 @@
+{
+    "app": {
+        "title": "UNIGIS Order Creator",
+        "connect": "Connexion",
+        "connected": "Connecté",
+        "notConnected": "Non connecté"
+    },
+    "login": {
+        "title": "Connexion",
+        "url": "URL du service",
+        "urlPlaceholder": "http://serveur/UNIGIS/LoginWS.asmx",
+        "username": "Utilisateur",
+        "password": "Mot de passe",
+        "domain": "Domaine",
+        "domainPlaceholder": "TEST",
+        "connecting": "Connexion en cours...",
+        "loginButton": "Connexion",
+        "language": "Langue"
+    },
+    "buttons": {
+        "loadExcel": "Charger Excel",
+        "sendSelected": "Envoyer Sélectionnés",
+        "sendAll": "Tout Envoyer",
+        "save": "Enregistrer",
+        "load": "Charger",
+        "close": "Fermer"
+    },
+    "header": {
+        "dataPanel": "Panneau de Données",
+        "xmlPreview": "Aperçu XML",
+        "mapper": "Mappeur de Champs"
+    },
+    "mapper": {
+        "title": "Mappeur de Champs",
+        "search": "Rechercher un champ...",
+        "noFields": "Aucun champ dans cette section",
+        "noResults": "Aucun champ trouvé pour",
+        "loadExcelFirst": "Chargez d'abord un fichier Excel",
+        "noMapping": "-- Ne pas mapper --",
+        "noForce": "-- Ne pas forcer --"
+    },
+    "tabs": {
+        "order": "Commande Globale",
+        "customer": "Client",
+        "address": "Adresse",
+        "items": "Articles",
+        "booleans": "Booléens"
+    },
+    "table": {
+        "selectAll": "Tout sélectionner",
+        "noData": "Aucune donnée chargée"
+    },
+    "messages": {
+        "confirmSendAll": "Êtes-vous sûr de vouloir envoyer toutes les commandes?",
+        "confirmSendSelected": "Êtes-vous sûr de vouloir envoyer {count} commandes sélectionnées?",
+        "sendingOrders": "Envoi des commandes...",
+        "successSent": "✅ {count} commandes envoyées avec succès",
+        "errorsSent": "❌ {errors} erreurs sur {total} commandes",
+        "loginSuccess": "Connecté avec succès",
+        "loginError": "Erreur de connexion",
+        "noSelection": "Sélectionnez au moins une commande",
+        "notAuthenticated": "Vous devez vous connecter d'abord"
+    },
+    "errors": {
+        "title": "Journal des Erreurs",
+        "reference": "Référence",
+        "error": "Erreur",
+        "xmlSent": "XML Envoyé",
+        "response": "Réponse du Serveur"
+    }
+}

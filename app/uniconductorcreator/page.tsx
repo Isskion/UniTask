@@ -1,0 +1,585 @@
+'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useAppStore } from '@/app/uniconductorcreator/_src/store/appStore';
+import { parseExcelFile } from '@/app/uniconductorcreator/_src/utils/excelParser';
+import { generateValidationReport, type ValidationReport } from '@/app/uniconductorcreator/_src/utils/validation';
+import { buildXml, type BuildXmlContext } from '@/app/uniconductorcreator/_src/services/xmlBuilder';
+import { REQUIRED_FIELDS } from '@/app/uniconductorcreator/_src/data/schema';
+import { type ProgressLog } from '@/app/uniconductorcreator/_src/components/Modals/ProgressModal';
+import { postSoapProxy } from '@/lib/soapProxy';
+
+import Header from '@/app/uniconductorcreator/_src/components/Header/Header';
+import MasterTable from '@/app/uniconductorcreator/_src/components/DataPanel/MasterTable';
+import DetailPanel from '@/app/uniconductorcreator/_src/components/DataPanel/DetailPanel';
+import XmlPreview from '@/app/uniconductorcreator/_src/components/XmlPreview/XmlPreview';
+import MapperPanel from '@/app/uniconductorcreator/_src/components/Mapper/MapperPanel';
+import LoginModal from '@/app/uniconductorcreator/_src/components/Modals/LoginModal';
+import ProgressModal from '@/app/uniconductorcreator/_src/components/Modals/ProgressModal';
+import ValidationReportModal from '@/app/uniconductorcreator/_src/components/Modals/ValidationReportModal';
+import MassEditModal from '@/app/uniconductorcreator/_src/components/Modals/MassEditModal';
+import MappingWizard from '@/app/uniconductorcreator/_src/components/Wizards/MappingWizard';
+import MappingActions from '@/app/uniconductorcreator/_src/components/Mapper/MappingActions';
+import LayoutExporter from '@/app/uniconductorcreator/_src/components/Mapper/LayoutExporter';
+import DataPrepModal from '@/app/uniconductorcreator/_src/components/Modals/DataPrepModal';
+import HelpModal from '@/app/uniconductorcreator/_src/components/Modals/HelpModal';
+import ResultsDashboard from '@/app/uniconductorcreator/_src/components/Dashboard/ResultsDashboard';
+import { ToastProvider } from '@/app/uniconductorcreator/_src/components/UI/ToastProvider';
+
+import '@/app/uniconductorcreator/_src/i18n';
+import '@/app/uniconductorcreator/_src/App.css';
+
+const SESSION_KEY = 'ucc_session';
+const SOAP_ACTION = 'http://unisolutions.com.ar/CrearConductores';
+
+// Registro persistente de NroDocumento ya enviados con éxito a UNIGIS. Independiente de
+// SESSION_KEY (que trunca a 500 filas) y de _status en memoria (que se pierde al recargar
+// el Excel) — así "Enviar Resto (clave única)" sigue sabiendo qué conductores ya existen
+// aunque haya habido una recarga completa entremedias. Se usa NroDocumento como clave de
+// negocio (no hay CUIT en Conductor — es el equivalente al DNI/documento de identidad).
+const SENT_DOCS_KEY = 'ucc_sent_docs';
+
+function loadSentDocs(): Set<string> {
+    try {
+        const raw = localStorage.getItem(SENT_DOCS_KEY);
+        return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    } catch { return new Set(); }
+}
+
+function UniConductorCreatorPageInner({ tenantId }: { tenantId: string }) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isLoadingExcel, setIsLoadingExcel] = useState(false);
+
+    const [loginOpen, setLoginOpen] = useState(true);
+    const [progressOpen, setProgressOpen] = useState(false);
+    const [validationOpen, setValidationOpen] = useState(false);
+    const [massEditOpen, setMassEditOpen] = useState(false);
+    const [mappingWizardOpen, setMappingWizardOpen] = useState(false);
+    const [mappingActionsOpen, setMappingActionsOpen] = useState(false);
+    const [layoutExporterOpen, setLayoutExporterOpen] = useState(false);
+    const [layoutExporterMode, setLayoutExporterMode] = useState<'export' | 'import'>('export');
+    const [dataPrepOpen, setDataPrepOpen] = useState(false);
+    const [dashboardOpen, setDashboardOpen] = useState(false);
+    const [helpOpen, setHelpOpen] = useState(false);
+
+    const [progressTotal, setProgressTotal] = useState(0);
+    const [progressCurrent, setProgressCurrent] = useState(0);
+    const [progressSuccess, setProgressSuccess] = useState(0);
+    const [progressError, setProgressError] = useState(0);
+    const [progressComplete, setProgressComplete] = useState(false);
+    const [progressLogs, setProgressLogs] = useState<ProgressLog[]>([]);
+    const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
+
+    const setRows = useAppStore((s) => s.setRows);
+    const setHeaders = useAppStore((s) => s.setHeaders);
+    const rows = useAppStore((s) => s.rows);
+    const mapping = useAppStore((s) => s.mapping);
+    const setMapping = useAppStore((s) => s.setMapping);
+    const headers = useAppStore((s) => s.headers);
+    const token = useAppStore((s) => s.token);
+    const orderUrl = useAppStore((s) => s.orderUrl);
+    const booleanOverrides = useAppStore((s) => s.booleanOverrides);
+    const selectedIndices = useAppStore((s) => s.selectedIndices);
+    const setRowStatus = useAppStore((s) => s.setRowStatus);
+    const updateRowData = useAppStore((s) => s.updateRowData);
+    const setIsSending = useAppStore((s) => s.setIsSending);
+    const isSending = useAppStore((s) => s.isSending);
+    const setSendCancelled = useAppStore((s) => s.setSendCancelled);
+
+    useEffect(() => {
+        if (rows.length === 0 && Object.keys(mapping).length === 0) return;
+        // Mientras hay un envío en curso, setRowStatus genera una referencia nueva de `rows`
+        // en cada fila (éxito o error), lo que re-disparaba este efecto constantemente. Con
+        // miles de filas y el XML de respuesta acumulado en _serverResponse de cada una, cada
+        // disparo hacía un JSON.stringify + localStorage.setItem del array COMPLETO en el hilo
+        // principal — confirmado el 2026-09-17 como causa de que la página se quedara
+        // congelada (20-30s por paso, memoria disparada) al enviar varios miles de filas.
+        // Se omite el autoguardado mientras isSending===true; en cuanto termina (éxito,
+        // cancelado o error) este mismo efecto se re-evalúa (isSending está en las deps) y
+        // guarda el estado final una sola vez.
+        if (isSending) return;
+        const timeout = setTimeout(() => {
+            // localStorage tiene un límite de tamaño (~5-10MB). Antes se truncaba SIEMPRE a 500
+            // filas de entrada, incluso cuando el Excel entero cabía de sobra — se intenta
+            // guardar todo primero, y solo se trunca si realmente no cabe (QuotaExceededError).
+            // Se guarda `totalRows` (conteo real) para poder avisar al restaurar si la
+            // recuperación quedó incompleta.
+            try {
+                localStorage.setItem(SESSION_KEY, JSON.stringify({ rows, totalRows: rows.length, headers, mapping, booleanOverrides, timestamp: Date.now() }));
+            } catch {
+                try {
+                    localStorage.setItem(SESSION_KEY, JSON.stringify({ rows: rows.slice(0, 500), totalRows: rows.length, headers, mapping, booleanOverrides, timestamp: Date.now() }));
+                } catch { /* ni siquiera 500 caben — se deja sin guardar */ }
+            }
+        }, 2000);
+        return () => clearTimeout(timeout);
+    }, [rows, headers, mapping, booleanOverrides, isSending]);
+
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(SESSION_KEY);
+            if (!saved) return;
+            const session = JSON.parse(saved);
+            if (Date.now() - session.timestamp > 24 * 60 * 60 * 1000) { localStorage.removeItem(SESSION_KEY); return; }
+            if (session.rows?.length > 0 && rows.length === 0) {
+                setRows(session.rows); setHeaders(session.headers || []);
+                if (session.mapping) setMapping(session.mapping);
+                // Aviso explícito si la sesión recuperada es una versión truncada del Excel
+                // original (session.totalRows es el conteo real; puede faltar en sesiones
+                // guardadas antes de este fix, de ahí el fallback a session.rows.length).
+                const originalTotal = session.totalRows ?? session.rows.length;
+                if (originalTotal > session.rows.length) {
+                    alert(
+                        `⚠️ Sesión recuperada incompleta: se restauraron ${session.rows.length} de las ${originalTotal} filas originales ` +
+                        `(límite de almacenamiento local del navegador). El estado de envío (éxito/error) de esas filas se conserva, ` +
+                        `pero las ${originalTotal - session.rows.length} filas restantes NO están disponibles — vuelve a cargar el Excel para recuperarlas.`
+                    );
+                }
+            }
+        } catch { /* ignore */ }
+    }, []); // eslint-disable-line
+
+    useEffect(() => {
+        const handler = (e: BeforeUnloadEvent) => {
+            if (rows.length > 0 && rows.some(r => !r._status || r._status === 'pending')) { e.preventDefault(); e.returnValue = ''; }
+        };
+        window.addEventListener('beforeunload', handler);
+        return () => window.removeEventListener('beforeunload', handler);
+    }, [rows]);
+
+    const handleLoadExcel = useCallback(() => { fileInputRef.current?.click(); }, []);
+
+    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        setIsLoadingExcel(true);
+        reader.onload = (evt) => {
+            requestAnimationFrame(() => {
+                try {
+                    const data = evt.target?.result as ArrayBuffer;
+                    const { sheet } = parseExcelFile(data);
+                    if (sheet.headers.length === 0) throw new Error('El archivo Excel no tiene cabeceras válidas.');
+                    setHeaders(sheet.headers);
+                    setRows(sheet.rows);
+                    setMappingWizardOpen(true);
+                } catch (err: any) {
+                    alert(`Error cargando el archivo: ${err.message}`);
+                } finally {
+                    setIsLoadingExcel(false);
+                }
+            });
+        };
+        reader.readAsArrayBuffer(file);
+        e.target.value = '';
+    }, [setHeaders, setRows]);
+
+    const handleValidate = useCallback(() => {
+        const report = generateValidationReport(rows, mapping);
+        setValidationReport(report);
+        setValidationOpen(true);
+    }, [rows, mapping]);
+
+    const buildContext = useCallback((): BuildXmlContext => ({
+        mapping, booleanOverrides, token: token || '', dynFieldsConfig: {},
+    }), [mapping, booleanOverrides, token]);
+
+    const sendBatch = useCallback(async (batch: { row: any; index: number }[]) => {
+        const isDryRun = useAppStore.getState().isDryRun;
+        setProgressTotal(batch.length); setProgressCurrent(0);
+        setProgressSuccess(0); setProgressError(0);
+        setProgressComplete(false); setProgressLogs([]); setProgressOpen(true);
+        setIsSending(true); setSendCancelled(false);
+
+        let success = 0, errors = 0;
+        const logs: ProgressLog[] = [];
+        const ctx = buildContext();
+
+        // NroDocumento ya enviados: se cargan UNA vez aquí y se acumulan en memoria durante
+        // todo el lote, y se persisten solo cada N filas + al terminar/cancelar — nunca fila
+        // por fila. Lección heredada de uniclientedadorcreator (2026-09-18): reescribir
+        // localStorage completo en cada fila enviada es O(n²) y congela la página a cada click
+        // durante un envío grande. Se aplica aquí desde el primer día, no como parche a posteriori.
+        const pendingSentDocs = loadSentDocs();
+        const newlySentDocsThisBatch: string[] = [];
+        const PERSIST_DOCS_EVERY = 200;
+        let sentDocsDirty = false;
+        const persistSentDocs = () => {
+            if (!sentDocsDirty) return;
+            try { localStorage.setItem(SENT_DOCS_KEY, JSON.stringify(Array.from(pendingSentDocs))); } catch { /* quota */ }
+            sentDocsDirty = false;
+        };
+
+        // Circuit breaker de lote: el reintento por fila (3 intentos, ~2-3s de espera) alcanza
+        // para un hipo puntual del servidor, pero no para una caída real de varios minutos —
+        // confirmado con datos reales el 2026-09-01 (45 filas SEGUIDAS con HTTP 503 en un envío
+        // de 3864). Sin esto, un lote entero "atraviesa" la caída fallando fila por fila y hay
+        // que reintentarlas todas a mano después. Con esto, tras varios fallos 502/503/504
+        // consecutivos se asume que el servidor está caído y se pausa el envío completo un rato
+        // más largo antes de seguir — el usuario puede cancelar durante la pausa si hace falta.
+        let consecutiveTransientFailures = 0;
+        const TRANSIENT_FAILURE_THRESHOLD = 5;
+        const TRANSIENT_COOLDOWN_MS = 45000;
+
+        if (!isDryRun) {
+            try {
+                logs.push({ ref: 'UNIGIS', status: 'info', msg: 'Verificando conectividad...' });
+                setProgressLogs([...logs]);
+                const pingRes = await postSoapProxy({ url: orderUrl, action: SOAP_ACTION, version: '1.1', body: '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body/></soapenv:Envelope>', timeoutMs: 10000 });
+                if (pingRes.status === 404) throw new Error('Servidor no encontrado (HTTP 404)');
+                const pingData = await pingRes.json();
+                if (!pingData.ok && pingData.status !== 500) throw new Error(`Servidor inaccesible: HTTP ${pingData.status}`);
+                logs.push({ ref: 'UNIGIS', status: 'success', msg: 'Conexión exitosa.' });
+                setProgressLogs([...logs]);
+            } catch (e: any) {
+                logs.push({ ref: 'UNIGIS', status: 'error', msg: `Abortado: ${e.message}` });
+                setProgressError(batch.length); setProgressLogs([...logs]);
+                setIsSending(false); setProgressComplete(true); return;
+            }
+        } else {
+            logs.push({ ref: 'SIMULACIÓN', status: 'warn', msg: 'Modo Dry Run activo. No se enviarán datos reales.' });
+            setProgressLogs([...logs]);
+        }
+
+        for (let i = 0; i < batch.length; i++) {
+            if (useAppStore.getState().sendCancelled) {
+                logs.push({ ref: 'CANCELADO', status: 'warn', msg: 'Envío cancelado por el usuario' });
+                persistSentDocs();
+                setProgressLogs([...logs]); break;
+            }
+            // Persistencia periódica (no por fila): cubre el caso de que el navegador se
+            // cierre/crashee a mitad de un lote grande sin perder todo lo acumulado hasta ahora.
+            if (i > 0 && i % PERSIST_DOCS_EVERY === 0) persistSentDocs();
+            const { row, index } = batch[i];
+            setRowStatus(index, 'sending'); setProgressCurrent(i + 1);
+            const refCol = mapping['Root.Conductor.ReferenciaExterna'] || mapping['Root.Conductor.Login'];
+            const ref = (refCol && row[refCol]) ? row[refCol] : `Fila ${index + 1}`;
+            let lastRawResponse = '', lastXml = '';
+            let wasTransientFailure = false; // 502/503/504 agotando los 3 intentos — servidor caído, no dato malo
+
+            // Blindaje contra falsos positivos de UNIGIS: en uniclientedadorcreator se confirmó
+            // (2026-09-17/18) que CrearClientesDadores/CrearConductores puede devolver un
+            // Result "éxito" real sin crear nada en UNIGIS, sobre todo para filas con datos
+            // mínimos ausentes. Aplicado aquí desde el primer día: las filas sin los campos
+            // mínimos (REQUIRED_FIELDS del schema: Login, Nombre, Apellido, NroDocumento) ni
+            // se intentan contra UNIGIS — se marcan error localmente y no contaminan el caché
+            // de "enviados". No elimina el riesgo por completo (ver nota de verificación más
+            // abajo — no existe un método SOAP de consulta de Conductores).
+            const missingRequired = REQUIRED_FIELDS.filter((field) => {
+                const col = mapping[field];
+                const val = col ? row[col] : undefined;
+                return !val || String(val).trim() === '';
+            });
+            if (missingRequired.length > 0) {
+                errors++;
+                const msg = `Fila sin datos mínimos (${missingRequired.join(', ')}) — no se envía a UNIGIS para evitar un falso "éxito".`;
+                setRowStatus(index, 'error', msg);
+                logs.push({ ref, status: 'error', msg });
+                setProgressSuccess(success); setProgressError(errors); setProgressLogs([...logs]);
+                continue;
+            }
+
+            try {
+                const xml = buildXml(row, ctx);
+                lastXml = xml;
+                logs.push({ ref, status: 'info', msg: `XML: ${xml.length} chars → ${orderUrl}` });
+                setProgressLogs([...logs]);
+
+                let res: any; let fetchError = null;
+                for (let retry = 0; retry <= 2; retry++) {
+                    try {
+                        if (isDryRun) {
+                            await new Promise(r => setTimeout(r, 200));
+                            res = { json: async () => ({ ok: true, status: 200, text: `<Envelope><Body><CrearConductoresResult>true</CrearConductoresResult></Body></Envelope>` }) };
+                        } else {
+                            res = await postSoapProxy({ url: orderUrl, action: SOAP_ACTION, version: '1.1', body: xml, timeoutMs: 30000 });
+                        }
+                        if ([502, 503, 504].includes(res.status)) { wasTransientFailure = true; throw new Error(`Error temporal HTTP ${res.status}`); }
+                        wasTransientFailure = false;
+                        fetchError = null; break;
+                    } catch (err: any) {
+                        fetchError = err;
+                        if (retry < 2) {
+                            logs.push({ ref, status: 'warn', msg: `Reintento ${retry + 1}/2...` });
+                            setProgressLogs([...logs]);
+                            await new Promise(r => setTimeout(r, 2000 * Math.pow(1.5, retry)));
+                        }
+                    }
+                }
+                if (fetchError) throw new Error(`Fallaron 3 intentos: ${fetchError.message}`);
+
+                const response = await res.json();
+                lastRawResponse = response.text || '';
+                logs.push({ ref, status: 'info', msg: `HTTP ${response.status} · ${lastRawResponse.length} bytes` });
+                setProgressLogs([...logs]);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(lastRawResponse, 'text/xml');
+                const resultNode =
+                    doc.getElementsByTagName('CrearConductoresResult')[0] ||
+                    doc.getElementsByTagName('unis:CrearConductoresResult')[0] ||
+                    doc.getElementsByTagName('Result')[0];
+                const resultText = resultNode ? (resultNode.textContent ?? '') : '';
+                const isSuccess = resultText.toLowerCase() === 'true' || (parseInt(resultText) > 0);
+
+                if (isSuccess) {
+                    success++;
+                    consecutiveTransientFailures = 0;
+                    setRowStatus(index, 'success', undefined, lastRawResponse);
+                    updateRowData(index, '_UnigisResult', resultText || 'OK');
+                    logs.push({ ref, status: 'success', msg: `Conductor creado (${resultText || 'OK'})` });
+                    const docCol = mapping['Root.Conductor.NroDocumento'];
+                    const docToRecord = docCol ? String(row[docCol] ?? '').trim().toUpperCase() : '';
+                    if (docToRecord && !pendingSentDocs.has(docToRecord)) {
+                        pendingSentDocs.add(docToRecord);
+                        sentDocsDirty = true;
+                        newlySentDocsThisBatch.push(docToRecord);
+                    }
+                } else {
+                    // No existe un método SOAP de consulta de Conductores (confirmado 2026-09-18)
+                    // para verificar de forma automática, y CrearClientesDadores ya demostró que
+                    // UNIGIS puede devolver HTTP 200 con Result "éxito" sin crear nada realmente.
+                    // Por eso: nunca se asume éxito sin evidencia positiva — si no reconocemos la
+                    // etiqueta de resultado, se trata como error para poder inspeccionar la
+                    // respuesta real desde "Ver XML" en el Dashboard. Y al final del lote se
+                    // genera una query SQL lista para verificar contra UNIGIS directamente (ver
+                    // más abajo, tras el bucle) — es la única verificación posible sin un método
+                    // de consulta SOAP.
+                    const errorPatterns = [
+                        /faultstring[^>]*>([^<]*)/i, /Descripcion[^>]*>([^<]*)/i,
+                        /Mensaje[^>]*>([^<]*)/i, /Error[^>]*>([^<]*)/i,
+                    ];
+                    let msg = '';
+                    for (const p of errorPatterns) { const m = lastRawResponse.match(p); if (m) { msg = m[1].trim(); break; } }
+                    if (!msg) msg = resultNode ? `Respuesta inesperada: "${resultText}"` : 'Respuesta sin etiqueta de resultado reconocida — revisar XML de respuesta.';
+                    throw new Error(msg);
+                }
+            } catch (err: any) {
+                errors++;
+                setRowStatus(index, 'error', err.message, lastRawResponse);
+                logs.push({ ref, status: 'error', msg: err.message, detail: lastRawResponse?.slice(0, 2000) || undefined, xml: lastXml || undefined });
+
+                if (wasTransientFailure) {
+                    consecutiveTransientFailures++;
+                    if (consecutiveTransientFailures >= TRANSIENT_FAILURE_THRESHOLD) {
+                        logs.push({
+                            ref: 'UNIGIS', status: 'warn',
+                            msg: `⏸️ ${consecutiveTransientFailures} fallos seguidos (502/503/504) — el servidor parece caído. Pausa de ${TRANSIENT_COOLDOWN_MS / 1000}s antes de seguir...`,
+                        });
+                        setProgressLogs([...logs]);
+                        // Espera en tramos cortos para poder abortar la pausa si el usuario cancela
+                        // el envío en vez de quedar bloqueados 45s sin poder reaccionar.
+                        for (let waited = 0; waited < TRANSIENT_COOLDOWN_MS && !useAppStore.getState().sendCancelled; waited += 1000) {
+                            await new Promise(r => setTimeout(r, 1000));
+                        }
+                        consecutiveTransientFailures = 0;
+                    }
+                } else {
+                    consecutiveTransientFailures = 0;
+                }
+            }
+            setProgressSuccess(success); setProgressError(errors); setProgressLogs([...logs]);
+        }
+        persistSentDocs();
+
+        // No hay método SOAP de consulta de Conductores — la única verificación real es SQL
+        // directo. Se deja lista para copiar, igual que se tuvo que reconstruir a mano tras el
+        // incidente de falsos positivos en uniclientedadorcreator (2026-09-18).
+        if (newlySentDocsThisBatch.length > 0) {
+            const inList = newlySentDocsThisBatch.map((d) => `'${d.replace(/'/g, "''")}'`).join(',');
+            const sql = `SELECT NroDocumento, Nombre, Apellido, Login, FechaCreacion FROM dbo.Conductor WHERE NroDocumento IN (${inList}) ORDER BY NroDocumento;`;
+            logs.push({
+                ref: 'VERIFICACIÓN', status: 'warn',
+                msg: `No hay método SOAP de consulta — copia esta query y ejecútala en SSMS para confirmar que los ${newlySentDocsThisBatch.length} conductores "éxito" existen de verdad en UNIGIS:`,
+                detail: sql,
+            });
+            setProgressLogs([...logs]);
+        }
+
+        setProgressComplete(true); setIsSending(false);
+    }, [mapping, orderUrl, buildContext, setRowStatus, updateRowData, setIsSending, setSendCancelled]);
+
+    const handleSendAll = useCallback(() => sendBatch(rows.map((row, index) => ({ row, index }))), [rows, sendBatch]);
+    const handleSendSelected = useCallback(() => sendBatch(Array.from(selectedIndices).map(index => ({ row: rows[index], index }))), [rows, selectedIndices, sendBatch]);
+
+    // Envía solo las filas pendientes, sin duplicar por NroDocumento: excluye filas ya
+    // importadas con éxito (_status === 'success') y, dentro de las restantes, solo la
+    // primera aparición de cada NroDocumento (el mismo documento puede repetirse en el Excel).
+    const handleSendRemainingUnique = useCallback(() => {
+        const docCol = mapping['Root.Conductor.NroDocumento'];
+        if (!docCol) {
+            alert('La columna NroDocumento no está mapeada — no se puede deduplicar sin ella. Mapéala en el panel "Conductor" antes de usar este botón.');
+            return;
+        }
+        const nombreCol = mapping['Root.Conductor.Nombre'];
+        // Los NroDocumento ya importados con éxito cuentan como "ya existen" en UNIGIS — se
+        // combinan dos fuentes: el _status en memoria de las filas actuales (rápido, cubre la
+        // sesión en curso) y el registro persistente en localStorage (sobrevive a una recarga
+        // del Excel, que resetea _status a cero en todas las filas).
+        const seenDocs = loadSentDocs();
+        for (const row of rows) {
+            if (row._status === 'success') {
+                const doc = String(row[docCol] ?? '').trim().toUpperCase();
+                if (doc) seenDocs.add(doc);
+            }
+        }
+        let alreadyImported = 0, duplicateDoc = 0, noDoc = 0, blank = 0;
+        const batch: { row: any; index: number }[] = [];
+        rows.forEach((row, index) => {
+            if (row._status === 'success') { alreadyImported++; return; }
+            const doc = String(row[docCol] ?? '').trim().toUpperCase();
+            const nombre = nombreCol ? String(row[nombreCol] ?? '').trim() : '';
+            if (!doc) {
+                // Filas totalmente vacías (sin NroDocumento y sin Nombre) no se incluyen: UNIGIS
+                // ya demostró con CrearClientesDadores que puede devolver éxito para ellas sin
+                // crear nada, contaminando el caché de "enviados" para siempre. Sin NroDocumento
+                // pero con Nombre sí se incluyen igual (caso legítimo que no se puede deduplicar).
+                if (!nombre) { blank++; return; }
+                noDoc++; batch.push({ row, index }); return;
+            }
+            if (seenDocs.has(doc)) { duplicateDoc++; return; }
+            seenDocs.add(doc);
+            batch.push({ row, index });
+        });
+
+        if (batch.length === 0) {
+            alert(`No hay filas pendientes: todas ya están importadas, tienen un NroDocumento duplicado o están vacías (${blank} filas vacías ignoradas).`);
+            return;
+        }
+        const proceed = confirm(
+            `Se enviarán ${batch.length} filas nuevas (${noDoc} sin NroDocumento, incluidas igualmente).\n` +
+            `Se omiten ${alreadyImported} ya importadas, ${duplicateDoc} con NroDocumento duplicado y ${blank} vacías (sin NroDocumento ni Nombre).\n\n¿Continuar?`
+        );
+        if (!proceed) return;
+        sendBatch(batch);
+    }, [rows, mapping, sendBatch]);
+    const handleRetryFailed = useCallback(() => sendBatch(rows.map((row, index) => ({ row, index })).filter(({ row }) => row._status === 'error')), [rows, sendBatch]);
+    const handleRetryRow = useCallback((index: number) => { const row = rows[index]; if (!row) return; setDashboardOpen(false); sendBatch([{ row, index }]); }, [rows, sendBatch]);
+    const handleCancelSend = useCallback(() => setSendCancelled(true), [setSendCancelled]);
+
+    const [leftWidth, setLeftWidth] = useState(75);
+    const [detailHeight, setDetailHeight] = useState(35);
+    const [mapperHeight, setMapperHeight] = useState(260);
+    const dragging = useRef<'h' | 'v' | 'm' | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const handleMouseDown = useCallback((axis: 'h' | 'v' | 'm') => {
+        dragging.current = axis;
+        document.body.style.cursor = axis === 'h' ? 'col-resize' : 'row-resize';
+        document.body.style.userSelect = 'none';
+    }, []);
+
+    React.useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!dragging.current || !containerRef.current) return;
+            const rect = containerRef.current.getBoundingClientRect();
+            if (dragging.current === 'h') {
+                setLeftWidth(Math.min(85, Math.max(25, ((e.clientX - rect.left) / rect.width) * 100)));
+            } else if (dragging.current === 'v') {
+                const leftPanelH = rect.bottom - 44 - 8 - mapperHeight - 16;
+                const relY = e.clientY - 52;
+                setDetailHeight(Math.min(70, Math.max(10, 100 - (relY / leftPanelH) * 100)));
+            } else if (dragging.current === 'm') {
+                setMapperHeight(Math.min(500, Math.max(120, rect.bottom - e.clientY)));
+            }
+        };
+        const handleMouseUp = () => { dragging.current = null; document.body.style.cursor = ''; document.body.style.userSelect = ''; };
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => { window.removeEventListener('mousemove', handleMouseMove); window.removeEventListener('mouseup', handleMouseUp); };
+    }, [mapperHeight]);
+
+    return (
+        <div ref={containerRef} className="flex flex-col h-screen w-full bg-slate-50 overflow-hidden font-sans">
+            <input ref={fileInputRef} type="file" accept=".xlsx,.xls" hidden onChange={handleFileChange} />
+            {isLoadingExcel && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl p-6 flex flex-col items-center gap-3">
+                        <div className="w-8 h-8 border-3 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
+                        <span className="text-sm font-semibold text-slate-700">Procesando Excel...</span>
+                    </div>
+                </div>
+            )}
+            <Header
+                onShowLogin={() => setLoginOpen(true)}
+                onLoadExcel={handleLoadExcel}
+
+                onMassEdit={() => setMassEditOpen(true)}
+                onValidate={handleValidate}
+                onSendAll={handleSendAll}
+                onSendSelected={handleSendSelected}
+                onSendRemainingUnique={handleSendRemainingUnique}
+                onRetryFailed={handleRetryFailed}
+                onLogout={() => useAppStore.getState().setToken(null)}
+                onManageUsers={() => {}}
+                onShowHelp={() => setHelpOpen(true)}
+                onSaveTemplate={() => { setLayoutExporterMode('export'); setLayoutExporterOpen(true); }}
+                onShowDashboard={() => setDashboardOpen(true)}
+                isLoadingExcel={isLoadingExcel}
+            />
+            <div className="flex flex-1 overflow-hidden p-2 gap-0" style={{ paddingBottom: 0 }}>
+                <div className="flex flex-col bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden" style={{ width: `${leftWidth}%` }}>
+                    <div className="flex justify-between items-center px-2 py-1 border-b border-slate-100 bg-slate-50/50">
+                        <span className="text-xs font-semibold text-slate-700">👤 Conductores</span>
+                        <div className="flex gap-1 items-center">
+                            <button className="p-0.5 hover:bg-sky-100 rounded transition-colors text-sky-600 text-xs" onClick={() => setDataPrepOpen(true)} title="Preparar Datos">🛠️</button>
+                            <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setMappingActionsOpen(true)} title="Acciones de Mapeo">🗺️</button>
+                            <button className="p-0.5 hover:bg-emerald-100 rounded transition-colors text-emerald-600 text-xs" onClick={() => { setLayoutExporterMode('export'); setLayoutExporterOpen(true); }} title="Exportar / Importar Layout">📋</button>
+                            <button className="p-0.5 hover:bg-red-100 rounded transition-colors text-red-500 text-xs" onClick={() => { if (confirm('¿Limpiar todo el mapeo actual?')) setMapping({}); }} title="Limpiar Mapeo">🧹</button>
+                            <button
+                                className="p-0.5 hover:bg-red-100 rounded transition-colors text-red-600 text-xs"
+                                onClick={() => {
+                                    if (!confirm(`¿Vaciar todo (${rows.length} filas + mapeo) para empezar un mapeo nuevo? No se puede deshacer. La sesión conectada a UNIGIS no se cierra.`)) return;
+                                    useAppStore.getState().clearAllData();
+                                    localStorage.removeItem(SESSION_KEY);
+                                }}
+                                title="Nuevo Excel (vaciar todo)"
+                            >🗑️</button>
+                            <span className="text-[10px] text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-full">{rows.length} filas</span>
+                        </div>
+                    </div>
+                    <div className="overflow-auto" style={{ flex: `1 1 ${100 - detailHeight}%` }}><MasterTable /></div>
+                    <div className="h-1.5 cursor-row-resize bg-slate-200 hover:bg-indigo-400 active:bg-indigo-500 transition-colors shrink-0 flex items-center justify-center" onMouseDown={() => handleMouseDown('v')}>
+                        <div className="w-8 h-0.5 bg-slate-400 rounded-full" />
+                    </div>
+                    <div className="overflow-auto" style={{ flex: `0 0 ${detailHeight}%` }}><DetailPanel /></div>
+                </div>
+                <div className="w-2 cursor-col-resize hover:bg-indigo-400 active:bg-indigo-500 transition-colors shrink-0 flex items-center justify-center mx-1 rounded-full" onMouseDown={() => handleMouseDown('h')}>
+                    <div className="h-12 w-0.5 bg-slate-300 rounded-full" />
+                </div>
+                <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-w-0">
+                    <XmlPreview />
+                </div>
+            </div>
+            <div className="h-1.5 cursor-row-resize bg-slate-200 hover:bg-indigo-400 active:bg-indigo-500 transition-colors shrink-0 flex items-center justify-center" onMouseDown={() => handleMouseDown('m')}>
+                <div className="w-10 h-0.5 bg-slate-400 rounded-full" />
+            </div>
+            <div className="border-t border-slate-200 bg-white overflow-hidden shrink-0" style={{ height: mapperHeight }}>
+                <MapperPanel />
+            </div>
+
+            <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />
+            <ProgressModal isOpen={progressOpen} total={progressTotal} current={progressCurrent} successCount={progressSuccess} errorCount={progressError} isComplete={progressComplete} logs={progressLogs} onCancel={handleCancelSend} onClose={() => setProgressOpen(false)} />
+            <ValidationReportModal isOpen={validationOpen} report={validationReport} onClose={() => setValidationOpen(false)} />
+            <MassEditModal isOpen={massEditOpen} onClose={() => setMassEditOpen(false)} />
+            <DataPrepModal isOpen={dataPrepOpen} onClose={() => setDataPrepOpen(false)} />
+            <MappingWizard isOpen={mappingWizardOpen} headers={headers} onComplete={(newMapping, newBoolOverrides) => { setMapping(newMapping); useAppStore.setState({ booleanOverrides: newBoolOverrides }); setMappingWizardOpen(false); }} onClose={() => setMappingWizardOpen(false)} tenantId={tenantId} />
+            <MappingActions isOpen={mappingActionsOpen} onClose={() => setMappingActionsOpen(false)} onOpenWizard={() => setMappingWizardOpen(true)} />
+            <LayoutExporter isOpen={layoutExporterOpen} onClose={() => setLayoutExporterOpen(false)} initialMode={layoutExporterMode} />
+            <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
+            <ResultsDashboard isOpen={dashboardOpen} onClose={() => setDashboardOpen(false)} onRetryRow={handleRetryRow} onRetryAll={() => { setDashboardOpen(false); handleRetryFailed(); }} />
+        </div>
+    );
+}
+
+export default function UniConductorCreatorPage() {
+    const { tenantId, loading } = useAuth();
+    if (loading) return <div className="p-8 text-center text-slate-500">Cargando módulo...</div>;
+    return (
+        <ToastProvider>
+            <UniConductorCreatorPageInner tenantId={tenantId as string} />
+        </ToastProvider>
+    );
+}

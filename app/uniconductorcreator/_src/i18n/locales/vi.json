@@ -1,0 +1,71 @@
+{
+    "app": {
+        "title": "UNIGIS Order Creator",
+        "connect": "Kết nối",
+        "connected": "Đã kết nối",
+        "notConnected": "Chưa kết nối"
+    },
+    "login": {
+        "title": "Đăng nhập",
+        "url": "URL Dịch vụ",
+        "urlPlaceholder": "http://server/UNIGIS/LoginWS.asmx",
+        "username": "Tên người dùng",
+        "password": "Mật khẩu",
+        "domain": "Miền",
+        "domainPlaceholder": "TEST",
+        "connecting": "Đang kết nối...",
+        "loginButton": "Kết nối",
+        "language": "Ngôn ngữ"
+    },
+    "buttons": {
+        "loadExcel": "Tải Excel",
+        "sendSelected": "Gửi Đã Chọn",
+        "sendAll": "Gửi Tất Cả",
+        "save": "Lưu",
+        "load": "Tải",
+        "close": "Đóng"
+    },
+    "header": {
+        "dataPanel": "Bảng Dữ Liệu",
+        "xmlPreview": "Xem Trước XML",
+        "mapper": "Ánh Xạ Trường"
+    },
+    "mapper": {
+        "title": "Ánh Xạ Trường",
+        "search": "Tìm kiếm trường...",
+        "noFields": "Không có trường trong phần này",
+        "noResults": "Không tìm thấy trường cho",
+        "loadExcelFirst": "Tải file Excel trước",
+        "noMapping": "-- Không ánh xạ --",
+        "noForce": "-- Không ép buộc --"
+    },
+    "tabs": {
+        "order": "Đơn Hàng Tổng",
+        "customer": "Khách Hàng",
+        "address": "Địa Chỉ",
+        "items": "Mặt Hàng",
+        "booleans": "Boolean"
+    },
+    "table": {
+        "selectAll": "Chọn tất cả",
+        "noData": "Không có dữ liệu"
+    },
+    "messages": {
+        "confirmSendAll": "Bạn có chắc muốn gửi tất cả đơn hàng?",
+        "confirmSendSelected": "Bạn có chắc muốn gửi {count} đơn hàng đã chọn?",
+        "sendingOrders": "Đang gửi đơn hàng...",
+        "successSent": "✅ Đã gửi {count} đơn hàng thành công",
+        "errorsSent": "❌ {errors} lỗi trong {total} đơn hàng",
+        "loginSuccess": "Kết nối thành công",
+        "loginError": "Lỗi kết nối",
+        "noSelection": "Chọn ít nhất một đơn hàng",
+        "notAuthenticated": "Bạn phải kết nối trước"
+    },
+    "errors": {
+        "title": "Nhật Ký Lỗi",
+        "reference": "Tham Chiếu",
+        "error": "Lỗi",
+        "xmlSent": "XML Đã Gửi",
+        "response": "Phản Hồi Từ Server"
+    }
+}

@@ -1,0 +1,71 @@
+{
+    "app": {
+        "title": "UNIGIS Order Creator",
+        "connect": "連接",
+        "connected": "已連接",
+        "notConnected": "未連接"
+    },
+    "login": {
+        "title": "登入",
+        "url": "服務網址",
+        "urlPlaceholder": "http://server/UNIGIS/LoginWS.asmx",
+        "username": "使用者名稱",
+        "password": "密碼",
+        "domain": "域",
+        "domainPlaceholder": "TEST",
+        "connecting": "連接中...",
+        "loginButton": "連接",
+        "language": "語言"
+    },
+    "buttons": {
+        "loadExcel": "載入 Excel",
+        "sendSelected": "發送已選",
+        "sendAll": "發送全部",
+        "save": "儲存",
+        "load": "載入",
+        "close": "關閉"
+    },
+    "header": {
+        "dataPanel": "資料面板",
+        "xmlPreview": "XML 預覽",
+        "mapper": "欄位對映器"
+    },
+    "mapper": {
+        "title": "欄位對映器",
+        "search": "搜尋欄位...",
+        "noFields": "此部分沒有欄位",
+        "noResults": "未找到欄位",
+        "loadExcelFirst": "請先載入 Excel 檔案",
+        "noMapping": "-- 不對映 --",
+        "noForce": "-- 不強制 --"
+    },
+    "tabs": {
+        "order": "全局訂單",
+        "customer": "客戶",
+        "address": "地址",
+        "items": "項目",
+        "booleans": "布林值"
+    },
+    "table": {
+        "selectAll": "全選",
+        "noData": "沒有資料"
+    },
+    "messages": {
+        "confirmSendAll": "確定要發送所有訂單嗎？",
+        "confirmSendSelected": "確定要發送 {count} 個已選訂單嗎？",
+        "sendingOrders": "正在發送訂單...",
+        "successSent": "✅ 成功發送 {count} 個訂單",
+        "errorsSent": "❌ {total} 個訂單中有 {errors} 個錯誤",
+        "loginSuccess": "連接成功",
+        "loginError": "連接錯誤",
+        "noSelection": "請至少選擇一個訂單",
+        "notAuthenticated": "請先連接"
+    },
+    "errors": {
+        "title": "錯誤日誌",
+        "reference": "參考",
+        "error": "錯誤",
+        "xmlSent": "已發送的 XML",
+        "response": "伺服器回應"
+    }
+}
