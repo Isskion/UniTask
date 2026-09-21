@@ -1273,12 +1273,12 @@
     "title": "Overdue Task",
     "message": "Your task TRA-50 - \"Configurar zonas de efecto de los depositos\" has reached its deadline.",
     "taskId": "LjAY4RFUQKhhroDbqyT2",
-    "read": false,
     "link": "/?view=task-manager&taskId=LjAY4RFUQKhhroDbqyT2",
     "createdAt": {
       "_seconds": 1789710854,
       "_nanoseconds": 429000000
-    }
+    },
+    "read": true
   },
   {
     "id": "QokqFQmrYJPAOYXn48BL",
