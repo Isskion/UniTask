@@ -1809,8 +1809,8 @@ function buildForm(sec, item) {
       '</div>';
   }
   if (sec === 'depositos') {
-    const regOpts=['ZCN','BCN','LEV','AND','NW','SW'].map(r=>'<option'+(item&&item.region===r?' selected':'')+'>'+r+'</option>').join('');
-    const paisOpts=['ES','PT'].map(p=>'<option'+(item&&item.pais===p?' selected':'')+'>'+p+'</option>').join('');
+    const regOpts=['ZCN','BCN','LEV','AND','NW','SW','FR','BG','PL'].map(r=>'<option'+(item&&item.region===r?' selected':'')+'>'+r+'</option>').join('');
+    const paisOpts=['ES','PT','FR','BG','PL'].map(p=>'<option'+(item&&item.pais===p?' selected':'')+'>'+p+'</option>').join('');
     const tipoOpts=['propio','ajena','aliada'].map(t=>'<option value="'+t+'"'+((item&&(item.tipoCol||'propio')===t||(!item&&t==='propio'))?' selected':'')+'>'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>').join('');
     return '<div class="frow">'+
       '<div class="fg"><label class="fl">Código COL <span class="req">*</span></label><input type="text" id="f-dcod" value="'+esc(item?item.codigo:'')+'" placeholder="AD" style="font-family:monospace;text-transform:uppercase"></div>'+
