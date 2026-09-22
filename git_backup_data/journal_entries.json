@@ -5310,6 +5310,32 @@
     "updatedAt": "2026-09-18T13:11:46.450Z"
   },
   {
+    "id": "3_2026-09-22",
+    "date": "2026-09-22",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "DELGADO",
+        "projectId": "Au1xfXgivgl6VYj2zscs",
+        "pmNotes": "Buenas tardes a todos.​​\nTal y como acordamos en la reunión celebrada hoy entre los equipos de Grupo Delgado, Ecinsa, Hardis y Unigis, os remitimos adjunta la presentación con la propuesta de trabajo para la revisión, validación y ejecución de las pruebas de integración entre los distintos sistemas.\nLa documentación incluye:\nEl orden de revisión de las interfaces e integraciones entre ERP (Ecinsa), WMS (Hardis) y TMS (Unigis).\nEl detalle de los flujos e intercambios de información que deberán ser validados.\nLa propuesta inicial de planificación de las pruebas de integración.\nUn calendario preliminar con los principales hitos previstos para las próximas semanas.\nEl objetivo de esta planificación es asegurar una coordinación eficiente entre todos los equipos, validar el correcto funcionamiento de las integraciones, identificar posibles incidencias o dependencias y disponer de una hoja de ruta común que nos permita avanzar hacia la puesta en marcha del proyecto con las máximas garantías.\nOs agradeceríamos que revisaseis la propuesta y nos trasladaseis cualquier comentario, observación o posible conflicto con las fechas planteadas para poder realizar los ajustes necesarios antes de comenzar las pruebas.\nAgradecemos vuestra colaboración y el esfuerzo de todos los equipos en esta fase tan importante del proyecto.\nQuedamos a vuestra disposición para cualquier aclaración.\nMuchas gracias.\nUn saludo.",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Buenas tardes a todos.​​\nTal y como acordamos en la reunión celebrada hoy entre los equipos de Grupo Delgado, Ecinsa, Hardis y Unigis, os remitimos adjunta la presentación con la propuesta de trabajo para la revisión, validación y ejecución de las pruebas de integración entre los distintos sistemas.\nLa documentación incluye:\nEl orden de revisión de las interfaces e integraciones entre ERP (Ecinsa), WMS (Hardis) y TMS (Unigis).\nEl detalle de los flujos e intercambios de información que deberán ser validados.\nLa propuesta inicial de planificación de las pruebas de integración.\nUn calendario preliminar con los principales hitos previstos para las próximas semanas.\nEl objetivo de esta planificación es asegurar una coordinación eficiente entre todos los equipos, validar el correcto funcionamiento de las integraciones, identificar posibles incidencias o dependencias y disponer de una hoja de ruta común que nos permita avanzar hacia la puesta en marcha del proyecto con las máximas garantías.\nOs agradeceríamos que revisaseis la propuesta y nos trasladaseis cualquier comentario, observación o posible conflicto con las fechas planteadas para poder realizar los ajustes necesarios antes de comenzar las pruebas.\nAgradecemos vuestra colaboración y el esfuerzo de todos los equipos en esta fase tan importante del proyecto.\nQuedamos a vuestra disposición para cualquier aclaración.\nMuchas gracias.\nUn saludo.",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-09-22T14:46:17.731Z",
+    "updatedAt": "2026-09-22T14:46:22.390Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
