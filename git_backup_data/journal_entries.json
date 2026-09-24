@@ -5362,6 +5362,32 @@
     "updatedAt": "2026-09-23T13:49:25.818Z"
   },
   {
+    "id": "3_2026-09-24",
+    "date": "2026-09-24",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "DELGADO",
+        "projectId": "Au1xfXgivgl6VYj2zscs",
+        "pmNotes": "Hola equipo Delgado,\n\nUn placer haber conversado con vosotros en el día de hoy.\n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados:\n\nGobernanza, Planificación y Capacitaciones:\nUnigis enviará la propuesta de agenda semanal de trabajo correspondiente a la Etapa III - Construcción.\nSe acuerda definir una estructura de reuniones técnicas semanales recurrentes: una sesión semanal con el equipo de ECINSA (Gustavo, Alicia y Gema) y una sesión semanal con David para revisión de configuraciones y entrenamiento funcional.\nEl foco prioritario de la próxima semana estará centrado en el frente de interfaces.\n\nMotor de Optimización y Comparativa PRD vs. TEST:\nÓscar consulta por los tiempos y procedimientos requeridos para ejecutar el pase a Producción de los desarrollos de las optimizaciones en TEST.\nDavid se encuentra revisando junto a Raúl las rutas optimizadas y procederá a compartir las jornadas seleccionadas para iniciar el informe comparativo.\n\nEvolución de Interfaces (ECINSA):\nIntegración y Conectividad: Óscar solicitará a Gustavo la revisión y respuesta al correo enviado ayer por Jesús referente al error recibido al intentar conectar con el endpoint de ECINSA.\nPendientes de Desarrollo: Se identifican las 2 interfaces pendientes con ECINSA: Interfaz 10 (crearRecursos) e Interfaz 8 (devolucionRetornables).\nJesús realizará las pruebas correspondientes y enviará los ejemplos por correo en las próximas horas.\nCoordinación de Agenda: Unigis propondrá los horarios para coordinar las sesiones de trabajo con ECINSA durante los días miércoles y jueves de la próxima semana (lunes y martes Delgado hace foco en actividades con Hardis)\nAccionables Equipo Delgado\n\nDavid y Raúl: Finalizar la revisión de rutas optimizadas y enviar a Unigis las jornadas seleccionadas para armar la comparativa.\nPedir a Gustavo (ECINSA) la revisión y respuesta prioritaria al correo de Jesús relativo al error en el endpoint.\nAccionables Equipo Unigis\n\nEnviar a Delgado la propuesta de agenda semanal de temas / tareas / actividades necesarios durante la Etapa III.\nEnviar la propuesta de horarios para las reuniones de interfaces con ECINSA fijadas para el miércoles y jueves.\nJesús: Realizar las pruebas sobre las interfaces 10 (crearRecursos) y 8 (devolucionRetornables) y remitir los ejemplos por correo a ECINSA.\nCoordinar la sesión técnica semanal de revisión de configuraciones y entrenamiento con David.\nQuedo atento a cualquier duda o consulta,\n\nCordial saludo,",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Hola equipo Delgado,\n\nUn placer haber conversado con vosotros en el día de hoy.\n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados:\n\nGobernanza, Planificación y Capacitaciones:\nUnigis enviará la propuesta de agenda semanal de trabajo correspondiente a la Etapa III - Construcción.\nSe acuerda definir una estructura de reuniones técnicas semanales recurrentes: una sesión semanal con el equipo de ECINSA (Gustavo, Alicia y Gema) y una sesión semanal con David para revisión de configuraciones y entrenamiento funcional.\nEl foco prioritario de la próxima semana estará centrado en el frente de interfaces.\n\nMotor de Optimización y Comparativa PRD vs. TEST:\nÓscar consulta por los tiempos y procedimientos requeridos para ejecutar el pase a Producción de los desarrollos de las optimizaciones en TEST.\nDavid se encuentra revisando junto a Raúl las rutas optimizadas y procederá a compartir las jornadas seleccionadas para iniciar el informe comparativo.\n\nEvolución de Interfaces (ECINSA):\nIntegración y Conectividad: Óscar solicitará a Gustavo la revisión y respuesta al correo enviado ayer por Jesús referente al error recibido al intentar conectar con el endpoint de ECINSA.\nPendientes de Desarrollo: Se identifican las 2 interfaces pendientes con ECINSA: Interfaz 10 (crearRecursos) e Interfaz 8 (devolucionRetornables).\nJesús realizará las pruebas correspondientes y enviará los ejemplos por correo en las próximas horas.\nCoordinación de Agenda: Unigis propondrá los horarios para coordinar las sesiones de trabajo con ECINSA durante los días miércoles y jueves de la próxima semana (lunes y martes Delgado hace foco en actividades con Hardis)\nAccionables Equipo Delgado\n\nDavid y Raúl: Finalizar la revisión de rutas optimizadas y enviar a Unigis las jornadas seleccionadas para armar la comparativa.\nPedir a Gustavo (ECINSA) la revisión y respuesta prioritaria al correo de Jesús relativo al error en el endpoint.\nAccionables Equipo Unigis\n\nEnviar a Delgado la propuesta de agenda semanal de temas / tareas / actividades necesarios durante la Etapa III.\nEnviar la propuesta de horarios para las reuniones de interfaces con ECINSA fijadas para el miércoles y jueves.\nJesús: Realizar las pruebas sobre las interfaces 10 (crearRecursos) y 8 (devolucionRetornables) y remitir los ejemplos por correo a ECINSA.\nCoordinar la sesión técnica semanal de revisión de configuraciones y entrenamiento con David.\nQuedo atento a cualquier duda o consulta,\n\nCordial saludo,",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-09-24T13:32:55.529Z",
+    "updatedAt": "2026-09-24T13:33:00.609Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",

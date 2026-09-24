@@ -324,6 +324,21 @@
     "read": true
   },
   {
+    "id": "5GgCcS5GR4yVq8I053vi",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "tenantId": "18",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-3 - \"Ver la integración de Tookane\" has reached its deadline.",
+    "taskId": "7sFQ3YHhaCFgYn8AusLb",
+    "read": false,
+    "link": "/?view=task-manager&taskId=7sFQ3YHhaCFgYn8AusLb",
+    "createdAt": {
+      "_seconds": 1790262850,
+      "_nanoseconds": 814000000
+    }
+  },
+  {
     "id": "5TEjVcY7m3UMw5ey5g9p",
     "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
     "tenantId": "3",
@@ -1539,6 +1554,21 @@
     }
   },
   {
+    "id": "XsQLER0PlwMnmujgXdun",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "tenantId": "18",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-4 - \"Trabajar el apartado b2b\" has reached its deadline.",
+    "taskId": "PvvNyd225S7gEBaYmmVS",
+    "read": false,
+    "link": "/?view=task-manager&taskId=PvvNyd225S7gEBaYmmVS",
+    "createdAt": {
+      "_seconds": 1790262851,
+      "_nanoseconds": 297000000
+    }
+  },
+  {
     "id": "Y5owrlmJ7Vnkz11Kxe1S",
     "userId": "HKItfVWxI1MVy4djivVGZV9amqt2",
     "tenantId": "1",
@@ -2578,6 +2608,21 @@
     }
   },
   {
+    "id": "upq6k58166RBLoVxxPer",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "tenantId": "18",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-2 - \"Mejorar las opciones de Flota y mantenimientos.\" has reached its deadline.",
+    "taskId": "CCdBoHkmAUfoyP0pE6B6",
+    "read": false,
+    "link": "/?view=task-manager&taskId=CCdBoHkmAUfoyP0pE6B6",
+    "createdAt": {
+      "_seconds": 1790262851,
+      "_nanoseconds": 67000000
+    }
+  },
+  {
     "id": "v7qxbuTajz3L5BBL8uHT",
     "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
     "type": "deadline_expired",
@@ -2590,6 +2635,21 @@
       "_nanoseconds": 728000000
     },
     "read": true
+  },
+  {
+    "id": "vFSn0jIfgb783uFUBKyG",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "tenantId": "18",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-9 - \"Eventos encadenados- Crear ecosistema \\\\ Trabaajr motor de eventos.\" has reached its deadline.",
+    "taskId": "hs85a3mwHsQaZPyKjzZ1",
+    "read": false,
+    "link": "/?view=task-manager&taskId=hs85a3mwHsQaZPyKjzZ1",
+    "createdAt": {
+      "_seconds": 1790262851,
+      "_nanoseconds": 561000000
+    }
   },
   {
     "id": "vMZVtuM4ZdzZW06skrpJ",
