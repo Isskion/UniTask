@@ -5388,6 +5388,32 @@
     "updatedAt": "2026-09-24T13:33:00.609Z"
   },
   {
+    "id": "3_2026-09-25",
+    "date": "2026-09-25",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Seguimiento 20260925\n\n-- Solicitar datos de pedidos con domicilios o domicilios Orden.\n\n",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Seguimiento 20260925\n\n-- Solicitar datos de pedidos con domicilios o domicilios Orden.\n\n",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-09-25T07:05:28.526Z",
+    "updatedAt": "2026-09-25T10:37:41.179Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
