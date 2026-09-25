@@ -13159,6 +13159,54 @@
     }
   },
   {
+    "id": "oU1pc9lsLSQnj6tT5jsW",
+    "title": "CMA / ARKAS/ MAERSK integración",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1790335296.557,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "TSP",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "endDate": "2026-09-29T22:00:00.000Z",
+    "techDescription": "Analisis de la información del compartido para lanzar este apartado con Eric.",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-51",
+    "taskNumber": 51,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1790335321,
+      "_nanoseconds": 232000000
+    },
+    "attributes": {},
+    "status": "in_progress",
+    "updatedAt": {
+      "_seconds": 1790335330,
+      "_nanoseconds": 377000000
+    }
+  },
+  {
     "id": "obYgEhqBYCvGMreS5nAv",
     "friendlyId": "MOCK-25-2",
     "organizationId": "1",
@@ -14301,8 +14349,8 @@
     "title": "Documentos necesarios ",
     "techDescription": "Documentación necesaria en la operativa. Documentación vehículos, conductores, etc.\n•\tCMR\n•\tCarta de Porte\n•\tOrden del Cliente (Impresión del Portic, Albaranes del Cliente, etc) \n•\tDocumentos de carga (ADR, Packing list, etc.)\n\n\nEnviado mail día 24/06 a equipo TSP. Insisto 09/09",
     "updatedAt": {
-      "_seconds": 1788964871,
-      "_nanoseconds": 974000000
+      "_seconds": 1790338021,
+      "_nanoseconds": 146000000
     }
   },
   {

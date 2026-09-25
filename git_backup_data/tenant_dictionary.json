@@ -3100,6 +3100,16 @@
     }
   },
   {
+    "id": "qUFE9eGE7Y2osCg89VVO",
+    "tenantId": "3",
+    "word": "volumenviaje",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1790343845,
+      "_nanoseconds": 62000000
+    }
+  },
+  {
     "id": "qd1yYIWdDZywCFBXr6z4",
     "tenantId": "3",
     "word": "dboconductor_jornada_webfleetrole",
