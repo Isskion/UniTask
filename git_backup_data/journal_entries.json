@@ -5414,6 +5414,32 @@
     "updatedAt": "2026-09-25T10:37:41.179Z"
   },
   {
+    "id": "3_2026-09-28",
+    "date": "2026-09-28",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Hola equipo Transpais,\n\nUn placer haber conversado con vosotros en el día de hoy.\n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados:\n\nRevisión del Plan de Proyecto: Leonardo revisará el plan de manera offline para completar las tareas bajo responsabilidad de Transpais, además de validar las estimaciones propuestas (ajustándolas o confirmándolas según el alcance interno).\n\nDefiniciones en Interfaces: Se aclara que para las integraciones con Arkas y CMA no será necesario que el TMS Unigis envíe actualizaciones de estados.\n\nPaquete de Reportes Estándar: Unigis compartirá el catálogo de reportes estándar disponibles en la plataforma para que Transpais pueda compararlo con sus necesidades actuales y validar si el lote es suficiente de cara al Go-Live.\n\nMódulo de Ruteo para Distribución: Transpais + Unigis evaluará si se requiere activar el módulo de ruteo para la operativa de distribución, considerando que actualmente gestionan un volumen aproximado de 50 entregas diarias.\n\nEstrategia de Implementación: Transpais consultó sobre la posibilidad de paralelizar la implementación de los 3 flujos operativos principales.\nEl equipo Unigis explica que será posible paralelizar los frentes de trabajo: interfaces + mejoras producto + configuración de circuitos, pero será difícil lograr esto mismo para las 3 operaciones en simultaneo\n\nGobernanza y Agenda Semanal:\nSe fija la agenda semanal fija de trabajo, pruebas y entrenamiento para todos los martes de 15:30 a 17:00 hs.\nSe debe coordinar el calendario de reuniones técnicas con Generix, Aitana y demás proveedores de interfaces.\n\nMódulo de Tarifación: Se agendará una reunión interna la próxima semana con Sureda para estructurar y organizar el avance de este frente.\nAccionables Equipo Transpais\n\nLeonardo: Revisar el plan de trabajo de forma offline, completar las tareas propias y validar o modificar las estimaciones de esfuerzo.\nEvaluar la necesidad de aplicar el módulo de ruteo en el flujo de distribución (50 entregas/día).\nRevisar la lista de reportes estándar compartida por Unigis y confirmar si cubre las necesidades operativas para el Go-Live.\nCoordinar y confirmar las reuniones de trabajo para interfaces con Generix, Aitana y otros proveedores.\nAccionables Equipo Unigis\n\nCompartir con Transpais la documentación y listado de los reportes estándar disponibles en el TMS.\nAnalizar la factibilidad y riesgos de paralelizar la implementación de los 3 flujos operativos.\nParticipar en la reunión interna de la próxima semana para definir la hoja de ruta del módulo de tarifación.\nEnviar la convocatoria recurrente para la agenda semanal de los martes de 15:30 a 17:00 hs: Enviada por Leo",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Hola equipo Transpais,\n\nUn placer haber conversado con vosotros en el día de hoy.\n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados:\n\nRevisión del Plan de Proyecto: Leonardo revisará el plan de manera offline para completar las tareas bajo responsabilidad de Transpais, además de validar las estimaciones propuestas (ajustándolas o confirmándolas según el alcance interno).\n\nDefiniciones en Interfaces: Se aclara que para las integraciones con Arkas y CMA no será necesario que el TMS Unigis envíe actualizaciones de estados.\n\nPaquete de Reportes Estándar: Unigis compartirá el catálogo de reportes estándar disponibles en la plataforma para que Transpais pueda compararlo con sus necesidades actuales y validar si el lote es suficiente de cara al Go-Live.\n\nMódulo de Ruteo para Distribución: Transpais + Unigis evaluará si se requiere activar el módulo de ruteo para la operativa de distribución, considerando que actualmente gestionan un volumen aproximado de 50 entregas diarias.\n\nEstrategia de Implementación: Transpais consultó sobre la posibilidad de paralelizar la implementación de los 3 flujos operativos principales.\nEl equipo Unigis explica que será posible paralelizar los frentes de trabajo: interfaces + mejoras producto + configuración de circuitos, pero será difícil lograr esto mismo para las 3 operaciones en simultaneo\n\nGobernanza y Agenda Semanal:\nSe fija la agenda semanal fija de trabajo, pruebas y entrenamiento para todos los martes de 15:30 a 17:00 hs.\nSe debe coordinar el calendario de reuniones técnicas con Generix, Aitana y demás proveedores de interfaces.\n\nMódulo de Tarifación: Se agendará una reunión interna la próxima semana con Sureda para estructurar y organizar el avance de este frente.\nAccionables Equipo Transpais\n\nLeonardo: Revisar el plan de trabajo de forma offline, completar las tareas propias y validar o modificar las estimaciones de esfuerzo.\nEvaluar la necesidad de aplicar el módulo de ruteo en el flujo de distribución (50 entregas/día).\nRevisar la lista de reportes estándar compartida por Unigis y confirmar si cubre las necesidades operativas para el Go-Live.\nCoordinar y confirmar las reuniones de trabajo para interfaces con Generix, Aitana y otros proveedores.\nAccionables Equipo Unigis\n\nCompartir con Transpais la documentación y listado de los reportes estándar disponibles en el TMS.\nAnalizar la factibilidad y riesgos de paralelizar la implementación de los 3 flujos operativos.\nParticipar en la reunión interna de la próxima semana para definir la hoja de ruta del módulo de tarifación.\nEnviar la convocatoria recurrente para la agenda semanal de los martes de 15:30 a 17:00 hs: Enviada por Leo",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-09-28T08:02:00.757Z",
+    "updatedAt": "2026-09-28T08:02:06.248Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
