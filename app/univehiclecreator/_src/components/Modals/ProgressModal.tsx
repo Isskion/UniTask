@@ -4,6 +4,9 @@ export interface ProgressLog {
     ref: string;
     status: 'success' | 'error' | 'warn' | 'info';
     msg: string;
+    /** Texto largo opcional (respuesta cruda de UNIGIS, query SQL de verificación) — se
+     * muestra plegable y copiable debajo de la línea. */
+    detail?: string;
 }
 
 interface ProgressModalProps {
@@ -123,6 +126,19 @@ export default function ProgressModal({
                                                 'text-slate-400'
                                     }`}>
                                     {log.msg}
+                                    {log.detail && (
+                                        <details className="mt-1">
+                                            <summary className="cursor-pointer text-[10px] text-slate-500 hover:text-slate-300">
+                                                ver detalle{' '}
+                                                <button
+                                                    type="button"
+                                                    className="ml-1 px-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700"
+                                                    onClick={(e) => { e.preventDefault(); navigator.clipboard?.writeText(log.detail!); }}
+                                                >📋 copiar</button>
+                                            </summary>
+                                            <pre className="mt-1 p-2 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300 whitespace-pre-wrap break-all max-h-40 overflow-auto">{log.detail}</pre>
+                                        </details>
+                                    )}
                                 </span>
                             </div>
                         ))}

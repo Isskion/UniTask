@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useAppStore } from '@/app/univehiclecreator/_src/store/appStore';
 import { parseExcelFile } from '@/app/univehiclecreator/_src/utils/excelParser';
 import { levenshtein } from '@/app/univehiclecreator/_src/utils/levenshtein';
-import { getAllFields } from '@/app/univehiclecreator/_src/data/schema';
+import { getAllFields, REQUIRED_FIELDS } from '@/app/univehiclecreator/_src/data/schema';
 import { generateValidationReport, type ValidationReport } from '@/app/univehiclecreator/_src/utils/validation';
 import { buildXml, type BuildXmlContext } from '@/app/univehiclecreator/_src/services/xmlBuilder';
 import { type ProgressLog } from '@/app/univehiclecreator/_src/components/Modals/ProgressModal';
@@ -27,6 +27,8 @@ import SavedMappings from '@/app/univehiclecreator/_src/components/Mapper/SavedM
 
 import '@/app/univehiclecreator/_src/i18n';
 import '@/app/univehiclecreator/_src/App.css';
+
+const SOAP_ACTION = 'http://unisolutions.com.ar/CrearVehiculos';
 
 function UnigisVehicleCreatorPageInner() {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -89,6 +91,8 @@ function UnigisVehicleCreatorPageInner() {
 
                     setHeaders(sheet.headers);
                     setRows(sheet.rows);
+                    // Selecciona la 1ª fila para que la vista previa muestre ya su XML real
+                    useAppStore.getState().setSelectedRow(sheet.rows.length > 0 ? 0 : -1);
 
                     // Auto-mapping on load
                     const allFields = getAllFields();
@@ -173,6 +177,36 @@ function UnigisVehicleCreatorPageInner() {
         let errors = 0;
         const logs: ProgressLog[] = [];
         const ctx = buildContext();
+        const createdDominios: string[] = [];
+
+        if (!serviceUrl || !token) {
+            logs.push({ ref: 'UNIGIS', status: 'error', msg: 'No hay sesión UNIGIS activa (falta token o URL del servicio). Pulsa "Conectar" y vuelve a enviar.' });
+            setProgressError(total); setProgressLogs([...logs]);
+            setProgressComplete(true); setIsSending(false);
+            return;
+        }
+
+        // Ping previo: si el servidor no responde se aborta el lote entero en vez de fallar fila a fila.
+        try {
+            logs.push({ ref: 'UNIGIS', status: 'info', msg: `Verificando conectividad con ${serviceUrl}...` });
+            setProgressLogs([...logs]);
+            const pingRes = await postSoapProxy({ url: serviceUrl, action: SOAP_ACTION, version: '1.1', body: '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body/></soapenv:Envelope>', timeoutMs: 10000 });
+            if (pingRes.status === 404) throw new Error('Servidor no encontrado (HTTP 404) — revisa la URL de login.');
+            const pingData = await pingRes.json();
+            if (!pingData.ok && pingData.status !== 500) throw new Error(`Servidor inaccesible: HTTP ${pingData.status} ${pingData.statusText || ''}`);
+            logs.push({ ref: 'UNIGIS', status: 'success', msg: 'Conexión exitosa.' });
+            setProgressLogs([...logs]);
+        } catch (e: any) {
+            logs.push({ ref: 'UNIGIS', status: 'error', msg: `Abortado: ${e.message}` });
+            setProgressError(total); setProgressLogs([...logs]);
+            setProgressComplete(true); setIsSending(false);
+            return;
+        }
+
+        // Circuit breaker: tras varios 502/503/504 seguidos se asume caída del servidor y se pausa.
+        let consecutiveTransientFailures = 0;
+        const TRANSIENT_FAILURE_THRESHOLD = 5;
+        const TRANSIENT_COOLDOWN_MS = 45000;
 
         for (let i = 0; i < batch.length; i++) {
             if (useAppStore.getState().sendCancelled) {
@@ -186,45 +220,98 @@ function UnigisVehicleCreatorPageInner() {
             setProgressCurrent(i + 1);
 
             const refCol = mapping['Vehiculo.Dominio'];
-            const ref = row[refCol] || `Fila ${index + 1}`;
+            const dominio = refCol ? String(row[refCol] ?? '').trim() : '';
+            const ref = dominio || `Fila ${index + 1}`;
+            let rawResponse = '';
+            let wasTransientFailure = false;
+
+            // Filas sin datos mínimos ni se intentan: UNIGIS puede responder "true" sin crear nada.
+            const missingRequired = REQUIRED_FIELDS.filter((field) => {
+                const col = mapping[field];
+                const val = col ? row[col] : undefined;
+                return val === undefined || val === null || String(val).trim() === '';
+            });
+            if (missingRequired.length > 0) {
+                errors++;
+                const msg = `Fila sin datos mínimos (${missingRequired.join(', ')}) — no se envía.${refCol ? '' : ' Mapea la columna Dominio en la pestaña pVehiculo.'}`;
+                setRowStatus(index, 'error', msg);
+                logs.push({ ref, status: 'error', msg });
+                setProgressSuccess(success); setProgressError(errors); setProgressLogs([...logs]);
+                continue;
+            }
 
             try {
                 const xml = buildXml(row, ctx);
 
-                // Fetch through proxy function
-                const res = await postSoapProxy({
-                    url: serviceUrl,
-                    action: 'http://unisolutions.com.ar/CrearVehiculos',
-                    version: '1.1',
-                    body: xml,
-                    timeoutMs: 30000,
-                });
+                let res: any = null;
+                let fetchError: any = null;
+                for (let retry = 0; retry <= 2; retry++) {
+                    try {
+                        res = await postSoapProxy({ url: serviceUrl, action: SOAP_ACTION, version: '1.1', body: xml, timeoutMs: 30000 });
+                        if ([502, 503, 504].includes(res.status)) { wasTransientFailure = true; throw new Error(`Error temporal HTTP ${res.status}`); }
+                        wasTransientFailure = false;
+                        fetchError = null;
+                        break;
+                    } catch (err: any) {
+                        fetchError = err;
+                        if (retry < 2) {
+                            logs.push({ ref, status: 'warn', msg: `Reintento ${retry + 1}/2...` });
+                            setProgressLogs([...logs]);
+                            await new Promise((r) => setTimeout(r, 2000 * Math.pow(1.5, retry)));
+                        }
+                    }
+                }
+                if (fetchError) throw new Error(`Fallaron 3 intentos: ${fetchError.message}`);
 
                 const response = await res.json();
+                rawResponse = response.text || '';
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText || ''}`.trim());
 
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                // CrearVehiculos devuelve Boolean según la guía UNIGIS (1.61): true = OK, false = error.
+                // Antes el parser solo reconocía números (`(\d+)`), así que "true"/"false" caían en
+                // la rama "sin código" y se daban SIEMPRE por éxito aunque no se creara nada.
+                // Ahora: solo es éxito con evidencia positiva (true o un entero > 0).
+                const doc = new DOMParser().parseFromString(rawResponse, 'text/xml');
+                const resultNode =
+                    doc.getElementsByTagName('CrearVehiculosResult')[0] ||
+                    doc.getElementsByTagNameNS('*', 'CrearVehiculosResult')[0];
+                const resultText = (resultNode?.textContent ?? '').trim();
+                const isSuccess = resultText.toLowerCase() === 'true' || /^[1-9]\d*$/.test(resultText);
 
-                const codeMatch = /CrearVehiculosResult>(\d+)<\/CrearVehiculosResult/i.exec(response.text);
-                const code = codeMatch ? parseInt(codeMatch[1]) : null;
-
-                if (code === null) {
-                    if (response.text.includes('fault') || response.text.includes('error')) {
-                        throw new Error('Error en respuesta SOAP del servidor');
-                    }
+                if (isSuccess) {
                     success++;
-                    setRowStatus(index, 'success', undefined, response.text);
-                    logs.push({ ref, status: 'success', msg: 'Vehículo creado' });
-                } else if (code > 0) {
-                    success++;
-                    setRowStatus(index, 'success', undefined, response.text);
-                    logs.push({ ref, status: 'success', msg: `Id: ${code}` });
+                    consecutiveTransientFailures = 0;
+                    setRowStatus(index, 'success', undefined, rawResponse);
+                    logs.push({ ref, status: 'success', msg: `UNIGIS respondió ${resultText}` });
+                    if (dominio) createdDominios.push(dominio);
                 } else {
-                    throw new Error(`Código de error retornado: ${code}`);
+                    const fault = /faultstring[^>]*>([^<]*)/i.exec(rawResponse)?.[1]?.trim();
+                    const msg = fault
+                        ? `SOAP Fault: ${fault}`
+                        : resultNode
+                            ? `UNIGIS rechazó el vehículo (Result = "${resultText}"). Causa habitual: un valor de catálogo que no existe en UNIGIS (TipoVehiculo, Transporte, Propietario, Marca...). Revisa la respuesta cruda.`
+                            : 'Respuesta sin <CrearVehiculosResult> — no se puede confirmar la creación. Revisa la respuesta cruda.';
+                    throw new Error(msg);
                 }
             } catch (err: any) {
                 errors++;
-                setRowStatus(index, 'error', err.message);
-                logs.push({ ref, status: 'error', msg: err.message });
+                setRowStatus(index, 'error', err.message, rawResponse);
+                logs.push({ ref, status: 'error', msg: err.message, detail: rawResponse ? rawResponse.slice(0, 3000) : undefined });
+                console.warn('[VehicleCreator] fila con error', { index, ref, error: err.message, rawResponse });
+
+                if (wasTransientFailure) {
+                    consecutiveTransientFailures++;
+                    if (consecutiveTransientFailures >= TRANSIENT_FAILURE_THRESHOLD) {
+                        logs.push({ ref: 'UNIGIS', status: 'warn', msg: `⏸️ ${consecutiveTransientFailures} fallos seguidos (502/503/504) — el servidor parece caído. Pausa de ${TRANSIENT_COOLDOWN_MS / 1000}s...` });
+                        setProgressLogs([...logs]);
+                        for (let waited = 0; waited < TRANSIENT_COOLDOWN_MS && !useAppStore.getState().sendCancelled; waited += 1000) {
+                            await new Promise((r) => setTimeout(r, 1000));
+                        }
+                        consecutiveTransientFailures = 0;
+                    }
+                } else {
+                    consecutiveTransientFailures = 0;
+                }
             }
 
             setProgressSuccess(success);
@@ -232,9 +319,21 @@ function UnigisVehicleCreatorPageInner() {
             setProgressLogs([...logs]);
         }
 
+        // "true" de UNIGIS no garantiza el alta (lección de CrearClientesDadores, 2026-09-18):
+        // se deja una query lista para confirmar en SSMS que los vehículos existen de verdad.
+        if (createdDominios.length > 0) {
+            const inList = createdDominios.map((d) => `'${d.replace(/'/g, "''")}'`).join(',');
+            logs.push({
+                ref: 'VERIFICACIÓN', status: 'warn',
+                msg: `Confirma en SSMS que los ${createdDominios.length} vehículos "OK" existen en UNIGIS (y que el login apunta a la base correcta):`,
+                detail: `SELECT * FROM dbo.Vehiculo WHERE Dominio IN (${inList});`,
+            });
+            setProgressLogs([...logs]);
+        }
+
         setProgressComplete(true);
         setIsSending(false);
-    }, [mapping, serviceUrl, buildContext, setRowStatus, setIsSending, setSendCancelled]);
+    }, [mapping, serviceUrl, token, buildContext, setRowStatus, setIsSending, setSendCancelled]);
 
     // ─── Send all / selected / retry ───────────────────────────────────
     const handleSendAll = useCallback(() => {

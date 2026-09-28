@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from 'react';
 import { useAppStore } from '../../store/appStore';
-import { buildXml, type BuildXmlContext } from '../../services/xmlBuilder';
+import { buildXml, buildExampleXml, type BuildXmlContext } from '../../services/xmlBuilder';
 
 /**
  * XML Preview — renders the actual SOAP XML that would be sent for the selected row
@@ -16,8 +16,13 @@ export default function XmlPreview() {
     
     const [copied, setCopied] = useState(false);
 
+    const hasRow = selectedRow >= 0 && !!rows[selectedRow];
+
+    // Sin fila seleccionada (o sin Excel cargado) se muestra el XML de EJEMPLO con todos los
+    // campos del contrato, para poder copiarlo y probar el método a mano. Antes el panel
+    // quedaba vacío ("Selecciona una fila...") y no había forma de ver la plantilla.
     const xml = useMemo(() => {
-        if (selectedRow < 0 || !rows[selectedRow]) return '';
+        if (!hasRow) return buildExampleXml(token || 'TOKEN');
         try {
             const ctx: BuildXmlContext = {
                 mapping,
@@ -27,35 +32,27 @@ export default function XmlPreview() {
             };
             return buildXml(rows[selectedRow], ctx);
         } catch (err: any) {
-            return `<!-- Error generando XML: ${err.message} -->`;
+            console.error('[VehicleXmlPreview] buildXml falló', { selectedRow, err });
+            return `<!-- Error generando XML de la fila ${selectedRow + 1}: ${err.message} -->`;
         }
-    }, [selectedRow, rows, mapping, token, booleanOverrides]);
+    }, [hasRow, selectedRow, rows, mapping, token, booleanOverrides]);
 
-    const handleCopy = () => {
+    const handleCopy = async () => {
         if (!xml) return;
-        navigator.clipboard.writeText(xml);
+        try {
+            await navigator.clipboard.writeText(xml);
+        } catch {
+            // Fallback para contextos sin permiso de portapapeles
+            const ta = document.createElement('textarea');
+            ta.value = xml;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+        }
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
-
-    if (selectedRow < 0 || !rows[selectedRow]) {
-        return (
-            <div className="flex flex-col h-full bg-slate-900 border-t border-slate-700 text-slate-400">
-                <div className="flex items-center justify-between p-3 bg-slate-800 border-b border-slate-750 shrink-0">
-                    <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">📝 Vista Previa XML SOAP</span>
-                    <span className="text-[10px] text-slate-500 font-semibold uppercase">Vehículos</span>
-                </div>
-                <div className="flex items-center justify-center flex-1 p-8">
-                    <div className="text-center">
-                        <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-2xl mb-3 shadow-inner">
-                            📝
-                        </div>
-                        <p className="text-xs text-slate-500 italic">Selecciona una fila para ver el XML SOAP generado...</p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     // Pretty-print the XML
     const prettyXml = formatXml(xml);
@@ -63,7 +60,7 @@ export default function XmlPreview() {
     return (
         <div className="flex flex-col h-full bg-slate-950 border-t border-slate-700 text-slate-350">
             <div className="flex items-center justify-between p-3 bg-slate-900 border-b border-slate-750 shrink-0">
-                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">📝 SOAP XML Request (Fila {selectedRow + 1})</span>
+                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">📝 {hasRow ? `SOAP XML Request (Fila ${selectedRow + 1})` : 'XML de ejemplo (todos los campos)'}</span>
                 <div className="flex items-center gap-2">
                     <button
                         className="px-2 py-0.5 text-[10px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded transition-colors cursor-pointer"

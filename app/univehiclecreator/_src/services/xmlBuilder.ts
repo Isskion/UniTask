@@ -127,8 +127,25 @@ export interface BuildXmlContext {
     dynFieldsConfig: Record<string, string[] | null>;
 }
 
-export function buildXml(row: Record<string, any>, ctx: BuildXmlContext): string {
+export function buildXml(sourceRow: Record<string, any>, ctx: BuildXmlContext): string {
+    // Copia superficial: transformDynamicFields añade `_dynScopes` a la fila, y la fila es el
+    // mismo objeto que vive en el store (XmlPreview llama a buildXml en cada render).
+    const row: Record<string, any> = { ...sourceRow };
     transformDynamicFields(row, ctx.dynFieldsConfig);
+
+    // ¿Hay algún dato REAL del usuario (columna mapeada con valor, o booleano forzado) debajo
+    // de este path? Los sub-objetos pPropietario/pTransporte tienen campos con `_default: '-1'`
+    // y antes se enviaban SIEMPRE, aunque no se mapeara nada, como un propietario/transporte
+    // vacío pegado a cada vehículo.
+    const hasUserData = (prefix: string): boolean => {
+        const p = `${prefix}.`;
+        for (const [path, col] of Object.entries(ctx.mapping)) {
+            if (!path.startsWith(p) || !col) continue;
+            const v = row[col];
+            if (v !== undefined && v !== null && String(v).trim() !== '') return true;
+        }
+        return Object.keys(ctx.booleanOverrides).some((k) => k.startsWith(p));
+    };
 
     const buildArrayItem = (
         itemSchema: Record<string, any>,
@@ -380,6 +397,7 @@ export function buildXml(row: Record<string, any>, ctx: BuildXmlContext): string
             if (typeof val === 'object' && val !== null && (!val._default || val._fields)) {
                 const isLeafObject = val._default !== undefined && !val._fields && Object.keys(val).length === 1;
                 if (!isLeafObject) {
+                    if (!hasUserData(currentPath)) continue;
                     const childXml = buildNode(val, currentPath, level + 1);
                     if (childXml.trim()) {
                         xml += `${indent(level)}<unis:${tag}>\n${childXml}${indent(level)}</unis:${tag}>\n`;
@@ -443,6 +461,61 @@ export function buildXml(row: Record<string, any>, ctx: BuildXmlContext): string
   <soapenv:Body>
     <unis:CrearVehiculos>
       <unis:apiKey>${ctx.token || 'TOKEN'}</unis:apiKey>
+      <unis:vehiculos>
+        <unis:pVehiculo>
+${vehicleXml}        </unis:pVehiculo>
+      </unis:vehiculos>
+    </unis:CrearVehiculos>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+}
+
+
+/**
+ * XML de ejemplo con TODOS los campos del contrato CrearVehiculos (estilo SoapUI: `?` en los
+ * campos libres, valor por defecto donde el schema lo define). No depende de ningún Excel —
+ * sirve para copiarlo y probar el método a mano contra UNIGIS.
+ */
+export function buildExampleXml(token = 'TOKEN'): string {
+    const walk = (node: Record<string, any>, level: number): string => {
+        let xml = '';
+        for (const key of Object.keys(node)) {
+            if (key.startsWith('_')) continue;
+            const val = node[key];
+            if (val && typeof val === 'object' && val._isArray) {
+                xml += `${indent(level)}<unis:${key}>
+`;
+                if (val._itemTag === 'string') {
+                    xml += `${indent(level + 1)}<unis:string>?</unis:string>
+`;
+                } else {
+                    xml += `${indent(level + 1)}<unis:${val._itemTag}>
+${walk(val._fields, level + 2)}${indent(level + 1)}</unis:${val._itemTag}>
+`;
+                }
+                xml += `${indent(level)}</unis:${key}>
+`;
+            } else if (val && typeof val === 'object' && val._default !== undefined) {
+                xml += `${indent(level)}<unis:${key}>${escapeXml(String(val._default))}</unis:${key}>
+`;
+            } else if (val && typeof val === 'object') {
+                xml += `${indent(level)}<unis:${key}>
+${walk(val, level + 1)}${indent(level)}</unis:${key}>
+`;
+            } else {
+                xml += `${indent(level)}<unis:${key}>${val === 'bool' ? 'false' : '?'}</unis:${key}>
+`;
+            }
+        }
+        return xml;
+    };
+    const vehicleXml = walk(SCHEMA.Vehiculo, 5);
+    return `<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:unis="http://unisolutions.com.ar/">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <unis:CrearVehiculos>
+      <unis:apiKey>${token}</unis:apiKey>
       <unis:vehiculos>
         <unis:pVehiculo>
 ${vehicleXml}        </unis:pVehiculo>

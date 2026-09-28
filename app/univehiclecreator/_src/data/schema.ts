@@ -314,7 +314,9 @@ export function getAllFields(obj: Record<string, any> = SCHEMA, prefix = ''): st
     for (const key of Object.keys(obj)) {
         const val = obj[key];
         const fullPath = prefix ? `${prefix}.${key}` : key;
-        if (val && typeof val === 'object' && !val._isArray) {
+        // `{ _default: ... }` es una hoja con valor por defecto, no un sub-objeto (antes
+        // generaba paths falsos tipo `Vehiculo.Tara._default`).
+        if (val && typeof val === 'object' && !val._isArray && val._default === undefined) {
             fields.push(...getAllFields(val, fullPath));
         } else {
             fields.push(fullPath);
