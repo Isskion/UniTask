@@ -947,7 +947,29 @@
     "lastUpdate": {
       "_seconds": 1775654901,
       "_nanoseconds": 250000000
-    }
+    },
+    "environments": [
+      {
+        "id": "prod",
+        "name": "Producción",
+        "isProduction": true,
+        "ip": "",
+        "user": "",
+        "pass": "[REDACTED]",
+        "url": "",
+        "mapiToken": ""
+      },
+      {
+        "id": "test",
+        "name": "Test",
+        "isProduction": false,
+        "ip": "",
+        "user": "[REDACTED]",
+        "pass": "[REDACTED]",
+        "url": "",
+        "mapiToken": ""
+      }
+    ]
   },
   {
     "id": "c0HRtaCkKXxeiQf897sY",
