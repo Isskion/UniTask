@@ -1498,7 +1498,6 @@
     "attributes": {
       "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
     },
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "LUI-1",
     "taskNumber": 1,
@@ -1507,9 +1506,15 @@
       "_seconds": 1780307536,
       "_nanoseconds": 938000000
     },
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 30,
+    "closedAt": {
+      "_seconds": 1790676806,
+      "_nanoseconds": 859000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1783579224,
+      "_seconds": 1790676806,
       "_nanoseconds": 859000000
     }
   },

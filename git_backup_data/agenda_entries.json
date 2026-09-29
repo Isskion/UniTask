@@ -15157,8 +15157,6 @@
     "consultantName": "DANIEL TENANT ADMIN",
     "consultantOrder": 1,
     "region": "España",
-    "divisionId": "",
-    "divisionName": "",
     "activityType": "Reunión Cliente",
     "comment": "Delgado / Sesión semanal de configuración y pruebas",
     "client": "DELGADO",
@@ -15167,7 +15165,6 @@
     "scheduleStart": "12:00",
     "scheduleEnd": "13:00",
     "scheduledHours": 1,
-    "result": "Por Hacer",
     "jiraRecord": "Reunión Cliente: DELGADO->SESIÓN SEMANAL DE CONFIGURACIÓN Y PRUEBAS",
     "projectId": "Au1xfXgivgl6VYj2zscs",
     "projectName": "DELGADO",
@@ -15182,9 +15179,12 @@
       "_seconds": 1789743101,
       "_nanoseconds": 120000000
     },
+    "result": "Hecho",
+    "divisionName": "Consultoría",
+    "divisionId": "Consultoría",
     "updatedAt": {
-      "_seconds": 1789743101,
-      "_nanoseconds": 120000000
+      "_seconds": 1790678286,
+      "_nanoseconds": 252000000
     }
   },
   {
