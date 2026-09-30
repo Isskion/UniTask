@@ -682,6 +682,21 @@
     "read": true
   },
   {
+    "id": "BF3dyNJRfOZHT9I8ewIL",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-45 - \"Solicitar información del SSO + MFA\" has reached its deadline.",
+    "taskId": "4wNGOQtXK2gfwbstEUlB",
+    "read": false,
+    "link": "/?view=task-manager&taskId=4wNGOQtXK2gfwbstEUlB",
+    "createdAt": {
+      "_seconds": 1790749098,
+      "_nanoseconds": 427000000
+    }
+  },
+  {
     "id": "BLTfB7ooMa5xXW0zspaQ",
     "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
     "tenantId": "3",
@@ -1208,6 +1223,21 @@
     "createdAt": {
       "_seconds": 1769007391,
       "_nanoseconds": 605000000
+    },
+    "read": true
+  },
+  {
+    "id": "OeyQhuwbYfHBNiIB5yfs",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-35 - \"Facturación a clientes diferentes al cliente Dador\" has reached its deadline.",
+    "taskId": "sF2ms87WsFPqpGuydDnj",
+    "link": "/?view=task-manager&taskId=sF2ms87WsFPqpGuydDnj",
+    "createdAt": {
+      "_seconds": 1790749100,
+      "_nanoseconds": 352000000
     },
     "read": true
   },
@@ -2202,6 +2232,21 @@
     }
   },
   {
+    "id": "mP6f7Ot6xXH5Zozid0jF",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-51 - \"CMA / ARKAS/ MAERSK integración\" has reached its deadline.",
+    "taskId": "oU1pc9lsLSQnj6tT5jsW",
+    "link": "/?view=task-manager&taskId=oU1pc9lsLSQnj6tT5jsW",
+    "createdAt": {
+      "_seconds": 1790749100,
+      "_nanoseconds": 70000000
+    },
+    "read": true
+  },
+  {
     "id": "mRMdmZNOMQSp2iAN0iRV",
     "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
     "type": "assignment",
@@ -2520,6 +2565,21 @@
       "_seconds": 1768565273,
       "_nanoseconds": 335000000
     }
+  },
+  {
+    "id": "rlpLkQW5i4UcMz2MxKop",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-28 - \"Crear analiticas compartivas de los resultados de planificación test versus prod\" has reached its deadline.",
+    "taskId": "AH3jPtvFCeCvf2ePa6L5",
+    "link": "/?view=task-manager&taskId=AH3jPtvFCeCvf2ePa6L5",
+    "createdAt": {
+      "_seconds": 1790749098,
+      "_nanoseconds": 909000000
+    },
+    "read": true
   },
   {
     "id": "rqCKkRGQcRgioYEJD2LX",
