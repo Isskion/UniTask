@@ -60,6 +60,16 @@
     }
   },
   {
+    "id": "0xrO3TEIUCE8N1pQXh8B",
+    "tenantId": "3",
+    "word": "e-cmr",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1790849546,
+      "_nanoseconds": 230000000
+    }
+  },
+  {
     "id": "13c0mlZ2zREU8jmnRVdq",
     "tenantId": "3",
     "word": "monografico",
