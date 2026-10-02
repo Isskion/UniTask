@@ -36,16 +36,19 @@
       "_seconds": 1768817065,
       "_nanoseconds": 714000000
     },
-    "lastUpdate": {
-      "_seconds": 1768817065,
-      "_nanoseconds": 714000000
-    },
     "name": "FRIT RAVICH",
     "_migrated": true,
     "_tenantAccessKey": "3:CL:CONS",
     "_accessKey": "ES:CON",
     "regionId": "ES",
-    "divisionId": "CON"
+    "divisionId": "CON",
+    "aliases": [
+      "FRITZ RAVICH"
+    ],
+    "lastUpdate": {
+      "_seconds": 1790946668,
+      "_nanoseconds": 999000000
+    }
   },
   {
     "id": "1UEthBAXfAOmknsGmG80",
@@ -261,10 +264,6 @@
       "_seconds": 1767970238,
       "_nanoseconds": 863000000
     },
-    "lastUpdate": {
-      "_seconds": 1767970238,
-      "_nanoseconds": 863000000
-    },
     "_migrated": true,
     "_tenantAccessKey": "3:CL:CONS",
     "connections": {
@@ -308,7 +307,14 @@
     ],
     "_accessKey": "ES:CON",
     "regionId": "ES",
-    "divisionId": "CON"
+    "divisionId": "CON",
+    "aliases": [
+      "SESION ECINSA MAPEO INTERFASES"
+    ],
+    "lastUpdate": {
+      "_seconds": 1790950279,
+      "_nanoseconds": 7000000
+    }
   },
   {
     "id": "DWXtB3YW0vii8A55ZQYR",
@@ -564,11 +570,12 @@
     ],
     "startDate": "2026-02-02",
     "aliases": [
-      "LUIS SIMOES"
+      "LUIS SIMOES",
+      "REUNION COMITE LS"
     ],
     "lastUpdate": {
-      "_seconds": 1782907388,
-      "_nanoseconds": 471000000
+      "_seconds": 1790950279,
+      "_nanoseconds": 802000000
     }
   },
   {
@@ -944,10 +951,6 @@
       "_seconds": 1775654901,
       "_nanoseconds": 250000000
     },
-    "lastUpdate": {
-      "_seconds": 1775654901,
-      "_nanoseconds": 250000000
-    },
     "environments": [
       {
         "id": "prod",
@@ -969,7 +972,14 @@
         "url": "",
         "mapiToken": ""
       }
-    ]
+    ],
+    "aliases": [
+      "LGF/REVISION PLANIFICACION RIACHOS LOCAL AUTOMATICO"
+    ],
+    "lastUpdate": {
+      "_seconds": 1790950279,
+      "_nanoseconds": 474000000
+    }
   },
   {
     "id": "c0HRtaCkKXxeiQf897sY",
