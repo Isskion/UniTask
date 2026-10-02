@@ -5492,6 +5492,32 @@
     "updatedAt": "2026-10-01T14:06:06.548Z"
   },
   {
+    "id": "3_2026-10-02",
+    "date": "2026-10-02",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "LUIS SIMOES Fase II",
+        "projectId": "OH4sjML9byhLuzMXSTss",
+        "pmNotes": "Hola equipo Luis Simoes,\n\n \n\nUn placer haber conversado con vosotros nuevamente en el contexto de la reunión de Comité Mensual proyecto Implementación TMS Unigis Fase II.\n\n \n\nA continuación, comparto una breve lista de los temas, acuerdos y próximos pasos comentados:\n\n \n\nSe adjunta en este correo la presentación con toda la información vista durante la sesión\n\nSe resaltó la criticidad de conseguir la aprobación formal (firma) en el Documento de Diseño ToBe v5 compartido hace semanas\nEn este sentido, Luis Freitas y equipo se comprometió a entregar dicha firma el día 02-10-26\nEl equipo de Unigis, no obstante, sigue avanzando en la Construcción y set up según agenda\n\nLuis menciona la importancia de revisar y consolidar el cronograma, dado que Luis Simoes tiene previstas sólo 2 ventanas posibles para salida a Producción durante 2027:\nMarzo 2027\nSeptiembre 2027\nEl Plan Preliminar de Etapa III, IV y V y Cronograma FASE II asociado, actualmente está devolviendo 08-09-27\n\nSe repasaron los frentes de trabajo que componen actualmente el camino crítico del proyecto y se acordó dar seguimiento estricto\nIntegraciones actuales (no futuras) entre EAL – Unigis\nMejoras de producto reportadas a equipo de producto Unigis con prioridad Bloqueante y Alta\nCierre y acuerdo de diseño de tarifación\nSe ofreció trabajar en un cuadro de control para volcar todos estos temas incluyendo Nombre Frente + Tipo Criticidad + Fecha estimada entrega + Actualizaciones\n\nAlberto solicitó acceso a la lista de mejoras y Roadmaps para tener a todos ellos identificados\n\nEquipos de Trabajo y Matriz de Gobernanza de la FASE II permanece en el SharePoint compartido ​icono de pdf AQUI\nEquipo LS por favor revisar y comentar cualquier cambio de estructura",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Hola equipo Luis Simoes,\n\n \n\nUn placer haber conversado con vosotros nuevamente en el contexto de la reunión de Comité Mensual proyecto Implementación TMS Unigis Fase II.\n\n \n\nA continuación, comparto una breve lista de los temas, acuerdos y próximos pasos comentados:\n\n \n\nSe adjunta en este correo la presentación con toda la información vista durante la sesión\n\nSe resaltó la criticidad de conseguir la aprobación formal (firma) en el Documento de Diseño ToBe v5 compartido hace semanas\nEn este sentido, Luis Freitas y equipo se comprometió a entregar dicha firma el día 02-10-26\nEl equipo de Unigis, no obstante, sigue avanzando en la Construcción y set up según agenda\n\nLuis menciona la importancia de revisar y consolidar el cronograma, dado que Luis Simoes tiene previstas sólo 2 ventanas posibles para salida a Producción durante 2027:\nMarzo 2027\nSeptiembre 2027\nEl Plan Preliminar de Etapa III, IV y V y Cronograma FASE II asociado, actualmente está devolviendo 08-09-27\n\nSe repasaron los frentes de trabajo que componen actualmente el camino crítico del proyecto y se acordó dar seguimiento estricto\nIntegraciones actuales (no futuras) entre EAL – Unigis\nMejoras de producto reportadas a equipo de producto Unigis con prioridad Bloqueante y Alta\nCierre y acuerdo de diseño de tarifación\nSe ofreció trabajar en un cuadro de control para volcar todos estos temas incluyendo Nombre Frente + Tipo Criticidad + Fecha estimada entrega + Actualizaciones\n\nAlberto solicitó acceso a la lista de mejoras y Roadmaps para tener a todos ellos identificados\n\nEquipos de Trabajo y Matriz de Gobernanza de la FASE II permanece en el SharePoint compartido ​icono de pdf AQUI\nEquipo LS por favor revisar y comentar cualquier cambio de estructura",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-10-02T09:58:19.164Z",
+    "updatedAt": "2026-10-02T09:59:29.785Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
