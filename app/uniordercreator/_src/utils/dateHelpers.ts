@@ -75,6 +75,63 @@ export function formatToUnigisDate(value: any): string {
     return `${year}-${month}-${day}`;
 }
 
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+/** Local wall-clock → xs:dateTime sin zona (YYYY-MM-DDTHH:mm:ss). Nunca toISOString (desplaza a UTC). */
+function toUnigisDateTime(d: Date): string {
+    // SheetJS con cellDates puede devolver horas con desfase de segundos → redondear al segundo.
+    const r = new Date(Math.round(d.getTime() / 1000) * 1000);
+    return `${r.getFullYear()}-${pad2(r.getMonth() + 1)}-${pad2(r.getDate())}T${pad2(r.getHours())}:${pad2(r.getMinutes())}:${pad2(r.getSeconds())}`;
+}
+
+/**
+ * Formatea cualquier valor (Date, serial Excel con fracción horaria, string) como xs:dateTime
+ * `YYYY-MM-DDTHH:mm:ss`, conservando la hora si viene y usando 00:00:00 si solo hay fecha.
+ * Los campos dateTime del WSDL de UNIGIS (Fecha, FechaRecoleccion, Datetime1…) requieren hora.
+ * Devuelve el valor original como string si no se reconoce como fecha.
+ */
+export function formatToUnigisDateTime(value: any): string {
+    if (value === null || value === undefined || value === '' || value === 0) return '';
+
+    let date: Date | null = null;
+
+    if (value instanceof Date) {
+        date = value;
+    } else if (typeof value === 'number') {
+        // Serial Excel (≈1982–2173): parte entera = día, fracción = hora
+        if (value >= 30000 && value < 100000) {
+            const totalSeconds = Math.round((value - 25569) * 86400);
+            const u = new Date(totalSeconds * 1000);
+            date = new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate(), u.getUTCHours(), u.getUTCMinutes(), u.getUTCSeconds());
+        } else if (value > 1e12) {
+            date = new Date(value);
+        } else {
+            return String(value);
+        }
+    } else {
+        const str = String(value).trim();
+        if (!str) return '';
+
+        // DD/MM/YYYY o DD-MM-YYYY con hora opcional "HH:mm[:ss]"
+        const dmy = str.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+        // YYYY-MM-DD con hora opcional — se interpreta como hora local tal cual (sin zona)
+        const ymd = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+        if (dmy) {
+            date = new Date(+dmy[3], +dmy[2] - 1, +dmy[1], +(dmy[4] || 0), +(dmy[5] || 0), +(dmy[6] || 0));
+        } else if (ymd) {
+            date = new Date(+ymd[1], +ymd[2] - 1, +ymd[3], +(ymd[4] || 0), +(ymd[5] || 0), +(ymd[6] || 0));
+        } else {
+            date = new Date(str);
+        }
+    }
+
+    if (!date || isNaN(date.getTime())) return String(value);
+    const y = date.getFullYear();
+    if (y < 1900 || y > 2100) return String(value);
+
+    return toUnigisDateTime(date);
+}
+
 /**
  * Convert an Excel time fraction or "HH:MM" string to an HHMM integer
  * (e.g., 0.75 → 1800 for 18:00, "14:30" → 1430).

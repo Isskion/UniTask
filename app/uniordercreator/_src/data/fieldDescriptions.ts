@@ -1,7 +1,7 @@
 // Field tooltip descriptions for the mapper UI
 export const FIELD_DESCRIPTIONS: Record<string, string> = {
     'Orden.RefDocumento': 'Identificador único del pedido (ej. número de factura o pedido). Se guarda en la BD como Pedido.ReferenciaExterna — es el campo correcto para mapear una columna Excel de "referencia externa".',
-    'Orden.Fecha': 'Fecha de creación del pedido. Formato recomendado: YYYY-MM-DD.',
+    'Orden.Fecha': 'Fecha de creación del pedido (dateTime). Acepta fecha o fecha+hora de Excel, DD/MM/AAAA [HH:mm] o AAAA-MM-DD [HH:mm]; se envía como AAAA-MM-DDTHH:mm:ss.',
     'Orden.Cliente.RefCliente': 'Código único del cliente en el sistema.',
     'Orden.Cliente.RazonSocial': 'Nombre o razón social del cliente.',
     'Orden.Cliente.Domicilio.Calle': 'Nombre de la calle de entrega.',
@@ -12,7 +12,7 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = {
     'Orden.Cliente.Domicilio.Pais': 'País de entrega (ej. MX, AR, ES).',
     'Orden.Cliente.Telefono': 'Teléfono de contacto del cliente.',
     'Orden.Cliente.Email': 'Correo electrónico para notificaciones.',
-    'Orden.FechaEntrega': 'Fecha solicitada de entrega. Formato: YYYY-MM-DD.',
+    'Orden.FechaEntrega': 'Fecha solicitada de entrega (dateTime). Se conserva la hora si la celda la trae; si no, 00:00:00.',
     'Orden.FranjaHoraria': 'Horario preferente de entrega (ej. 09:00 - 18:00).',
     'Orden.Volumen': 'Volumen total del pedido (m³).',
     'Orden.Peso': 'Peso total del pedido (kg).',

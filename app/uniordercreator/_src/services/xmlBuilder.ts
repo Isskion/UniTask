@@ -5,7 +5,7 @@
  */
 
 import { SCHEMA } from '../data/schema';
-import { formatToUnigisDate, excelTimeToHHMM, excelSerialToISO } from '../utils/dateHelpers';
+import { formatToUnigisDate, formatToUnigisDateTime, excelTimeToHHMM } from '../utils/dateHelpers';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -267,17 +267,24 @@ export function buildXml(row: Record<string, any>, ctx: BuildXmlContext): string
                 const genericPath = itemCurrentPath.replace(/\[\d+\]/g, '');
                 mappingValue = ctx.mapping[genericPath];
             }
+            let rawValue: any;
             if (mappingValue) {
                 const colName = mappingValue;
                 if (dataSource[colName] !== undefined) {
-                    content = String(dataSource[colName]).trim();
+                    rawValue = dataSource[colName];
                 } else if (colName.includes('.')) {
                     const stripped = colName.split('.').pop()!;
-                    if (dataSource[stripped] !== undefined) content = String(dataSource[stripped]).trim();
+                    if (dataSource[stripped] !== undefined) rawValue = dataSource[stripped];
                 }
             }
-            if (!content && dataSource[itemTag] !== undefined) {
-                content = String(dataSource[itemTag]).trim();
+            if ((rawValue === undefined || String(rawValue).trim() === '') && dataSource[itemTag] !== undefined) {
+                rawValue = dataSource[itemTag];
+            }
+            if (rawValue !== undefined && rawValue !== null) {
+                const isItemDateField = /(Fecha|Vigencia|Datetime)/i.test(itemTag) && !itemTag.toLowerCase().includes('horario');
+                if (isItemDateField) content = formatToUnigisDateTime(rawValue);
+                else if (rawValue instanceof Date) content = formatToUnigisDate(rawValue);
+                else content = String(rawValue).trim();
             }
             if (!content && defaultVal) content = defaultVal;
             if (content) {
@@ -430,15 +437,10 @@ export function buildXml(row: Record<string, any>, ctx: BuildXmlContext): string
 
                 if (isTimeField) {
                     content = String(excelTimeToHHMM(cellValue));
-                } else if (cellValue instanceof Date) {
-                    const year = cellValue.getFullYear();
-                    const month = String(cellValue.getMonth() + 1).padStart(2, '0');
-                    const day = String(cellValue.getDate()).padStart(2, '0');
-                    content = `${year}-${month}-${day}`;
-                } else if (isDateField && typeof cellValue === 'number') {
-                    try { content = cellValue === 0 ? '' : excelSerialToISO(cellValue); }
-                    catch { content = String(cellValue).trim(); }
                 } else if (isDateField) {
+                    // Todos los campos Fecha*/Datetime*/Vigencia* son xs:dateTime en el WSDL → siempre con hora
+                    content = formatToUnigisDateTime(cellValue);
+                } else if (cellValue instanceof Date) {
                     content = formatToUnigisDate(cellValue);
                 } else if (isBooleanField) {
                     if (cellValue === true || cellValue === 1) content = 'true';
