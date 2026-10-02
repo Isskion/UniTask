@@ -71,6 +71,8 @@ export interface AppState {
     sendCancelled: boolean;
     highlightedField: string;
     isDryRun: boolean; // #72: Modo Simulación
+    /** Rellenar Inicio/FinHorarioRecoleccion1 e Inicio/FinHorario1 con la hora de FechaRecoleccion/FechaEntrega (inicio = fin). Off por defecto. */
+    horariosDesdeFecha: boolean;
     /** Se incrementa solo cuando cambian los DATOS reales (carga de Excel, edición de celda),
      * nunca en actualizaciones de _status/_error durante un envío masivo. Permite a componentes
      * costosos (p.ej. detección de columnas vacías en MapperPanel) recalcular solo cuando hace
@@ -107,6 +109,7 @@ export interface AppState {
     setIsSending: (v: boolean) => void;
     setSendCancelled: (v: boolean) => void;
     setIsDryRun: (v: boolean) => void;
+    setHorariosDesdeFecha: (v: boolean) => void;
     navigateToField: (fieldPath: string) => void;
 
     // Bulk updates
@@ -177,6 +180,7 @@ export const useAppStore = create<AppState>((set) => ({
     sendCancelled: false,
     highlightedField: '',
     isDryRun: false,
+    horariosDesdeFecha: false, // se carga de localStorage al montar el Header (evita desajuste SSR)
     dataVersion: 0,
 
     // --- Actions ---
@@ -238,6 +242,10 @@ export const useAppStore = create<AppState>((set) => ({
     setIsSending: (isSending) => set({ isSending }),
     setSendCancelled: (sendCancelled) => set({ sendCancelled }),
     setIsDryRun: (isDryRun) => set({ isDryRun }),
+    setHorariosDesdeFecha: (horariosDesdeFecha) => {
+        try { localStorage.setItem('uoc_horariosDesdeFecha', horariosDesdeFecha ? '1' : '0'); } catch { /* storage bloqueado */ }
+        set({ horariosDesdeFecha });
+    },
     navigateToField: (fieldPath) => {
         for (const [tabId, fields] of Object.entries(FIELD_GROUPS) as [string, string[]][]) {
             if (fields.includes(fieldPath)) {

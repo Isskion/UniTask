@@ -84,6 +84,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
     const setSendCancelled = useAppStore((s) => s.setSendCancelled);
     const multiSheet = useAppStore((s) => s.multiSheet);
     const setBooleanOverride = useAppStore((s) => s.setBooleanOverride);
+    const horariosDesdeFecha = useAppStore((s) => s.horariosDesdeFecha);
 
     // ─── #27: Auto-save session to localStorage on changes ────────────
     useEffect(() => {
@@ -272,6 +273,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
         dynFieldsConfig: {},
         multiSheetEnabled: multiSheet.enabled,
         multiSheetConfig: multiSheet.config,
+        horariosDesdeFecha,
         getRelatedItems: (row: any, relation: any) => {
             if (!multiSheet.enabled) return [];
             const mainKey = multiSheet.config.mainKey;
@@ -279,7 +281,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
             const relatedRows = multiSheet.sheets[relation.sheet] || [];
             return relatedRows.filter((r: any) => String(r[relation.key]) === String(keyValue));
         },
-    }), [mapping, booleanOverrides, token, multiSheet]);
+    }), [mapping, booleanOverrides, token, multiSheet, horariosDesdeFecha]);
 
     // ─── Send batch ─────────────────────────────────────────────────────
     const sendBatch = useCallback(async (batch: { row: any; index: number }[]) => {

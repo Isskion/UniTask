@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
 
@@ -41,6 +42,10 @@ export default function Header({
     const role = useAppStore((s) => s.role);
     const mapping = useAppStore((s) => s.mapping);
     const isDryRun = useAppStore((s) => s.isDryRun);
+    const horariosDesdeFecha = useAppStore((s) => s.horariosDesdeFecha);
+    useEffect(() => {
+        try { if (localStorage.getItem('uoc_horariosDesdeFecha') === '1') useAppStore.getState().setHorariosDesdeFecha(true); } catch { /* storage bloqueado */ }
+    }, []);
 
     const failedCount = rows.filter((r) => r._status === 'error').length;
     const successCount = rows.filter((r) => r._status === 'success').length;
@@ -201,6 +206,22 @@ export default function Header({
                                 <div className={`absolute top-[2px] left-[2px] bg-white w-3 h-3 rounded-full transition-transform duration-200 shadow-sm ${isDryRun ? 'translate-x-3' : ''}`} />
                             </div>
                             <span className={`text-[8px] font-black uppercase tracking-widest transition-colors ${isDryRun ? 'text-orange-400' : 'text-slate-500'}`}>Sim</span>
+                        </label>
+                    </div>
+
+                    {/* Horario = fecha: Inicio/FinHorarioRecoleccion1 ← hora de FechaRecoleccion, Inicio/FinHorario1 ← hora de FechaEntrega */}
+                    <div className="flex items-center px-2 py-1 rounded-lg border border-white/[0.05] bg-slate-900/50" title="Horario = fecha: rellena la ventana de recolección (inicio = fin) con la hora de FechaRecoleccion y la de entrega con la hora de FechaEntrega. Si mapeas una columna a esos campos, manda la columna.">
+                        <label className="flex items-center cursor-pointer select-none gap-2">
+                            <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={horariosDesdeFecha}
+                                onChange={(e) => useAppStore.getState().setHorariosDesdeFecha(e.target.checked)}
+                            />
+                            <div className={`relative w-7 h-4 rounded-full transition-colors duration-200 ${horariosDesdeFecha ? 'bg-emerald-500' : 'bg-slate-700'}`}>
+                                <div className={`absolute top-[2px] left-[2px] bg-white w-3 h-3 rounded-full transition-transform duration-200 shadow-sm ${horariosDesdeFecha ? 'translate-x-3' : ''}`} />
+                            </div>
+                            <span className={`text-[8px] font-black uppercase tracking-widest transition-colors ${horariosDesdeFecha ? 'text-emerald-400' : 'text-slate-500'}`}>Horario = fecha</span>
                         </label>
                     </div>
 

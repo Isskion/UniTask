@@ -130,6 +130,15 @@ export interface BuildXmlContext {
         relations: Array<{ sheet: string; key: string; targetPath: string; itemTag: string }>;
     };
     getRelatedItems: (row: Record<string, any>, relation: any) => Record<string, any>[];
+    /** Ver appStore.horariosDesdeFecha */
+    horariosDesdeFecha?: boolean;
+}
+
+/** Hora (HHMM) de un valor fecha-hora, o '' si no trae hora (00:00:00). */
+function hhmmFromDateValue(value: any): string {
+    const m = formatToUnigisDateTime(value).match(/T(\d{2}):(\d{2}):\d{2}$/);
+    if (!m || (m[1] === '00' && m[2] === '00')) return '';
+    return String(parseInt(m[1], 10) * 100 + parseInt(m[2], 10));
 }
 
 // ─── buildXml ─────────────────────────────────────────────────────────────────
@@ -137,6 +146,17 @@ export interface BuildXmlContext {
 export function buildXml(row: Record<string, any>, ctx: BuildXmlContext): string {
     // Apply dynamic field transformation
     transformDynamicFields(row, ctx.dynFieldsConfig);
+
+    // Opción "Horario = fecha": ventana horaria con inicio = fin = hora de la fecha.
+    // Solo rellena si el usuario no ha mapeado ya un valor para ese campo.
+    const derivedTimes: Record<string, string> = {};
+    if (ctx.horariosDesdeFecha) {
+        const hhmmOf = (path: string) => (ctx.mapping[path] ? hhmmFromDateValue(row[ctx.mapping[path]]) : '');
+        const recoleccion = hhmmOf('Orden.FechaRecoleccion');
+        const entrega = hhmmOf('Orden.FechaEntrega');
+        if (recoleccion) derivedTimes['Orden.InicioHorarioRecoleccion1'] = derivedTimes['Orden.FinHorarioRecoleccion1'] = recoleccion;
+        if (entrega) derivedTimes['Orden.InicioHorario1'] = derivedTimes['Orden.FinHorario1'] = entrega;
+    }
 
     // ── buildArrayItem (recursive) ────────────────────────────────────────
     const buildArrayItem = (
@@ -455,6 +475,7 @@ export function buildXml(row: Record<string, any>, ctx: BuildXmlContext): string
                 }
             }
 
+            if (!content && derivedTimes[currentPath]) content = derivedTimes[currentPath];
             if (!content && defaultVal) content = defaultVal;
 
             if (content) {
