@@ -77,10 +77,14 @@ export function parseSheet(workbook: XLSX.WorkBook, sheetName: string): ParsedSh
                     const mins = String(val.getMinutes()).padStart(2, '0');
                     val = `${hrs}:${mins}`;
                 } else {
-                    const year = val.getFullYear();
-                    const month = String(val.getMonth() + 1).padStart(2, '0');
-                    const day = String(val.getDate()).padStart(2, '0');
-                    val = `${year}-${month}-${day}`;
+                    // SheetJS puede traer desfase de segundos → redondear al segundo
+                    const d = new Date(Math.round(val.getTime() / 1000) * 1000);
+                    const p = (n: number) => String(n).padStart(2, '0');
+                    const datePart = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+                    // Conservar la hora si la celda la trae (antes se perdía aquí y FechaRecoleccion/
+                    // FechaEntrega llegaban a UNIGIS a las 00:00). Solo fecha → mismo formato que antes.
+                    const hasTime = d.getHours() || d.getMinutes() || d.getSeconds();
+                    val = hasTime ? `${datePart} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}` : datePart;
                 }
             } else if (typeof val === 'string') {
                 // #34: Auto data cleanup
