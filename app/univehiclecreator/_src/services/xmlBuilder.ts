@@ -23,7 +23,13 @@ function excelSerialToISO(serial: number): string {
     const hours = Math.floor(totalSeconds / (60 * 60));
     const minutes = Math.floor(totalSeconds / 60) % 60;
     const d = new Date(dateInfo.getFullYear(), dateInfo.getMonth(), dateInfo.getDate(), hours, minutes, seconds);
-    return d.toISOString();
+    return toLocalDateTime(d);
+}
+
+/** xs:dateTime en hora local sin zona (YYYY-MM-DDTHH:mm:ss). No usar toISOString: pasa a UTC y puede restar un día. */
+function toLocalDateTime(d: Date): string {
+    const p = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
 
 export function detectArrayIndices(
@@ -427,7 +433,7 @@ export function buildXml(sourceRow: Record<string, any>, ctx: BuildXmlContext): 
                     key.toLowerCase().startsWith('habilitado');
 
                 if (cellValue instanceof Date) {
-                    content = cellValue.toISOString();
+                    content = toLocalDateTime(cellValue);
                 } else if (isDateField && typeof cellValue === 'number') {
                     try { content = cellValue === 0 ? '' : excelSerialToISO(cellValue); }
                     catch { content = String(cellValue).trim(); }
