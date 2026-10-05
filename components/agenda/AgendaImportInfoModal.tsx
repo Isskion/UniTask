@@ -1,14 +1,16 @@
 "use client";
 
-import { X, Upload, FileSpreadsheet, Info } from "lucide-react";
+import { X, Upload, FileSpreadsheet, Info, Link2 } from "lucide-react";
 
 interface Props {
     onContinue: () => void;
+    /** Solo se pasa si el navegador soporta File System Access API (Chrome/Edge escritorio). */
+    onLinkSynced?: () => void;
     onClose: () => void;
     maxSizeMB: number;
 }
 
-export function AgendaImportInfoModal({ onContinue, onClose, maxSizeMB }: Props) {
+export function AgendaImportInfoModal({ onContinue, onLinkSynced, onClose, maxSizeMB }: Props) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
@@ -33,6 +35,20 @@ export function AgendaImportInfoModal({ onContinue, onClose, maxSizeMB }: Props)
                         <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                         <p>Revisa estas condiciones antes de subir el archivo para evitar que se importen 0 entradas.</p>
                     </div>
+
+                    {onLinkSynced && (
+                        <div className="space-y-1.5 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+                            <h3 className="font-semibold text-xs uppercase tracking-wide text-emerald-500 flex items-center gap-1.5">
+                                <Link2 className="w-3.5 h-3.5" /> Sin descargar: Excel de SharePoint sincronizado
+                            </h3>
+                            <ol className="list-decimal list-inside space-y-1 text-xs text-muted-foreground">
+                                <li>En SharePoint, en la carpeta del Excel, pulsa <span className="text-foreground font-medium">Sincronizar</span> (o <span className="text-foreground font-medium">Agregar acceso directo a Mis archivos</span>).</li>
+                                <li>Recomendado: clic derecho en esa carpeta en el Explorador → <span className="text-foreground font-medium">Mantener siempre en este dispositivo</span>.</li>
+                                <li>Pulsa <span className="text-foreground font-medium">Vincular Excel sincronizado</span> y elige el archivo dentro de la carpeta de OneDrive.</li>
+                                <li>A partir de ahí, el botón <span className="text-foreground font-medium">Recargar Excel</span> de la agenda lo relee con un clic, siempre con la última versión.</li>
+                            </ol>
+                        </div>
+                    )}
 
                     <div className="space-y-1.5">
                         <h3 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">Archivo</h3>
@@ -74,6 +90,15 @@ export function AgendaImportInfoModal({ onContinue, onClose, maxSizeMB }: Props)
                     >
                         Cancelar
                     </button>
+                    {onLinkSynced && (
+                        <button
+                            onClick={onLinkSynced}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border border-emerald-600/50 text-emerald-500 hover:bg-emerald-500/10 transition-all"
+                        >
+                            <Link2 className="w-3.5 h-3.5" />
+                            Vincular Excel sincronizado
+                        </button>
+                    )}
                     <button
                         onClick={onContinue}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all"

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import {
     ChevronLeft, ChevronRight, CalendarDays, Download, Filter,
     Users, RefreshCw, FileSpreadsheet, Settings2, UserPlus, RotateCcw,
-    LayoutGrid, BarChart3, List, FolderInput, Wand2,
+    LayoutGrid, BarChart3, List, FolderInput, Wand2, RefreshCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, addWeeks, subWeeks } from "date-fns";
@@ -28,6 +28,7 @@ import { AgendaConsultantsManager } from "./AgendaConsultantsManager";
 import { AgendaImportModal } from "./AgendaImportModal";
 import { AgendaImportInfoModal } from "./AgendaImportInfoModal";
 import { AgendaProjectAudit } from "./AgendaProjectAudit";
+import { isLinkedFileSupported, getLinkedHandle, pickAndLinkFile, readLinkedFile } from "@/lib/agenda-linked-file";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
@@ -320,6 +321,41 @@ export function AgendaView() {
     const [showImportInfo, setShowImportInfo] = useState(false);
     const importInputRef = useRef<HTMLInputElement>(null);
 
+    // ── Excel vinculado (carpeta de SharePoint sincronizada con OneDrive) ─────
+    const [linkSupported, setLinkSupported] = useState(false);
+    const [linkedHandle, setLinkedHandle] = useState<Awaited<ReturnType<typeof getLinkedHandle>>>(null);
+    const [reloadingLinked, setReloadingLinked] = useState(false);
+
+    useEffect(() => {
+        setLinkSupported(isLinkedFileSupported());
+        getLinkedHandle().then(setLinkedHandle);
+    }, []);
+
+    async function handleLinkSynced() {
+        setShowImportInfo(false);
+        try {
+            const file = await pickAndLinkFile();
+            if (!file) return;
+            setLinkedHandle(await getLinkedHandle());
+            handleImportFile(file);
+        } catch (err: any) {
+            console.error('[agenda] vincular Excel falló', err);
+            showToast('No se pudo vincular el Excel', `${err?.message || err}. Vuelve a intentarlo o usa "Entendido, elegir archivo" para cargarlo manualmente.`, 'error');
+        }
+    }
+
+    async function handleReloadLinked() {
+        if (!linkedHandle) return;
+        setReloadingLinked(true);
+        try {
+            handleImportFile(await readLinkedFile(linkedHandle));
+        } catch (err: any) {
+            showToast('No se pudo recargar el Excel', String(err?.message || err), 'error');
+        } finally {
+            setReloadingLinked(false);
+        }
+    }
+
     // ── Excel import handlers ──────────────────────────────────────────────────
     function handleImportFile(file: File) {
         if (!file.name.match(/\.(xlsx|xls|xlsb)$/i)) {
@@ -502,6 +538,17 @@ export function AgendaView() {
                         <FolderInput className="w-3.5 h-3.5" />
                         Importar
                     </button>
+                    {linkedHandle && (
+                        <button
+                            onClick={handleReloadLinked}
+                            disabled={reloadingLinked}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                            title={`Releer "${linkedHandle.name}" desde la carpeta sincronizada de OneDrive/SharePoint`}
+                        >
+                            <RefreshCcw className={cn("w-3.5 h-3.5", reloadingLinked && "animate-spin")} />
+                            Recargar Excel
+                        </button>
+                    )}
                     <input
                         ref={importInputRef}
                         type="file"
@@ -769,6 +816,7 @@ export function AgendaView() {
                 <AgendaImportInfoModal
                     maxSizeMB={MAX_IMPORT_SIZE_MB}
                     onClose={() => setShowImportInfo(false)}
+                    onLinkSynced={linkSupported ? handleLinkSynced : undefined}
                     onContinue={() => {
                         setShowImportInfo(false);
                         importInputRef.current?.click();

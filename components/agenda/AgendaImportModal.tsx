@@ -229,7 +229,12 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                         </div>
                         <div>
                             <h2 className="text-sm font-semibold text-foreground">Importar agenda desde Excel</h2>
-                            <p className="text-xs text-muted-foreground">{file.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {file.name}
+                                {file.lastModified > 0 && (
+                                    <span className="opacity-70"> · modificado {new Date(file.lastModified).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                                )}
+                            </p>
                         </div>
                     </div>
                     <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
