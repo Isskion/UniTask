@@ -2483,6 +2483,53 @@
     }
   },
   {
+    "id": "1xvjc5TzHFVSdOiGWSNB",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791410400,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "consultantName": "JESUS MARQUEZ",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / Sesión de trabajo con cliente",
+    "client": "LUIS SIMOES",
+    "description": "SESIÓN DE TRABAJO CON CLIENTE",
+    "scheduleRaw": "10:30 A 12:00",
+    "scheduleStart": "10:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 1.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    }
+  },
+  {
     "id": "1zXakCCPx9YYUWlm38nB",
     "tenantId": "3",
     "date": {
@@ -2574,6 +2621,53 @@
     "updatedAt": {
       "_seconds": 1782907384,
       "_nanoseconds": 503000000
+    }
+  },
+  {
+    "id": "21MhtJqpjQ0iLEpEDztR",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791151200,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "kUZXUUXtufZdvDAG8lCuAw7J1Ez1",
+    "consultantName": "JAIME JESUS ARMAS",
+    "consultantOrder": 8,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión UNIGIS",
+    "comment": "UNIGIS / WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "client": "UNIGIS",
+    "description": "WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:00",
+    "scheduledHours": 1,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -3932,6 +4026,53 @@
     "updatedAt": {
       "_seconds": 1788427243,
       "_nanoseconds": 956000000
+    }
+  },
+  {
+    "id": "2wsA8sQ2Pp4MyhplUsAC",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791324000,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "consultantName": "JESUS MARQUEZ",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / Sesión de trabajo con cliente",
+    "client": "LUIS SIMOES",
+    "description": "SESIÓN DE TRABAJO CON CLIENTE",
+    "scheduleRaw": "10:30 A 12:00",
+    "scheduleStart": "10:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 1.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -9589,6 +9730,53 @@
     }
   },
   {
+    "id": "6rIo4QVfkVDZTkkJYwGy",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791151200,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "consultantName": "JESUS MARQUEZ",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión UNIGIS",
+    "comment": "UNIGIS / WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "client": "UNIGIS",
+    "description": "WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:00",
+    "scheduledHours": 1,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    }
+  },
+  {
     "id": "6uRuNGssC2n8LaYKPrRF",
     "tenantId": "3",
     "date": {
@@ -10617,6 +10805,53 @@
     "updatedAt": {
       "_seconds": 1790950277,
       "_nanoseconds": 159000000
+    }
+  },
+  {
+    "id": "7dqTruiJzafUIIxTFOvt",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791151200,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "consultantName": "IÑAKI IRABURU",
+    "consultantOrder": 4,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión UNIGIS",
+    "comment": "UNIGIS / WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "client": "UNIGIS",
+    "description": "WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:00",
+    "scheduledHours": 1,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -14452,6 +14687,51 @@
     }
   },
   {
+    "id": "A9Di5vgAThuV8wsnE3rT",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791151200,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Reunión UNIGIS",
+    "comment": "UNIGIS | Mudanza",
+    "client": "UNIGIS | MUDANZA",
+    "description": "UNIGIS | MUDANZA",
+    "scheduleRaw": "09:00 A 13:00",
+    "scheduleStart": "09:00",
+    "scheduleEnd": "13:00",
+    "scheduledHours": 4,
+    "jiraRecord": "Reunión UNIGIS: UNIGIS | MUDANZA",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791193961,
+      "_nanoseconds": 301000000
+    },
+    "result": "Hecho",
+    "updatedAt": {
+      "_seconds": 1791194107,
+      "_nanoseconds": 610000000
+    }
+  },
+  {
     "id": "A9neDLcrjIAEYkyZ8ppY",
     "tenantId": "3",
     "date": {
@@ -15567,6 +15847,53 @@
     }
   },
   {
+    "id": "B6Hm9UhonzGnIxdVl7km",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791151200,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "consultantName": "GONZALO CASTRO",
+    "consultantOrder": 5,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión UNIGIS",
+    "comment": "UNIGIS / WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "client": "UNIGIS",
+    "description": "WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:00",
+    "scheduledHours": 1,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    }
+  },
+  {
     "id": "B7RNbx2rP3eE6jqNr2ml",
     "tenantId": "3",
     "date": {
@@ -16496,6 +16823,53 @@
     "updatedAt": {
       "_seconds": 1782108729,
       "_nanoseconds": 995000000
+    }
+  },
+  {
+    "id": "BYJPoGNutB31hmB69fw5",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791151200,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "consultantName": "JORGE MARTINEZ",
+    "consultantOrder": 6,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión UNIGIS",
+    "comment": "UNIGIS / WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "client": "UNIGIS",
+    "description": "WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:00",
+    "scheduledHours": 1,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -17763,6 +18137,53 @@
     "updatedAt": {
       "_seconds": 1790950277,
       "_nanoseconds": 159000000
+    }
+  },
+  {
+    "id": "CU2Srd8xVEudaIMQjlio",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791151200,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "consultantName": "ERIC WALTHER",
+    "consultantOrder": 3,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Vacaciones",
+    "comment": "Licencia por vacaciones",
+    "client": "LICENCIA POR VACACIONES",
+    "description": "LICENCIA POR VACACIONES",
+    "scheduleRaw": "09:00 A 18:00",
+    "scheduleStart": "09:00",
+    "scheduleEnd": "18:00",
+    "scheduledHours": 9,
+    "result": "Hecho",
+    "jiraRecord": "Vacaciones: LICENCIA POR VACACIONES",
+    "projectId": null,
+    "projectName": "LICENCIA POR VACACIONES",
+    "projectCode": null,
+    "projectColor": null,
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -20196,6 +20617,53 @@
     "updatedAt": {
       "_seconds": 1779792157,
       "_nanoseconds": 359000000
+    }
+  },
+  {
+    "id": "DxBk2aMOkajAehvg8thh",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791237600,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "consultantName": "JESUS MARQUEZ",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / Sesión de trabajo con cliente",
+    "client": "LUIS SIMOES",
+    "description": "SESIÓN DE TRABAJO CON CLIENTE",
+    "scheduleRaw": "10:30 A 12:00",
+    "scheduleStart": "10:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 1.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -27217,6 +27685,53 @@
     }
   },
   {
+    "id": "IyGhvYlLAJdpBSLBB3a7",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791237600,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / SEGUIMIENTO DE PROYECTO",
+    "client": "LUIS SIMOES",
+    "description": "SEGUIMIENTO DE PROYECTO",
+    "scheduleRaw": "11:30 A 12:00",
+    "scheduleStart": "11:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 0.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SEGUIMIENTO DE PROYECTO",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    }
+  },
+  {
     "id": "IySF6juBAY6iJcbg9NU5",
     "tenantId": "3",
     "date": {
@@ -27773,6 +28288,53 @@
     "updatedAt": {
       "_seconds": 1782203427,
       "_nanoseconds": 404000000
+    }
+  },
+  {
+    "id": "JLMXPv8T3D5r3mWf12pc",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791324000,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "consultantName": "ERIC WALTHER",
+    "consultantOrder": 3,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Vacaciones",
+    "comment": "Licencia por vacaciones",
+    "client": "LICENCIA POR VACACIONES",
+    "description": "LICENCIA POR VACACIONES",
+    "scheduleRaw": "09:00 A 18:00",
+    "scheduleStart": "09:00",
+    "scheduleEnd": "18:00",
+    "scheduledHours": 9,
+    "result": "Hecho",
+    "jiraRecord": "Vacaciones: LICENCIA POR VACACIONES",
+    "projectId": null,
+    "projectName": "LICENCIA POR VACACIONES",
+    "projectCode": null,
+    "projectColor": null,
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -35448,6 +36010,53 @@
     }
   },
   {
+    "id": "OfrLlITcQxJbki4tTKRS",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791410400,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / Sesión de trabajo con cliente",
+    "client": "LUIS SIMOES",
+    "description": "SESIÓN DE TRABAJO CON CLIENTE",
+    "scheduleRaw": "10:30 A 12:00",
+    "scheduleStart": "10:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 1.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    }
+  },
+  {
     "id": "OfuvaBsNgYujCW02rEvr",
     "tenantId": "3",
     "date": {
@@ -38575,6 +39184,53 @@
     }
   },
   {
+    "id": "R1tsNPnGG5qy4MT6tEt5",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791237600,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / Sesión de trabajo con cliente",
+    "client": "LUIS SIMOES",
+    "description": "SESIÓN DE TRABAJO CON CLIENTE",
+    "scheduleRaw": "10:30 A 12:00",
+    "scheduleStart": "10:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 1.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    }
+  },
+  {
     "id": "R24hBHOSlx7eG4S4E5wY",
     "tenantId": "3",
     "date": {
@@ -38807,6 +39463,51 @@
     "updatedAt": {
       "_seconds": 1788428870,
       "_nanoseconds": 716000000
+    }
+  },
+  {
+    "id": "RCrb4hftmPSe3tjp36ck",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791151200,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Tareas a Realizar",
+    "comment": "TRANSPAIS | Validar flujo de pedidos de Recoleción",
+    "client": "TRANSPAIS | VALIDAR FLUJO DE PEDIDOS DE RECOLECIÓN",
+    "description": "TRANSPAIS | VALIDAR FLUJO DE PEDIDOS DE RECOLECIÓN",
+    "scheduleRaw": "12:00 A 14:00",
+    "scheduleStart": "12:00",
+    "scheduleEnd": "14:00",
+    "scheduledHours": 2,
+    "result": "Hecho",
+    "jiraRecord": "Tarea: TRANSPAIS | VALIDAR FLUJO DE PEDIDOS DE RECOLECIÓN",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "projectCode": "TSP",
+    "projectColor": "#3b82f6",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791196935,
+      "_nanoseconds": 286000000
+    },
+    "updatedAt": {
+      "_seconds": 1791196935,
+      "_nanoseconds": 286000000
     }
   },
   {
@@ -39883,6 +40584,53 @@
     "updatedAt": {
       "_seconds": 1789738588,
       "_nanoseconds": 467000000
+    }
+  },
+  {
+    "id": "S6FCkkv2vxZLtgcE4F6x",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791237600,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "consultantName": "GONZALO CASTRO",
+    "consultantOrder": 5,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / SEGUIMIENTO DE PROYECTO",
+    "client": "LUIS SIMOES",
+    "description": "SEGUIMIENTO DE PROYECTO",
+    "scheduleRaw": "11:30 A 12:00",
+    "scheduleStart": "11:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 0.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SEGUIMIENTO DE PROYECTO",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -52240,6 +52988,53 @@
     }
   },
   {
+    "id": "aLvO9BGsfh2Gu48HnRBn",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791324000,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "consultantName": "GONZALO CASTRO",
+    "consultantOrder": 5,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / Sesión de trabajo con cliente",
+    "client": "LUIS SIMOES",
+    "description": "SESIÓN DE TRABAJO CON CLIENTE",
+    "scheduleRaw": "10:30 A 12:00",
+    "scheduleStart": "10:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 1.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    }
+  },
+  {
     "id": "aOGVdbAzfPk09yshOmQA",
     "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
     "scheduleStart": "11:00",
@@ -57335,6 +58130,53 @@
     }
   },
   {
+    "id": "e2pfj8dgyG49bYgmfoUq",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791151200,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "activityType": "Reunión UNIGIS",
+    "comment": "UNIGIS / WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "client": "UNIGIS",
+    "description": "WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:00",
+    "scheduledHours": 1,
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "divisionName": "Consultoría",
+    "divisionId": "Consultoría",
+    "result": "Cancelado",
+    "updatedAt": {
+      "_seconds": 1791194112,
+      "_nanoseconds": 507000000
+    }
+  },
+  {
     "id": "e3WRa5dK7HmKLSQG6PPz",
     "tenantId": "3",
     "date": {
@@ -60510,6 +61352,100 @@
     "updatedAt": {
       "_seconds": 1789738588,
       "_nanoseconds": 467000000
+    }
+  },
+  {
+    "id": "g4GPULii5yU5AR2Qlir0",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791410400,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "consultantName": "GONZALO CASTRO",
+    "consultantOrder": 5,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / Sesión de trabajo con cliente",
+    "client": "LUIS SIMOES",
+    "description": "SESIÓN DE TRABAJO CON CLIENTE",
+    "scheduleRaw": "10:30 A 12:00",
+    "scheduleStart": "10:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 1.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    }
+  },
+  {
+    "id": "g5TDIadGTfp18l74JifS",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791237600,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "consultantName": "JESUS MARQUEZ",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / SEGUIMIENTO DE PROYECTO",
+    "client": "LUIS SIMOES",
+    "description": "SEGUIMIENTO DE PROYECTO",
+    "scheduleRaw": "11:30 A 12:00",
+    "scheduleStart": "11:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 0.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SEGUIMIENTO DE PROYECTO",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -65893,6 +66829,53 @@
     "updatedAt": {
       "_seconds": 1788428044,
       "_nanoseconds": 265000000
+    }
+  },
+  {
+    "id": "jq9hrBtfjaYFne4eCxJR",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791237600,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "consultantName": "ERIC WALTHER",
+    "consultantOrder": 3,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Vacaciones",
+    "comment": "Licencia por vacaciones",
+    "client": "LICENCIA POR VACACIONES",
+    "description": "LICENCIA POR VACACIONES",
+    "scheduleRaw": "09:00 A 18:00",
+    "scheduleStart": "09:00",
+    "scheduleEnd": "18:00",
+    "scheduledHours": 9,
+    "result": "Hecho",
+    "jiraRecord": "Vacaciones: LICENCIA POR VACACIONES",
+    "projectId": null,
+    "projectName": "LICENCIA POR VACACIONES",
+    "projectCode": null,
+    "projectColor": null,
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -71548,6 +72531,53 @@
     "updatedAt": {
       "_seconds": 1779721878,
       "_nanoseconds": 336000000
+    }
+  },
+  {
+    "id": "ni4DR4EVT9tA7l8kjIlx",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791237600,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "consultantName": "GONZALO CASTRO",
+    "consultantOrder": 5,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / Sesión de trabajo con cliente",
+    "client": "LUIS SIMOES",
+    "description": "SESIÓN DE TRABAJO CON CLIENTE",
+    "scheduleRaw": "10:30 A 12:00",
+    "scheduleStart": "10:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 1.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -78197,6 +79227,53 @@
     }
   },
   {
+    "id": "sQ102TPjhJdYr10ty5X9",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791410400,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "consultantName": "ERIC WALTHER",
+    "consultantOrder": 3,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Vacaciones",
+    "comment": "Licencia por vacaciones",
+    "client": "LICENCIA POR VACACIONES",
+    "description": "LICENCIA POR VACACIONES",
+    "scheduleRaw": "09:00 A 18:00",
+    "scheduleStart": "09:00",
+    "scheduleEnd": "18:00",
+    "scheduledHours": 9,
+    "result": "Hecho",
+    "jiraRecord": "Vacaciones: LICENCIA POR VACACIONES",
+    "projectId": null,
+    "projectName": "LICENCIA POR VACACIONES",
+    "projectCode": null,
+    "projectColor": null,
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    }
+  },
+  {
     "id": "sR44VFbm5yf7RpEiZpkx",
     "tenantId": "3",
     "date": {
@@ -78288,6 +79365,53 @@
     "updatedAt": {
       "_seconds": 1782291635,
       "_nanoseconds": 195000000
+    }
+  },
+  {
+    "id": "sWSgnhAH7lDpSGqVxY9Z",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791324000,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES / Sesión de trabajo con cliente",
+    "client": "LUIS SIMOES",
+    "description": "SESIÓN DE TRABAJO CON CLIENTE",
+    "scheduleRaw": "10:30 A 12:00",
+    "scheduleStart": "10:30",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 1.5,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -79553,6 +80677,53 @@
     "updatedAt": {
       "_seconds": 1779792157,
       "_nanoseconds": 359000000
+    }
+  },
+  {
+    "id": "tGxCnF5ttbBnHYSVl99h",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791496800,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "consultantName": "ERIC WALTHER",
+    "consultantOrder": 3,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Vacaciones",
+    "comment": "Licencia por vacaciones",
+    "client": "LICENCIA POR VACACIONES",
+    "description": "LICENCIA POR VACACIONES",
+    "scheduleRaw": "09:00 A 18:00",
+    "scheduleStart": "09:00",
+    "scheduleEnd": "18:00",
+    "scheduledHours": 9,
+    "result": "Hecho",
+    "jiraRecord": "Vacaciones: LICENCIA POR VACACIONES",
+    "projectId": null,
+    "projectName": "LICENCIA POR VACACIONES",
+    "projectCode": null,
+    "projectColor": null,
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
@@ -83943,6 +85114,53 @@
     "updatedAt": {
       "_seconds": 1784287665,
       "_nanoseconds": 382000000
+    }
+  },
+  {
+    "id": "wBEu3g6zxvfs6hGg1DWK",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791151200,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "4Bv59XpXVHQop7puwmjRRemGcxU2",
+    "consultantName": "DIEGO SENRA LAMBERTI",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "",
+    "divisionName": "",
+    "activityType": "Reunión UNIGIS",
+    "comment": "UNIGIS / WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "client": "UNIGIS",
+    "description": "WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:00",
+    "scheduledHours": 1,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS->WEEKLY (HITOS: JAVIER MARTÍNEZ)",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "importedFromExcel": true,
+    "needsDateReview": false,
+    "createdAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
+    },
+    "updatedAt": {
+      "_seconds": 1791193912,
+      "_nanoseconds": 51000000
     }
   },
   {
