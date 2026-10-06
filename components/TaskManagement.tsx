@@ -30,6 +30,7 @@ import { MessageSquare } from "lucide-react";
 import { getProgressSafe, ProgressV13 } from "@/lib/data-migration";
 import { recalculateAncestors } from "@/lib/hierarchy-governance";
 import { HierarchyTree } from "./HierarchyTree";
+import { isPlanStateLocked } from "@/lib/plan/planTasks";
 import { ProjectMindMapModal } from "./ProjectMindMapModal";
 import { Network } from "lucide-react";
 
@@ -679,6 +680,12 @@ export default function TaskManagement({
             return showToast("UniTaskController", "⚠️ Esfuerzo real obligatorio: Debes registrar los días invertidos para cerrar la tarea", "error");
         }
 
+        // [Plan] Hitos con tareas, padres, agrupadores y controles calculan su estado (planRollup);
+        // las reglas lo rechazarían con un "permission denied" opaco.
+        if (!isNew && selectedTask && isPlanStateLocked(selectedTask) && formData.status !== selectedTask.status) {
+            return showToast("UniTaskController", "El estado de este nodo del plan se calcula de sus tareas: cierra o reabre sus tareas para cambiarlo.", "error");
+        }
+
         // Dependency Check Logic
         if (formData.status === 'completed' && formData.dependencies && formData.dependencies.length > 0) {
             const blockingTasks = tasks.filter(t => formData.dependencies?.includes(t.id) && t.status !== 'completed');
@@ -815,7 +822,13 @@ export default function TaskManagement({
                         data.closedBy = null as any;
                     }
 
-
+                    // [Plan] Campos que mantiene la Cloud Function planRollup: nunca se reenvían desde el
+                    // formulario (podrían estar desfasados y las reglas rechazarían el guardado entero).
+                    if (selectedTask.planRole) {
+                        const planManaged: string[] = ['computed', 'planChildCount', 'planRole'];
+                        if (isPlanStateLocked(selectedTask)) planManaged.push('status', 'progress', 'progressV13', 'closedAt', 'closedBy');
+                        for (const k of planManaged) delete (data as Record<string, unknown>)[k];
+                    }
 
                     await updateDoc(doc(db, "tasks", selectedTask.id), {
                         ...data,
@@ -1413,9 +1426,16 @@ export default function TaskManagement({
                                                 <Share2 className="w-4 h-4" />
                                             </button>
                                             <span className={cn("text-[10px] font-bold uppercase", isLight ? "text-zinc-500" : "text-zinc-400")}>Estado</span>
+                                            {selectedTask && !isNew && isPlanStateLocked(selectedTask) ? (
+                                                <span className={cn("px-3 py-1 rounded text-xs font-bold border flex items-center gap-1.5 cursor-help", getStatusColor(formData.status))}
+                                                    title="Nodo del plan: su estado se calcula de sus tareas y no se cambia a mano.">
+                                                    {getStatusLabel(formData.status)} · calculado
+                                                </span>
+                                            ) : (
                                             <button onClick={() => setIsStatusOpen(!isStatusOpen)} className={cn("px-3 py-1 rounded text-xs font-bold border transition-all flex items-center gap-1.5", getStatusColor(formData.status))}>
                                                 {getStatusLabel(formData.status)} <ChevronDown className="w-3.5 h-3.5 opacity-70" />
                                             </button>
+                                            )}
                                             {isModal && (
                                                 <button
                                                     onClick={handleCloseModal}

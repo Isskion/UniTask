@@ -3,7 +3,7 @@
  * [Plan] Árbol del plan: lo usan la vista previa del asistente (filas del Excel) y la pestaña Plan
  * (tareas ya importadas). Recibe filas planas en preorden y pinta sangría, rol, estado y avance.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronRight, Flag, Folder, ListTree, CheckSquare, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PlanRole } from "@/types";
@@ -55,9 +55,11 @@ interface Props {
     showStatus?: boolean;
     filter?: (row: PlanTreeRow) => boolean;
     onRowClick?: (row: PlanTreeRow) => void;
+    /** Acciones al final de la fila (visibles al pasar el ratón). */
+    renderActions?: (row: PlanTreeRow) => ReactNode;
 }
 
-export function PlanTree({ rows, isLight, initialExpandLevel = Infinity, showStatus = false, filter, onRowClick }: Props) {
+export function PlanTree({ rows, isLight, initialExpandLevel = Infinity, showStatus = false, filter, onRowClick, renderActions }: Props) {
     const [collapsed, setCollapsed] = useState<Set<string>>(
         () => new Set(rows.filter((r) => r.childCount > 0 && r.level >= initialExpandLevel).map((r) => r.key)),
     );
@@ -110,7 +112,7 @@ export function PlanTree({ rows, isLight, initialExpandLevel = Infinity, showSta
                         key={r.key}
                         onClick={onRowClick ? () => onRowClick(r) : undefined}
                         className={cn(
-                            "flex items-center gap-2 pr-3 py-1.5 border-b last:border-b-0",
+                            "group flex items-center gap-2 pr-3 py-1.5 border-b last:border-b-0",
                             isLight ? "border-zinc-100 hover:bg-zinc-50" : "border-white/5 hover:bg-white/5",
                             r.highlight && (isLight ? "bg-amber-50" : "bg-amber-500/5"),
                             onRowClick && "cursor-pointer",
@@ -146,6 +148,11 @@ export function PlanTree({ rows, isLight, initialExpandLevel = Infinity, showSta
                         <span className={cn("text-[10px] shrink-0 w-16 text-right", overdue ? "text-rose-500 font-semibold" : "text-zinc-500")} title={overdue ? "Vencida" : undefined}>
                             {fmtDate(r.end)}
                         </span>
+                        {renderActions && (
+                            <span className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                                {renderActions(r)}
+                            </span>
+                        )}
                     </div>
                 );
             })}

@@ -1,43 +1,45 @@
 "use client";
 /**
  * [Plan] Pestaña "Plan" del proyecto: árbol de tareas del plan en vivo (estados calculados por la
- * Cloud Function planRollup) y acceso al asistente de importación (PM y superiores, D8).
+ * Cloud Function planRollup), alta de tareas desde el árbol (§6), "Descartar bloque" (§5) y acceso
+ * al asistente de importación. Importar y descartar: PM y superiores (D8).
  */
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { Upload, Loader2, Search, AlertTriangle } from "lucide-react";
+import { Upload, Loader2, Search, AlertTriangle, Plus, ExternalLink, Ban, X } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
+import { useToast } from "@/context/ToastContext";
 import { getRoleLevel, RoleLevel, type Project, type Task } from "@/types";
 import { aggregateChildren } from "@/functions/src/planRollupCore";
+import { discardBlock, isWorkable, toIso, type AddMode } from "@/lib/plan/planTasks";
 import { PlanTree, type PlanTreeRow } from "./PlanTree";
 import { PlanImportWizard } from "./PlanImportWizard";
+import { PlanTaskModal } from "./PlanTaskModal";
 
 const CLOSED = new Set(["completed", "discarded", "out_of_scope"]);
-
-/** Fechas de tarea pueden ser ISO o Timestamp de Firestore. */
-const toIso = (v: unknown): string | null => {
-    if (!v) return null;
-    if (typeof v === "string") return v;
-    const t = v as { toDate?: () => Date };
-    return typeof t.toDate === "function" ? t.toDate().toISOString() : null;
-};
+const LOOSE_KEY = "__loose__";
 
 export function ProjectPlan({ project }: { project: Project }) {
     const { user, userRole, identity, tenantId: authTenantId } = useAuth();
     const { theme } = useTheme();
+    const { showToast } = useToast();
     const isLight = theme === "light";
     const tenantId = project.tenantId || authTenantId || "1";
     const roleLevel = Number(identity?.realRole ?? getRoleLevel(userRole));
-    const canImport = roleLevel >= RoleLevel.PM;
+    const isPM = roleLevel >= RoleLevel.PM;
 
     const [tasks, setTasks] = useState<Task[] | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [showWizard, setShowWizard] = useState(false);
     const [search, setSearch] = useState("");
     const [onlyOverdue, setOnlyOverdue] = useState(false);
+    const [adding, setAdding] = useState<{ mode: AddMode; parent: Task | null } | null>(null);
+    const [discarding, setDiscarding] = useState<{ node: Task; count: number } | null>(null);
+    const [discardReason, setDiscardReason] = useState("");
+    const [discardBusy, setDiscardBusy] = useState(false);
 
     useEffect(() => {
         const q = query(collection(db, "tasks"), where("projectId", "==", project.id), where("tenantId", "==", tenantId));
@@ -47,23 +49,28 @@ export function ProjectPlan({ project }: { project: Project }) {
         );
     }, [project.id, tenantId]);
 
-    // Filas en preorden a partir de parentId + order
+    const byId = useMemo(() => new Map((tasks || []).map((t) => [t.id, t])), [tasks]);
+
+    /** Tareas trabajables abiertas bajo un nodo (lo que "Descartar bloque" cerraría). */
+    const openWorkUnder = (nodeId: string) => (tasks || []).filter((t) => (t.ancestorIds || []).includes(nodeId) && isWorkable(t) && !CLOSED.has(t.status)).length;
+
+    // Filas en preorden a partir de parentId + order. Las tareas sueltas creadas en UniTask van en "Fuera de plan".
     const rows: PlanTreeRow[] = useMemo(() => {
         if (!tasks) return [];
         const byParent = new Map<string, Task[]>();
         const ids = new Set(tasks.map((t) => t.id));
         for (const t of tasks) {
-            const p = t.parentId && ids.has(t.parentId) ? t.parentId : "__root__";
+            const p = t.parentId && ids.has(t.parentId) ? t.parentId : (t.planOrigin === "unitask" ? LOOSE_KEY : "__root__");
             byParent.set(p, [...(byParent.get(p) || []), t]);
         }
         for (const list of byParent.values()) list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         const out: PlanTreeRow[] = [];
-        const walk = (parent: string, level: number) => {
+        const walk = (parent: string, level: number, parentKey: string | null) => {
             for (const t of byParent.get(parent) || []) {
                 const kids = byParent.get(t.id) || [];
                 out.push({
                     key: t.id,
-                    parentKey: parent === "__root__" ? null : parent,
+                    parentKey,
                     level,
                     code: t.planCode || null,
                     title: t.title,
@@ -75,18 +82,23 @@ export function ProjectPlan({ project }: { project: Project }) {
                     responsible: t.raci?.responsible?.[0] ?? null,
                     childCount: kids.length,
                 });
-                walk(t.id, level + 1);
+                walk(t.id, level + 1, t.id);
             }
         };
-        walk("__root__", 0);
+        walk("__root__", 0, null);
+        const loose = byParent.get(LOOSE_KEY) || [];
+        if (loose.length) {
+            out.push({ key: LOOSE_KEY, parentKey: null, level: 0, code: null, title: "Fuera de plan", role: "group", childCount: loose.length });
+            walk(LOOSE_KEY, 1, LOOSE_KEY);
+        }
         return out;
     }, [tasks]);
 
     const summary = useMemo(() => {
         if (!tasks || tasks.length === 0) return null;
         const roots = tasks.filter((t) => !t.parentId);
-        const agg = aggregateChildren(roots.map((t) => ({ ...t, startDate: t.startDate, endDate: t.endDate })));
-        const work = tasks.filter((t) => t.planRole === "leaf" || (t.planRole === "milestone" && !(t.planChildCount ?? 0)));
+        const agg = aggregateChildren(roots);
+        const work = tasks.filter(isWorkable);
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const overdue = work.filter((t) => !CLOSED.has(t.status) && toIso(t.endDate) && Date.parse(toIso(t.endDate)!) < today.getTime()).length;
         return { progress: agg?.progress ?? 0, work: work.length, closed: work.filter((t) => CLOSED.has(t.status)).length, overdue };
@@ -100,6 +112,49 @@ export function ProjectPlan({ project }: { project: Project }) {
             (!q || r.title.toLowerCase().includes(q) || (r.code || "").toLowerCase().includes(q)) &&
             (!onlyOverdue || (r.childCount === 0 && !CLOSED.has(r.status || "") && !!r.end && Date.parse(r.end) < todayMs));
     }, [search, onlyOverdue]);
+
+    const iconBtn = cn("p-1 rounded", isLight ? "hover:bg-zinc-200 text-zinc-500" : "hover:bg-white/10 text-zinc-400");
+
+    const renderActions = (r: PlanTreeRow) => {
+        const t = byId.get(r.key);
+        if (!t) return null;
+        const canAddChild = t.planRole === "milestone" || t.planRole === "parent";
+        const canSubtask = t.planRole === "leaf";
+        const openCount = canAddChild && isPM && r.childCount > 0 ? openWorkUnder(t.id) : 0;
+        return (
+            <>
+                {canAddChild && (
+                    <button className={iconBtn} title="Añadir tarea aquí" onClick={() => setAdding({ mode: "child", parent: t })}><Plus className="w-3.5 h-3.5" /></button>
+                )}
+                {canSubtask && (
+                    <button className={cn(iconBtn, "text-[10px] font-semibold flex items-center gap-0.5")} title="Añadir subtarea (esta tarea pasará a ser padre)" onClick={() => setAdding({ mode: "subtask", parent: t })}>
+                        <Plus className="w-3 h-3" />Sub
+                    </button>
+                )}
+                {openCount > 0 && (
+                    <button className={iconBtn} title={`Descartar bloque (${openCount} tareas abiertas)`} onClick={() => { setDiscardReason(""); setDiscarding({ node: t, count: openCount }); }}>
+                        <Ban className="w-3.5 h-3.5" />
+                    </button>
+                )}
+                <a className={iconBtn} title="Abrir en el gestor de tareas" href={`/tasks?id=${t.id}`} target="_blank" rel="noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
+            </>
+        );
+    };
+
+    const handleDiscard = async () => {
+        if (!discarding || !user) return;
+        setDiscardBusy(true);
+        try {
+            const n = await discardBlock({ node: discarding.node, planTasks: tasks || [], reason: discardReason, tenantId, user });
+            showToast("Plan", `${n} tarea(s) marcadas fuera de alcance; "${discarding.node.title}" se cerrará solo.`, "success");
+            setDiscarding(null);
+        } catch (err) {
+            console.error("[ProjectPlan] Error descartando bloque", discarding.node.id, err);
+            showToast("Plan", `No se pudo descartar el bloque: ${err instanceof Error ? err.message : String(err)}`, "error");
+        } finally {
+            setDiscardBusy(false);
+        }
+    };
 
     if (tasks === null) {
         return <div className="p-10 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-zinc-400" /></div>;
@@ -118,7 +173,7 @@ export function ProjectPlan({ project }: { project: Project }) {
                 <div className={cn("rounded-xl border-2 border-dashed p-10 text-center space-y-3", isLight ? "border-zinc-300" : "border-white/15")}>
                     <p className="font-semibold">Este proyecto no tiene plan importado.</p>
                     <p className="text-sm text-zinc-500">Importa el Excel de MS Project: se crearán hitos, tareas padre y tareas del proyecto. Los hitos se cierran solos al cerrar sus tareas.</p>
-                    {canImport ? (
+                    {isPM ? (
                         <button onClick={() => setShowWizard(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-500">
                             <Upload className="w-4 h-4" /> Importar plan (Excel)
                         </button>
@@ -147,24 +202,59 @@ export function ProjectPlan({ project }: { project: Project }) {
                                 <Search className="w-3.5 h-3.5 text-zinc-400" />
                                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar en el plan…" className="bg-transparent outline-none text-xs w-40" />
                             </div>
+                            <button onClick={() => setAdding({ mode: "loose", parent: null })}
+                                className={cn("inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border", isLight ? "border-zinc-300 hover:bg-zinc-100" : "border-white/15 hover:bg-white/5")}>
+                                <Plus className="w-3.5 h-3.5" /> Tarea suelta
+                            </button>
                         </div>
                     )}
                     <p className="text-[11px] text-zinc-500">
-                        El avance cuenta solo tareas cerradas (0/100), ponderadas por esfuerzo. Hitos, padres y agrupadores no se cierran a mano.
+                        El avance cuenta solo tareas cerradas (0/100), ponderadas por esfuerzo. Hitos, padres y agrupadores no se cierran a mano: pasa el ratón por una fila para añadir tareas o abrirla.
                     </p>
-                    <PlanTree rows={rows} isLight={isLight} showStatus initialExpandLevel={5} filter={filter} />
+                    <PlanTree rows={rows} isLight={isLight} showStatus initialExpandLevel={5} filter={filter} renderActions={renderActions} />
                 </>
             )}
 
             {showWizard && user && (
-                <PlanImportWizard
+                <PlanImportWizard project={project} tenantId={tenantId} userId={user.uid} isLight={isLight}
+                    onClose={() => setShowWizard(false)} onImported={() => { /* el onSnapshot refresca el árbol */ }} />
+            )}
+
+            {adding && (
+                <PlanTaskModal
+                    mode={adding.mode}
+                    parent={adding.parent}
+                    planTasks={tasks}
                     project={project}
                     tenantId={tenantId}
-                    userId={user.uid}
                     isLight={isLight}
-                    onClose={() => setShowWizard(false)}
-                    onImported={() => { /* el onSnapshot refresca el árbol */ }}
+                    onClose={() => setAdding(null)}
+                    onCreated={() => { setAdding(null); showToast("Plan", "Tarea creada.", "success"); }}
                 />
+            )}
+
+            {discarding && (
+                <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4" onClick={discardBusy ? undefined : () => setDiscarding(null)}>
+                    <div className={cn("w-full max-w-md rounded-xl shadow-2xl p-4 space-y-3", isLight ? "bg-white border border-zinc-200" : "bg-zinc-900 border border-white/10")} onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-semibold">Descartar bloque</h3>
+                            <button onClick={() => setDiscarding(null)} disabled={discardBusy} className="text-zinc-400" aria-label="Cerrar"><X className="w-4 h-4" /></button>
+                        </div>
+                        <p className="text-sm">
+                            Se marcarán <b>{discarding.count}</b> tarea(s) abiertas de <b>{discarding.node.planCode ? discarding.node.planCode + " " : ""}{discarding.node.title}</b> como
+                            <b> fuera de alcance</b>. El bloque se cerrará solo. Las tareas ya cerradas no cambian.
+                        </p>
+                        <textarea autoFocus value={discardReason} onChange={(e) => setDiscardReason(e.target.value)} placeholder="Motivo (obligatorio, queda en el historial de cada tarea)"
+                            className={cn("w-full text-sm rounded-md border px-2 py-1.5 min-h-[70px] outline-none", isLight ? "bg-white border-zinc-300" : "bg-zinc-800 border-white/10")} />
+                        <div className="flex justify-end gap-2">
+                            <button onClick={() => setDiscarding(null)} disabled={discardBusy} className="px-3 py-1.5 rounded-lg text-sm hover:bg-zinc-500/10">Cancelar</button>
+                            <button onClick={handleDiscard} disabled={discardBusy || !discardReason.trim()}
+                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-600 text-white text-sm font-semibold hover:bg-rose-500 disabled:opacity-50">
+                                {discardBusy && <Loader2 className="w-4 h-4 animate-spin" />} Descartar {discarding.count} tarea(s)
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

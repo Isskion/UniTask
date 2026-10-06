@@ -194,7 +194,12 @@ Resueltas (D7–D9). Notas:
   máximo actual). Con `friendlyId` presente, `generateFriendlyId` no hace nada → cero transacciones sobre el contador.
 - `isValidChildType` (lib/hierarchy-governance.ts) no tiene usos; no hace falta relajarla.
 - **Predecesoras:** el Excel de Transpais referencia IDs internos de MS Project que no vienen en el extracto
-  (no se pueden resolver); se ignoran con aviso. Las dependencias se definirán en UniTask (paso 5).
+  (no se pueden resolver); se ignoran con aviso. Las dependencias se definen en UniTask (paso 5: buscador de
+  predecesoras al crear tarea → campo `dependencies`, que ya bloquea el cierre).
+- **Subtarea sobre una hoja con esfuerzo real registrado:** al pasar a padre, su `actualEffort` propio se conserva en
+  el documento pero deja de sumar (los agregados vienen de sus hijas). El formulario lo avisa.
+- **Otros sitios que cambian estado** (listas rápidas, daily, etc.) no conocen el bloqueo de nodos de plan: las
+  reglas lo rechazan. Solo el editor principal de tareas muestra el aviso claro. Revisar si se usan con tareas de plan.
 - **Existe un tercer intento previo, `ProjectWbsTracker` ("📊 WBS Tracker")**, que guarda el WBS como un JSON por
   proyecto (con DDS y SQL). No se toca; valorar unificarlo con la pestaña Plan más adelante.
 
@@ -218,3 +223,4 @@ Resueltas (D7–D9). Notas:
 | 1 Modelo | `types.ts` (PlanRole, PlanComputed, PlanImport, campos plan* en Task), `MAX_DEPTH` 10, `plan_imports` en los 3 scripts de backup | `tsc` app y functions sin errores |
 | 2 Propagación + reglas | `functions/src/planRollupCore.ts` (cálculo puro), `functions/src/planRollup.ts` (trigger onWrite europe-west1), `firestore.rules` (`planStateLocked`/`planGuardOk` en ambas reglas de tasks, `plan_imports`) | 24/24 comprobaciones en emulador Firestore+Functions: cierre/reapertura en cascada, gate automático, agregados de esfuerzo, promoción hoja→padre y vuelta, bloqueo de hitos/padres/gates para PM y Admin, hito individual cerrable, escape SuperAdmin, permisos de `plan_imports` |
 | 3 Asistente de importación | `lib/plan/planParser.ts` (lector puro), `lib/plan/planImport.ts` (escritura por lotes + `plan_imports`), `components/plan/PlanTree.tsx`, `PlanImportWizard.tsx`, `ProjectPlan.tsx` (pestaña "🗂️ Plan" en `ProjectManagement`) | Lector contra el Excel real de Transpais. E2E en emulador con `importPlan()` real como PM y reglas activas: 13/13 (603 tareas en ~3 s, lote `applied`, roles y cadena padre/antepasados, computed inicial, todo `pending`, responsable por prefijo, friendlyId únicos y respetados por la función, 2ª importación bloqueada, cierre propagado hasta el flujo). `tsc` y `next build` OK. **UI no probada en navegador** (requiere sesión). |
+| 5 Árbol accionable | `lib/plan/planTasks.ts` (herencia `buildDraft`, `createPlanTask` sobre `createTask`, `discardBlock`, `isPlanStateLocked`), `components/plan/PlanTaskModal.tsx`, acciones por fila en `PlanTree`/`ProjectPlan` (+ Tarea aquí, + Sub, Descartar bloque PM+, abrir en `/tasks?id=`), botón "Tarea suelta" y sección "Fuera de plan"; `TaskManagement.tsx`: estado "· calculado" no editable en nodos bloqueados y no reenvía `computed`/`planChildCount`/`planRole` (ni estado/progreso si está bloqueado); `firestore.rules`: `projectId` inmutable en tareas de plan | E2E emulador 23/23 (los 13 del paso 3 + herencia de deadline/ruta, alta bajo hito con `TRA-604` y suma en el hito, subtarea sobre hoja cerrada → padre y reapertura en cadena, tarea suelta, descartar bloque → `out_of_scope` por propagación con traza por tarea, reglas `projectId` y cierre de hito). Regresión paso 2: 24/24. `tsc`/`next build` OK. **UI no probada en navegador.** |

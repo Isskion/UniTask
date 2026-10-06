@@ -74,6 +74,8 @@ service cloud.firestore {
     function planGuardOk() {
         let changed = request.resource.data.diff(resource.data).affectedKeys();
         return !changed.hasAny(['planRole', 'planChildCount', 'computed']) &&
+               // D4: una tarea del plan pertenece siempre a su proyecto
+               (!('planRole' in resource.data) || !changed.hasAny(['projectId'])) &&
                (!planStateLocked(resource.data) ||
                 !changed.hasAny(['status', 'progress', 'progressV13', 'closedAt', 'closedBy']));
     }
