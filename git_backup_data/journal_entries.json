@@ -5518,6 +5518,32 @@
     "updatedAt": "2026-10-02T09:59:29.785Z"
   },
   {
+    "id": "3_2026-10-06",
+    "date": "2026-10-06",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "LUIS SIMOES Fase II",
+        "projectId": "OH4sjML9byhLuzMXSTss",
+        "pmNotes": "ola equipo Luis Simoes,\n\nUn placer haber conversado con vosotros en el día de hoy.\n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados:\n\nAprobación del Documento de Diseño (ToBe): Se confirma la aprobación, revisada internamente por parte del equipo de Luis Simoes.\nLa formalización y firma del documento se enviará entre el día de hoy y mañana 07-10 a Unigis\n\nPlan Etapa III y Estimación de Tareas:\nPaulo y Anny han comenzado la revisión de la lista de tareas y estimaciones.\nPaulo compartirá esta información durante la semana para que Diego proceda con la consolidación (merge) total del plan (quedando la parte funcional completamente alineada).\nSe acuerda capturar en el plan semanal el camino crítico identificando las tareas de mayor esfuerzo para garantizar un cronograma realista y evaluar posibles vías de paralelización (tema comentado por Luis Freitas durante la última reunión de Comité)\n\nEvolución y Plan del Módulo de Tarifación:\nSe confirma la entrega del Plan de Tarifación remitido por Unigis el pasado 02-10.\nEl equipo de Luis Simoes manifiesta su conformidad con la propuesta.\nEl siguiente paso consistirá en estimar los modelos para ajustar definitivamente el plan global con el diseño tarifario aprobado.\n\nInfraestructura y Agenda Semanal:\nSLA y Conectividad: Las respuestas sobre SLA y parámetros de conectividad requeridas por Anny y su equipo están listas.\nEnvío formal desde Unigis en las próximas horas en el correo paralelo con el equipo de IT de LS\nAgenda de la Semana (05-10): Se confirman las sesiones de Tarifas para el miércoles y viernes desde las 9:30hs PT,\nEl jueves se destinará a las revisiones y avances de implementación Etapa III + Interfaces.\nAccionables Equipo Luis Simoes\n\nEnviar la formalización del Documento de Diseño ToBe entre hoy y el 07-10.\nCompletar la estimación de esfuerzos de las tareas propias de Luis Simoes y compartir la lista con Unigis esta semana.\nAvanzar en la documentación de los modelos tarifarios siguiendo el template enviado por Gonzalo\nAccionables Equipo Unigis\n\nRevisar con el equipo técnico y enviar a Anny las respuestas sobre SLA y conectividad.\nRealizar la consolidación (merge) de las tareas y estimaciones de ambos equipos en cuanto Paulo envíe el desglose de Luis Simoes.\nAnalizar el camino crítico del plan integrado identificando tareas de alto esfuerzo y alternativas de paralelización.\nLiderar las sesiones semanales de Tarifas (miércoles y viernes) y Negocio/Interfaces (jueves).\nQuedo atento a cualquier duda o consulta,\n\nCordial saludo,",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "ola equipo Luis Simoes,\n\nUn placer haber conversado con vosotros en el día de hoy.\n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados:\n\nAprobación del Documento de Diseño (ToBe): Se confirma la aprobación, revisada internamente por parte del equipo de Luis Simoes.\nLa formalización y firma del documento se enviará entre el día de hoy y mañana 07-10 a Unigis\n\nPlan Etapa III y Estimación de Tareas:\nPaulo y Anny han comenzado la revisión de la lista de tareas y estimaciones.\nPaulo compartirá esta información durante la semana para que Diego proceda con la consolidación (merge) total del plan (quedando la parte funcional completamente alineada).\nSe acuerda capturar en el plan semanal el camino crítico identificando las tareas de mayor esfuerzo para garantizar un cronograma realista y evaluar posibles vías de paralelización (tema comentado por Luis Freitas durante la última reunión de Comité)\n\nEvolución y Plan del Módulo de Tarifación:\nSe confirma la entrega del Plan de Tarifación remitido por Unigis el pasado 02-10.\nEl equipo de Luis Simoes manifiesta su conformidad con la propuesta.\nEl siguiente paso consistirá en estimar los modelos para ajustar definitivamente el plan global con el diseño tarifario aprobado.\n\nInfraestructura y Agenda Semanal:\nSLA y Conectividad: Las respuestas sobre SLA y parámetros de conectividad requeridas por Anny y su equipo están listas.\nEnvío formal desde Unigis en las próximas horas en el correo paralelo con el equipo de IT de LS\nAgenda de la Semana (05-10): Se confirman las sesiones de Tarifas para el miércoles y viernes desde las 9:30hs PT,\nEl jueves se destinará a las revisiones y avances de implementación Etapa III + Interfaces.\nAccionables Equipo Luis Simoes\n\nEnviar la formalización del Documento de Diseño ToBe entre hoy y el 07-10.\nCompletar la estimación de esfuerzos de las tareas propias de Luis Simoes y compartir la lista con Unigis esta semana.\nAvanzar en la documentación de los modelos tarifarios siguiendo el template enviado por Gonzalo\nAccionables Equipo Unigis\n\nRevisar con el equipo técnico y enviar a Anny las respuestas sobre SLA y conectividad.\nRealizar la consolidación (merge) de las tareas y estimaciones de ambos equipos en cuanto Paulo envíe el desglose de Luis Simoes.\nAnalizar el camino crítico del plan integrado identificando tareas de alto esfuerzo y alternativas de paralelización.\nLiderar las sesiones semanales de Tarifas (miércoles y viernes) y Negocio/Interfaces (jueves).\nQuedo atento a cualquier duda o consulta,\n\nCordial saludo,",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-10-06T12:51:29.570Z",
+    "updatedAt": "2026-10-06T12:51:40.524Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",

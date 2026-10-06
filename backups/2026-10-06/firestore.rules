@@ -64,6 +64,22 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
+    // [Plan] Árbol de plan (docs/plan-import-design.md §5). Hitos con hijos, padres, agrupadores
+    // y gates calculan su estado en la Cloud Function planRollup (Admin SDK, no pasa por reglas):
+    // ningún cliente puede cerrarlos ni "tratarlos". Tampoco tocar los campos que mantiene la función.
+    function planStateLocked(data) {
+        return data.get('planRole', '') in ['group', 'parent', 'gate'] ||
+               (data.get('planRole', '') == 'milestone' && data.get('planChildCount', 0) > 0);
+    }
+    function planGuardOk() {
+        let changed = request.resource.data.diff(resource.data).affectedKeys();
+        return !changed.hasAny(['planRole', 'planChildCount', 'computed']) &&
+               // D4: una tarea del plan pertenece siempre a su proyecto
+               (!('planRole' in resource.data) || !changed.hasAny(['projectId'])) &&
+               (!planStateLocked(resource.data) ||
+                !changed.hasAny(['status', 'progress', 'progressV13', 'closedAt', 'closedBy']));
+    }
+
     // --- RULES ---
 
     // [SAM] Phase 3: Hard Isolation (Physical Namespacing)
@@ -108,8 +124,9 @@ service cloud.firestore {
                  isSuperAdmin() || (hasAccess(getUserData(), request.resource.data) && isKeyValid(request.resource.data))
             );
             allow update: if isTenantAuth() && (
-                 isSuperAdmin() || 
-                 (hasAccess(getUserData(), resource.data) && 
+                 isSuperAdmin() ||
+                 (planGuardOk() &&
+                  hasAccess(getUserData(), resource.data) &&
                   hasAccess(getUserData(), request.resource.data) &&
                   (getRealRole() >= 80 || (
                       // Validation logic copied from root
@@ -290,11 +307,12 @@ service cloud.firestore {
 
       // [V13.3] Allow effort tracking fields + [SAM] Update checks
       allow update: if isAuthenticated() && (
-        isSuperAdmin() || 
-        // Admin Bypass: Role >= 80 can update regardless of scope
-        (getRealRole() >= 80) ||
+        isSuperAdmin() ||
+        // Admin Bypass: Role >= 80 can update regardless of scope (salvo estado de nodos de plan calculados)
+        (getRealRole() >= 80 && planGuardOk()) ||
         // Standard User: Limited updates + Scope Check
-        (hasAccess(getUserData(), resource.data) && 
+        (planGuardOk() &&
+         hasAccess(getUserData(), resource.data) &&
          hasAccess(getUserData(), request.resource.data) &&
          // Validate effort tracking fields if present
          ((
@@ -340,9 +358,26 @@ service cloud.firestore {
             (docTenantMatches(request.resource.data) && getRealRole() >= 60)
         );
         allow update, delete: if isAuthenticated() && (
-            isSuperAdmin() || 
+            isSuperAdmin() ||
             (docTenantMatches(resource.data) && getRealRole() >= 60)
         );
+    }
+
+    // [Plan] Lotes de importación de plan (docs/plan-import-design.md §3). Solo PM y superiores
+    // importan y deshacen. Es el registro de auditoría del lote: no se borra desde cliente.
+    match /plan_imports/{importId} {
+        allow read: if isSuperAdmin() ||
+                    (isAuthenticated() && docTenantMatches(resource.data) && getRealRole() >= 60);
+        allow create: if isAuthenticated() && (
+            isSuperAdmin() ||
+            (docTenantMatches(request.resource.data) && getRealRole() >= 60 &&
+             request.resource.data.createdBy == request.auth.uid)
+        );
+        allow update: if isAuthenticated() && (
+            isSuperAdmin() ||
+            (docTenantMatches(resource.data) && docTenantMatches(request.resource.data) && getRealRole() >= 60)
+        );
+        allow delete: if isSuperAdmin();
     }
 
     // --- [HARDENED] AUDIT LOGS ---
