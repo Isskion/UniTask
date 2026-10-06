@@ -729,8 +729,17 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                 isOpen={mappingWizardOpen}
                 headers={headers}
                 onComplete={(newMapping, newBoolOverrides) => {
-                    setMapping(newMapping);
-                    useAppStore.setState({ booleanOverrides: newBoolOverrides });
+                    // El asistente solo mapea columnas: conservar los booleanos fijos (TRUE/FALSE)
+                    // ya definidos, p. ej. por un layout importado antes de cargar el Excel.
+                    const prev = useAppStore.getState();
+                    const keptBools = Object.fromEntries(
+                        Object.entries(prev.mapping).filter(([, v]) => v === '__BOOL_TRUE__' || v === '__BOOL_FALSE__')
+                    );
+                    setMapping({ ...keptBools, ...newMapping });
+                    const keptOverrides = Object.fromEntries(
+                        Object.entries(prev.booleanOverrides).filter(([field]) => !newMapping[field])
+                    );
+                    useAppStore.setState({ booleanOverrides: { ...keptOverrides, ...newBoolOverrides } });
                     setMappingWizardOpen(false);
                 }}
                 onClose={() => setMappingWizardOpen(false)}

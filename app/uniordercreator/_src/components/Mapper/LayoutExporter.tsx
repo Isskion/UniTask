@@ -183,6 +183,7 @@ export default function LayoutExporter({ isOpen, onClose, initialMode = 'export'
                 const newMapping: Record<string, string> = {};
                 const newBoolOverrides: Record<string, boolean> = {};
                 const newDynCounts: Record<string, number> = {};
+                const newMultiSheet = { mainSheet: '', mainKey: '', relations: [] as { sheet: string; key: string; targetPath: string; itemTag: string }[] };
                 let section = 'mapping';
 
                 for (let i = 2; i < metaData.length; i++) {
@@ -213,25 +214,53 @@ export default function LayoutExporter({ isOpen, onClose, initialMode = 'export'
                     if (section === 'dynamic' && row[0] && row[1]) {
                         newDynCounts[String(row[0])] = parseInt(String(row[1])) || 0;
                     }
-                    // Multi-sheet restoration could be added here
+                    if (section === 'multisheet' && row[0]) {
+                        if (firstCell === 'mainSheet') newMultiSheet.mainSheet = String(row[1] ?? '');
+                        else if (firstCell === 'mainKey') newMultiSheet.mainKey = String(row[1] ?? '');
+                        else if (firstCell === 'relation') newMultiSheet.relations.push({
+                            sheet: String(row[1] ?? ''), key: String(row[2] ?? ''),
+                            targetPath: String(row[3] ?? ''), itemTag: String(row[4] ?? ''),
+                        });
+                    }
                 }
 
-                // Apply mapping
-                setMapping(newMapping);
+                // Resolver cada columna del layout contra las cabeceras del Excel cargado. El
+                // desplegable del mapeador solo muestra valores que existen EXACTAMENTE en
+                // `headers`: si no, la tarjeta salía "mapeada" (verde) con el select vacío.
                 const store = useAppStore.getState();
-                if (Object.keys(newBoolOverrides).length > 0) {
-                    for (const [k, v] of Object.entries(newBoolOverrides)) {
-                        store.setBooleanOverride(k, v);
-                    }
+                const currentHeaders = store.headers;
+                const headerByKey = new Map(currentHeaders.map((h) => [h.trim().toLowerCase(), h]));
+                const missingCols = new Set<string>();
+                for (const [field, col] of Object.entries(newMapping)) {
+                    if (col === '__BOOL_TRUE__' || col === '__BOOL_FALSE__') continue;
+                    const resolved = headerByKey.get(col.trim().toLowerCase());
+                    if (resolved) newMapping[field] = resolved;
+                    else if (currentHeaders.length > 0) missingCols.add(col);
                 }
-                if (Object.keys(newDynCounts).length > 0) {
-                    for (const [k, v] of Object.entries(newDynCounts)) {
-                        store.setDynamicFieldCount(k, v);
-                    }
+
+                // Apply (el import REEMPLAZA el mapeo actual, booleanos incluidos)
+                setMapping(newMapping);
+                useAppStore.setState({ booleanOverrides: newBoolOverrides });
+                for (const [k, v] of Object.entries(newDynCounts)) {
+                    store.setDynamicFieldCount(k, v);
+                }
+                if (newMultiSheet.mainSheet) {
+                    store.setMultiSheet({ enabled: true, config: newMultiSheet });
                 }
 
                 const loadedCount = Object.values(newMapping).filter(v => v && v !== '__BOOL_TRUE__' && v !== '__BOOL_FALSE__').length;
-                setFeedback({ type: 'success', msg: `✅ Plantilla importada: ${loadedCount} campos mapeados restaurados` });
+                if (currentHeaders.length === 0) {
+                    setFeedback({ type: 'info', msg: `ℹ️ Plantilla importada (${loadedCount} campos). Aún no hay Excel cargado: el mapeo se aplicará al cargarlo.` });
+                } else if (missingCols.size > 0) {
+                    console.warn('[LayoutImport] Columnas del layout que no existen en el Excel cargado:', [...missingCols], 'Cabeceras actuales:', currentHeaders);
+                    setFeedback({
+                        type: 'error',
+                        msg: `⚠️ Plantilla importada, pero ${missingCols.size} columna(s) no existen en el Excel cargado y esos campos quedan sin datos: ${[...missingCols].join(', ')}. Revisa que el Excel tenga esas cabeceras (o renómbralas) y vuelve a importar.`,
+                    });
+                    return;
+                } else {
+                    setFeedback({ type: 'success', msg: `✅ Plantilla importada: ${loadedCount} campos mapeados restaurados` });
+                }
                 setTimeout(() => setFeedback(null), 5000);
             } catch (err: any) {
                 console.error('[LayoutImport] Error:', err);

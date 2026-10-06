@@ -49,6 +49,8 @@ export default function MapperPanel() {
     const highlightedField = useAppStore((s) => s.highlightedField);
     const gridRef = useRef<HTMLDivElement>(null);
 
+    const headersSet = useMemo(() => new Set(headers), [headers]);
+
     const fields = useMemo(() => {
         const tabFields = FIELD_GROUPS[currentTab] || [];
         if (!searchQuery) return tabFields;
@@ -239,6 +241,8 @@ export default function MapperPanel() {
                     const selectValue = getSelectValue(field, isBoolField);
                     const isMapped = !!selectValue;
                     const isBoolMapped = isBoolField && (selectValue === BOOL_TRUE_SENTINEL || selectValue === BOOL_FALSE_SENTINEL);
+                    // Columna mapeada que no existe en el Excel cargado (p. ej. layout de otro fichero)
+                    const isOrphan = isMapped && !isBoolMapped && !headersSet.has(selectValue);
                     const shortName = field.split('.').pop() || field;
                     const tooltip = FIELD_DESCRIPTIONS[field];
 
@@ -255,6 +259,8 @@ export default function MapperPanel() {
                             className={`flex flex-col gap-0.5 p-1.5 rounded border transition-all ${
                                 highlightedField === field
                                     ? 'bg-amber-50 border-amber-400 shadow-md ring-1 ring-amber-400/50 animate-pulse'
+                                    : isOrphan
+                                        ? 'bg-amber-50/70 border-amber-300'
                                     : isRequired && !isMapped
                                         ? 'bg-red-50/60 border-red-300 animate-pulse-required'
                                         : isBoolMapped
@@ -303,6 +309,9 @@ export default function MapperPanel() {
                                 onChange={(e) => handleFieldChange(field, e.target.value, isBoolField)}
                             >
                                 <option value="">{isRequired ? '⚠️ OBLIGATORIO' : '— Sin mapear —'}</option>
+                                {isOrphan && (
+                                    <option value={selectValue}>⚠️ {selectValue} (no está en el Excel)</option>
+                                )}
                                 {isBoolField && (
                                     <optgroup label="⚡ Valor Fijo">
                                         <option value={BOOL_TRUE_SENTINEL}>✅ TRUE</option>

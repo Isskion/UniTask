@@ -99,9 +99,30 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
             const matches = autoMatchHeaders(headers, memory);
             setAutoMatchResults(matches);
 
+            // Mapeo ya existente (p. ej. layout importado ANTES de cargar el Excel): manda sobre
+            // el auto-match. Sin esto, al aplicar el asistente se pisaba el layout importado.
+            const existingByHeader = new Map<string, string[]>();
+            for (const [field, col] of Object.entries(useAppStore.getState().mapping)) {
+                if (!col || col === '__BOOL_TRUE__' || col === '__BOOL_FALSE__') continue;
+                const key = String(col).trim().toLowerCase();
+                existingByHeader.set(key, [...(existingByHeader.get(key) || []), field]);
+            }
+
             // Build initial mappings with auto-match
             let autoCount = 0;
             const initialMappings = matches.map((m) => {
+                const existing = existingByHeader.get(m.header.trim().toLowerCase());
+                if (existing) {
+                    autoCount++;
+                    return {
+                        header: m.header,
+                        selectedFields: existing,
+                        confirmed: true,
+                        skipped: false,
+                        confidence: 'high' as const,
+                        autoScore: 100,
+                    };
+                }
                 const isAutoConfirm = m.confidence === 'high' && m.score >= AUTO_CONFIRM_THRESHOLD;
                 if (isAutoConfirm) autoCount++;
                 return {
@@ -291,11 +312,15 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
     // Apply template
     const applyTemplate = useCallback((tpl: SavedTemplate) => {
         const newMappings = headers.map((h) => {
-            const matchedField = Object.entries(tpl.mapping || {}).find(([, val]) => val === h);
+            // Una columna puede alimentar varios campos (p. ej. FECHA_SALIDA → Fecha y FechaRecoleccion)
+            const key = h.trim().toLowerCase();
+            const matchedFields = Object.entries(tpl.mapping || {})
+                .filter(([, val]) => String(val ?? '').trim().toLowerCase() === key)
+                .map(([field]) => field);
             return {
                 header: h,
-                selectedFields: matchedField ? [matchedField[0]] : [],
-                confirmed: !!matchedField,
+                selectedFields: matchedFields,
+                confirmed: matchedFields.length > 0,
                 skipped: false,
                 confidence: 'high' as const,
                 autoScore: 100,
