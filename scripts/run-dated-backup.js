@@ -70,6 +70,7 @@ const COLLECTIONS = [
     'document_types',
     'interfaces',
     'project_hierarchy',
+    'plan_imports',
     'project_interfaces',
     'support_tickets',
     'tenant_dictionary',

@@ -346,6 +346,48 @@ export type TaskCreationSource = 'manual_main' | 'manual_daily' | 'ai_daily' | '
 // [V3] Task Types
 export type TaskType = 'root_epic' | 'epic' | 'task' | 'subtask' | 'milestone';
 
+/**
+ * [Plan] Rol de una tarea dentro del árbol de plan (docs/plan-import-design.md §1).
+ * - group: agrupador por encima del hito (Etapa, Flujo…). Calculado, solo lectura.
+ * - milestone: hito. Calculado si tiene hijos; sin hijos es "hito individual" y se trata a mano.
+ * - parent: nodo con hijos bajo el hito. Calculado.
+ * - leaf: tarea trabajable; único estado editable a mano.
+ * - gate: fila de control de 0 días ("III.1.4.1H"); se cierra sola al completarse su bloque.
+ */
+export type PlanRole = 'group' | 'milestone' | 'parent' | 'leaf' | 'gate';
+
+export interface PlanComputed {
+    status: Task['status'];
+    progress: number;          // 0-100, regla 0/100 por hoja ponderada por esfuerzo estimado
+    estimatedEffort: number;   // días, suma de hijos
+    actualEffort: number;      // días, suma de hijos
+    startDate: any | null;     // mínimo de los hijos
+    endDate: any | null;       // máximo de los hijos
+    childCount: number;
+    doneCount: number;         // hijos cerrados (completed/discarded/out_of_scope)
+    updatedAt: any;
+}
+
+/** [Plan] Lote de importación de plan (colección plan_imports). Permite deshacer. */
+export interface PlanImport {
+    id: string;
+    projectId: string;
+    tenantId: string;
+    fileName: string;
+    kind: 'initial' | 'reimport';
+    milestoneLevel: number;
+    createdBy: string;
+    createdAt: any;
+    created: string[];                                          // taskIds creadas
+    updated: { taskId: string; before: Record<string, any> }[]; // valores previos de los campos tocados
+    archived: string[];                                         // taskIds archivadas por el lote
+    status: 'applied' | 'undone' | 'partially_undone';
+    warnings?: { code: string; message: string; row?: number }[];
+    undoneAt?: any;
+    undoneBy?: string;
+    undoReport?: { deleted: string[]; kept: string[]; restored: string[] };
+}
+
 export interface Task {
     id: string;
     friendlyId?: string; // e.g. "EUP-1"
@@ -401,10 +443,22 @@ export interface Task {
     planVersion?: number;    // Version of the plan import that touched this
     planStatus?: 'linked' | 'detached' | 'overridden' | 'archived';
     externalSource?: {
-        system: 'ms_planner' | 'jira';
+        system: 'ms_planner' | 'jira' | 'excel_plan';
         id: string;          // Immutable Source ID
         etag?: string;       // Change detection hash
     };
+
+    // [Plan] Árbol de plan importado desde Excel (docs/plan-import-design.md)
+    planRole?: PlanRole;
+    planCode?: string;        // Código EDT original ("III.1.4.2.1"); informativo, puede repetirse
+    planPath?: string;        // Ruta normalizada de nombres desde la raíz (clave de emparejamiento en reimport)
+    planOrigin?: 'import' | 'unitask';
+    importId?: string;        // Lote de plan_imports que la creó (para deshacer)
+    lastImportId?: string;    // Último lote que la modificó
+    /** Nº de hijos vivos (no archivados). Lo mantiene la Cloud Function planRollup. */
+    planChildCount?: number;
+    /** Valores agregados de los hijos. Solo los escribe planRollup. */
+    computed?: PlanComputed;
 
     // Section 1: Classification [NEW]
     priority?: 'high' | 'medium' | 'low';

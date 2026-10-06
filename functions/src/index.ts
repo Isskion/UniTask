@@ -22,3 +22,4 @@ export { generateMinuta } from "./generateMinuta";
 export * from "./syncUserClaims";
 export * from "./unigis";
 export * from "./aggregateCounters";
+export { planRollup } from "./planRollup";

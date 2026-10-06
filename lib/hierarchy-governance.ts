@@ -8,7 +8,9 @@ import { Task } from "@/types";
  * 2. Order Normalization (Float math)
  */
 
-export const MAX_DEPTH = 5;
+// 10: los planes importados de MS Project llegan a 9 niveles
+// (Transpais › Fase › Etapa › Flujo › … › III.1.4.2.7.13.1).
+export const MAX_DEPTH = 10;
 
 /**
  * Recalculates the ancestor path for a task given a new parent.
