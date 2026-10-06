@@ -381,8 +381,10 @@ export interface PlanImport {
     created: string[];                                          // taskIds creadas
     updated: { taskId: string; before: Record<string, any> }[]; // valores previos de los campos tocados
     archived: string[];                                         // taskIds archivadas por el lote
-    status: 'applied' | 'undone' | 'partially_undone';
-    warnings?: { code: string; message: string; row?: number }[];
+    status: 'applying' | 'applied' | 'failed' | 'undone' | 'partially_undone';
+    stats?: Record<string, number>;                             // recuento por rol
+    error?: string;
+    warnings?: { code: string; severity: string; message: string; rows?: number[] }[];
     undoneAt?: any;
     undoneBy?: string;
     undoReport?: { deleted: string[]; kept: string[]; restored: string[] };

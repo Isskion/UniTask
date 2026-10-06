@@ -24,6 +24,7 @@ import { ProjectConnections } from "./ProjectConnections";
 import ProjectMoscow from "./ProjectMoscow";
 import ProjectBudgetEditor from "./ProjectBudgetEditor";
 import { ProjectWbsTracker } from "./ProjectWbsTracker";
+import { ProjectPlan } from "./plan/ProjectPlan";
 
 
 export default function ProjectManagement({ autoFocusCreate = false }: { autoFocusCreate?: boolean }) {
@@ -43,7 +44,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
     // Selection state
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [userTab, setUserTab] = useState<'connections' | 'feed' | 'settings' | 'documents' | 'interfaces' | 'moscow' | 'wbs'> ('feed');
+    const [userTab, setUserTab] = useState<'connections' | 'feed' | 'settings' | 'documents' | 'interfaces' | 'moscow' | 'wbs' | 'plan'> ('feed');
 
     const feedRef = useRef<any>(null); // Use 'any' temporarily or import the type if exported
 
@@ -516,6 +517,16 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         >
                                             📊 WBS Tracker
                                         </button>
+                                        <button
+                                            onClick={() => setUserTab('plan')}
+                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
+                                                userTab === 'plan'
+                                                    ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            )}
+                                        >
+                                            🗂️ Plan
+                                        </button>
                                         {can('viewTechnicalInfo', 'special') && (
                                             <button
                                                 onClick={() => setUserTab('connections')}
@@ -644,6 +655,11 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                             {/* VIEW 0: WBS TRACKER */}
                             {userTab === 'wbs' && !isNew && (
                                 <ProjectWbsTracker project={selectedProject} />
+                            )}
+
+                            {/* VIEW 0b: PLAN (árbol de tareas importado de MS Project) */}
+                            {userTab === 'plan' && !isNew && selectedProject && (
+                                <ProjectPlan project={selectedProject} />
                             )}
 
                             {/* VIEW 0: CONNECTIONS */}

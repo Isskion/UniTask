@@ -188,12 +188,28 @@ Fase II: agenda (las hojas ya llevan fechas y esfuerzo estimado, que es lo que l
 
 ## 10. Preguntas abiertas
 
-Resueltas (D7–D9). Pendientes para pasos siguientes:
-- **Paso 3 – friendlyId en importaciones masivas:** `generateFriendlyId` (onCreate) hace una transacción por
-  tarea sobre el mismo contador `counters/{projectId}_{YYMM}`; 600 altas simultáneas generarían contención.
-  El importador reservará un bloque del contador en una sola transacción y escribirá los `friendlyId` ya
-  asignados (la función los respeta si no empiezan por `TSK-`).
+Resueltas (D7–D9). Notas:
+- **friendlyId en importaciones masivas (resuelto en paso 3):** el importador asigna `friendlyId`/`taskNumber`
+  en cliente con el mismo esquema que `lib/tasks.ts` (prefijo del nombre del proyecto + nº correlativo tras el
+  máximo actual). Con `friendlyId` presente, `generateFriendlyId` no hace nada → cero transacciones sobre el contador.
 - `isValidChildType` (lib/hierarchy-governance.ts) no tiene usos; no hace falta relajarla.
+- **Predecesoras:** el Excel de Transpais referencia IDs internos de MS Project que no vienen en el extracto
+  (no se pueden resolver); se ignoran con aviso. Las dependencias se definirán en UniTask (paso 5).
+- **Existe un tercer intento previo, `ProjectWbsTracker` ("📊 WBS Tracker")**, que guarda el WBS como un JSON por
+  proyecto (con DDS y SQL). No se toca; valorar unificarlo con la pestaña Plan más adelante.
+
+## 2b. Reglas del lector (implementadas en paso 3)
+
+- **Jerarquía por sangría** (MS Project exporta 3 espacios por nivel), no por código: los códigos EDT de
+  Transpais tienen 36 duplicados y saltos. Orden de preferencia: columna Nivel de esquema → columna EDT →
+  sangría → segmentos del código.
+- **Hito contado desde el flujo de cada fila** (D2 literal): flujo = fila con código de dos segmentos
+  ("III.1"). Así "III.4 Tarifación", que en el Excel viene un nivel menos sangrado que el resto de flujos,
+  coloca bien sus hitos. Sin flujos detectables se usa nivel absoluto.
+- **Gate** = fila sin hijos con duración 0 d (p. ej. "III.1.1.4 Mapeo de interfaces aprobado", "III.1.4.1H").
+- Responsable deducido del prefijo → `raci.responsible` ("UNI …" → Unigis; "Transpais …"/"TRNP …" → cliente).
+- Resultado con el Excel de Transpais (603 filas): 42 agrupadores, 91 hitos (49 individuales), 22 padres,
+  412 tareas, 36 controles.
 
 ## 11. Implementado
 
@@ -201,3 +217,4 @@ Resueltas (D7–D9). Pendientes para pasos siguientes:
 |---|---|---|
 | 1 Modelo | `types.ts` (PlanRole, PlanComputed, PlanImport, campos plan* en Task), `MAX_DEPTH` 10, `plan_imports` en los 3 scripts de backup | `tsc` app y functions sin errores |
 | 2 Propagación + reglas | `functions/src/planRollupCore.ts` (cálculo puro), `functions/src/planRollup.ts` (trigger onWrite europe-west1), `firestore.rules` (`planStateLocked`/`planGuardOk` en ambas reglas de tasks, `plan_imports`) | 24/24 comprobaciones en emulador Firestore+Functions: cierre/reapertura en cascada, gate automático, agregados de esfuerzo, promoción hoja→padre y vuelta, bloqueo de hitos/padres/gates para PM y Admin, hito individual cerrable, escape SuperAdmin, permisos de `plan_imports` |
+| 3 Asistente de importación | `lib/plan/planParser.ts` (lector puro), `lib/plan/planImport.ts` (escritura por lotes + `plan_imports`), `components/plan/PlanTree.tsx`, `PlanImportWizard.tsx`, `ProjectPlan.tsx` (pestaña "🗂️ Plan" en `ProjectManagement`) | Lector contra el Excel real de Transpais. E2E en emulador con `importPlan()` real como PM y reglas activas: 13/13 (603 tareas en ~3 s, lote `applied`, roles y cadena padre/antepasados, computed inicial, todo `pending`, responsable por prefijo, friendlyId únicos y respetados por la función, 2ª importación bloqueada, cierre propagado hasta el flujo). `tsc` y `next build` OK. **UI no probada en navegador** (requiere sesión). |
