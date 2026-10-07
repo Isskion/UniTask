@@ -4,8 +4,6 @@
  * fichero → revisión (nivel de hito, recuento por rol, avisos, árbol) → importación → resultado.
  */
 import { useMemo, useRef, useState } from "react";
-import * as XLSX from "xlsx";
-import ExcelJS from "exceljs";
 import { X, Upload, Loader2, AlertTriangle, Info, CheckCircle2, FileSpreadsheet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
@@ -13,6 +11,7 @@ import { parsePlanRows, inferResponsibleSide, type ParsedPlan } from "@/lib/plan
 import { importPlan } from "@/lib/plan/planImport";
 import { computeInitialStates } from "@/lib/plan/planInitialState";
 import { PlanTree, ROLE_META, type PlanTreeRow } from "./PlanTree";
+import { readPlanFile } from "./readPlanFile";
 
 interface Props {
     project: Project;
@@ -24,25 +23,6 @@ interface Props {
 }
 
 type Step = "file" | "review" | "importing" | "done";
-
-/** Filas cuyo texto viene en negrita (MS Project marca así las tareas resumen). SheetJS no lo expone. */
-async function readBoldRows(buffer: ArrayBuffer): Promise<Set<number>> {
-    const bold = new Set<number>();
-    try {
-        const wb = new ExcelJS.Workbook();
-        await wb.xlsx.load(buffer);
-        const ws = wb.worksheets[0];
-        ws?.eachRow((row, rowNumber) => {
-            let isBold = false;
-            row.eachCell((cell) => { if (cell.font?.bold) isBold = true; });
-            if (isBold) bold.add(rowNumber);
-        });
-    } catch (err) {
-        // Solo afecta al aviso "resumen sin detalle"; la importación no depende de ello.
-        console.warn("[PlanImport] No se pudo leer el formato (negritas) del Excel:", err);
-    }
-    return bold;
-}
 
 export function PlanImportWizard({ project, tenantId, userId, isLight, onClose, onImported }: Props) {
     const [step, setStep] = useState<Step>("file");
@@ -93,12 +73,8 @@ export function PlanImportWizard({ project, tenantId, userId, isLight, onClose, 
         setError(null);
         setReading(true);
         try {
-            const buffer = await file.arrayBuffer();
-            const wb = XLSX.read(buffer, { type: "array" });
-            const sheet = wb.Sheets[wb.SheetNames[0]];
-            const data = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true, blankrows: false });
-            parsePlanRows(data); // valida cabeceras y filas; lanza con mensaje claro si no es un plan
-            setBoldRows(await readBoldRows(buffer));
+            const { rows: data, boldRows: bold } = await readPlanFile(file);
+            setBoldRows(bold);
             setRows(data);
             setFileName(file.name);
             setMilestoneLevel(undefined);

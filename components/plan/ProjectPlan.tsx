@@ -17,6 +17,7 @@ import { aggregateChildren } from "@/functions/src/planRollupCore";
 import { discardBlock, isWorkable, toIso, type AddMode } from "@/lib/plan/planTasks";
 import { PlanTree, type PlanTreeRow } from "./PlanTree";
 import { PlanImportWizard } from "./PlanImportWizard";
+import { PlanReimportWizard } from "./PlanReimportWizard";
 import { PlanTaskModal } from "./PlanTaskModal";
 
 const CLOSED = new Set(["completed", "discarded", "out_of_scope"]);
@@ -34,6 +35,7 @@ export function ProjectPlan({ project }: { project: Project }) {
     const [tasks, setTasks] = useState<Task[] | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [showWizard, setShowWizard] = useState(false);
+    const [showReimport, setShowReimport] = useState(false);
     const [search, setSearch] = useState("");
     const [onlyOverdue, setOnlyOverdue] = useState(false);
     const [adding, setAdding] = useState<{ mode: AddMode; parent: Task | null } | null>(null);
@@ -206,6 +208,13 @@ export function ProjectPlan({ project }: { project: Project }) {
                                 className={cn("inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border", isLight ? "border-zinc-300 hover:bg-zinc-100" : "border-white/15 hover:bg-white/5")}>
                                 <Plus className="w-3.5 h-3.5" /> Tarea suelta
                             </button>
+                            {isPM && (
+                                <button onClick={() => setShowReimport(true)}
+                                    className={cn("inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border", isLight ? "border-zinc-300 hover:bg-zinc-100" : "border-white/15 hover:bg-white/5")}
+                                    title="Subir la versión nueva del Excel y revisar los cambios antes de aplicarlos">
+                                    <Upload className="w-3.5 h-3.5" /> Reimportar Excel
+                                </button>
+                            )}
                         </div>
                     )}
                     <p className="text-[11px] text-zinc-500">
@@ -218,6 +227,11 @@ export function ProjectPlan({ project }: { project: Project }) {
             {showWizard && user && (
                 <PlanImportWizard project={project} tenantId={tenantId} userId={user.uid} isLight={isLight}
                     onClose={() => setShowWizard(false)} onImported={() => { /* el onSnapshot refresca el árbol */ }} />
+            )}
+
+            {showReimport && user && (
+                <PlanReimportWizard project={project} tenantId={tenantId} userId={user.uid} isLight={isLight}
+                    onClose={() => setShowReimport(false)} />
             )}
 
             {adding && (

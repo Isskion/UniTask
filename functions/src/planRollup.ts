@@ -19,8 +19,9 @@ import {
  * padre vuelve a disparar esta función sobre él, así que la propagación sube nivel a nivel hasta
  * que un nodo no cambia. Solo escribe si algo cambia: no hay bucles.
  *
- * Las tareas creadas por una importación (`importId` en el alta) se ignoran al crearse: el
+ * Las tareas creadas por la importación inicial (`importId` en el alta) se ignoran al crearse: el
  * asistente fija los estados iniciales en el mismo lote, y evitamos cientos de recálculos.
+ * Las altas de una reimportación (`importKind: 'reimport'`) sí recalculan: cuelgan de nodos ya existentes.
  */
 
 const WATCHED_FIELDS = [
@@ -48,7 +49,7 @@ export const planRollup = functions.region("europe-west1").firestore
         if (!before?.planRole && !after?.planRole) return null;
 
         // Alta desde importación: el lote ya trae los estados calculados
-        if (!before && after?.importId) return null;
+        if (!before && after?.importId && after?.importKind !== "reimport") return null;
 
         if (before && after && !WATCHED_FIELDS.some((f) => fieldChanged(before, after, f))) return null;
 

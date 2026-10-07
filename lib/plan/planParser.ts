@@ -32,6 +32,7 @@ export interface PlanNode {
     start: string | null;      // ISO de medianoche local (mismo formato que el selector de fechas de tareas)
     end: string | null;
     notes: string | null;
+    uniTaskId: string | null;  // columna "UniTask ID" de un Excel exportado por UniTask (emparejamiento exacto)
     percent: number | null;    // "% completado" del Excel, 0–100 (solo decide si una hoja entra cerrada)
     bold: boolean;             // MS Project marca en negrita las tareas resumen
     parentKey: string | null;
@@ -78,6 +79,7 @@ const HEADER_ALIASES: Record<string, string[]> = {
     notes: ['notas', 'notes'],
     predecessors: ['predecesoras', 'depende de', 'predecessors'],
     percent: ['% completado', '% complete'],
+    uniTaskId: ['unitask id'],
 };
 
 /** Código EDT al inicio del nombre: "III.1.4.2 Texto", "V.1. Texto", "1.1.2 Texto". */
@@ -221,6 +223,7 @@ export function parsePlanRows(rows: unknown[][], opts: ParseOptions = {}): Parse
             end: cols.end !== undefined ? parsePlanDate(row[cols.end]) : null,
             notes: cols.notes !== undefined && row[cols.notes] != null && String(row[cols.notes]).trim() !== '' ? String(row[cols.notes]).trim() : null,
             percent: cols.percent !== undefined ? parsePercent(row[cols.percent]) : null,
+            uniTaskId: cols.uniTaskId !== undefined && String(row[cols.uniTaskId] ?? '').trim() !== '' ? String(row[cols.uniTaskId]).trim() : null,
             bold: opts.boldRows?.has(i + 1) ?? false,
             indent,
             explicitLevel: Number.isFinite(lvlRaw) ? lvlRaw : null,

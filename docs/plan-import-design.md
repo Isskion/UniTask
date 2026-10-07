@@ -19,6 +19,7 @@
 | D9 | **El % del Excel se descarta.** Es una estimación a ojo del PM; el avance se calcula siempre en UniTask (regla 0/100 por hoja ponderada por esfuerzo). El % de proyecto, dashboard y burndown se tratarán aparte. |
 | D11 | **(2026-10-07, matiza D9) Las hojas al 100 % del Excel entran en Aprobación Final** (`completed`, `closedAt` = su Fin, `closedBy: system:planImport`) para no tener que tratarlas. Solo hojas e hitos individuales; padres, hitos con tareas y controles se calculan (`lib/plan/planInitialState.ts`, mismo código que planRollup; la vista previa ya muestra el estado). El % parcial sigue descartándose (entran pendientes). |
 | D12 | **(2026-10-07) Las tareas ya existentes del proyecto se quedan como están**: la importación no las toca ni las vincula (no aparecen en la pestaña Plan); la numeración continúa tras ellas. El usuario borrará a mano las no empezadas. |
+| D13 | **(2026-10-07) % al exportar** (paso 7) según el estado UniTask de cada hoja: Aprobación Final (`completed`) **100 %**, Revisión **75 %**, En curso **50 %**, Pendiente 0 %; padres e hitos, media de sus hojas ponderada por esfuerzo. Así los PM ven el avance real en MS Project. Al reimportar ese Excel los parciales se ignoran (D11), por lo que el viaje de ida y vuelta no altera nada. *Pendiente de confirmar si el avance dentro de UniTask usa la misma escala o sigue 0/100.* |
 | D10 | **§3 Deshacer importación queda EN VIGILANCIA**: se desarrolla, pero el usuario no está convencido del enfoque; revisar con él tras probarlo. |
 
 ## 1. Modelo
@@ -104,6 +105,27 @@ Como manda UniTask (D1): si un campo fue editado en UniTask después de la impor
 
 Opcional para emparejamiento exacto: la exportación (§7) incluye columna `UniTask ID`; si los PM la conservan
 en MS Project (campo Texto1), el paso 0 empareja por ID.
+
+**Implementado (2026-10-07).** Cada tarea guarda `planBaseline` (lo que decía el Excel en el último lote: nombre,
+código, comienzo, fin, esfuerzo, %). Comparación a tres bandas por campo: Excel = UniTask → nada; solo cambió
+UniTask → se respeta; solo cambió el Excel → cambio propuesto (marcado); los dos → conflicto (por defecto UniTask);
+tarea sin foto (lotes anteriores al 2026-10-07) → conflicto "sin referencia" (por defecto Excel).
+- Capas 3 (parecido ≥ 0,85, Dice sobre bigramas) y 4 (mismo nombre único en otro sitio → **movida**) son siempre
+  "a confirmar"; "Aplicar" no se habilita hasta confirmarlas. "Es otra" → la fila entra nueva y la tarea vieja se
+  propone archivar.
+- 100 % en el Excel en una hoja abierta → se propone Aprobación Final (cerrada en su Fin). Si la foto ya decía 100 %
+  (UniTask la reabrió), no se vuelve a proponer.
+- Filas que faltan → archivar (`planStatus: 'archived'`, `isActive: false`); desmarcadas por defecto si tienen
+  actividad o descendientes que siguen en el plan. Si vuelven en otro Excel, se proponen reactivar.
+- Tareas creadas en UniTask (`planOrigin: 'unitask'`) nunca se proponen archivar; sí se emparejan si el PM las
+  añade luego a MS Project con la misma ruta/nombre.
+- El nivel de hito es el del último lote. Las altas llevan `importKind: 'reimport'` y **sí disparan planRollup**
+  (cuelgan de nodos existentes; la función promueve hoja → padre). `ancestorIds` se recalcula para todo el árbol
+  final (las movidas arrastran a sus descendientes).
+- Código: `lib/plan/planReimport.ts` (puro: diff + decisiones → escrituras), `lib/plan/planReimportApply.ts`
+  (lectura/escritura + lote `plan_imports` kind `reimport` con `before` para deshacer),
+  `components/plan/PlanReimportWizard.tsx` (botón "Reimportar Excel" en la pestaña Plan, PM+),
+  `components/plan/readPlanFile.ts` (lectura compartida con el asistente inicial).
 
 ## 5. Propagación de estado (Cloud Function)
 
@@ -230,4 +252,5 @@ Resueltas (D7–D9). Notas:
 | 1 Modelo | `types.ts` (PlanRole, PlanComputed, PlanImport, campos plan* en Task), `MAX_DEPTH` 10, `plan_imports` en los 3 scripts de backup | `tsc` app y functions sin errores |
 | 2 Propagación + reglas | `functions/src/planRollupCore.ts` (cálculo puro), `functions/src/planRollup.ts` (trigger onWrite europe-west1), `firestore.rules` (`planStateLocked`/`planGuardOk` en ambas reglas de tasks, `plan_imports`) | 24/24 comprobaciones en emulador Firestore+Functions: cierre/reapertura en cascada, gate automático, agregados de esfuerzo, promoción hoja→padre y vuelta, bloqueo de hitos/padres/gates para PM y Admin, hito individual cerrable, escape SuperAdmin, permisos de `plan_imports` |
 | 3 Asistente de importación | `lib/plan/planParser.ts` (lector puro), `lib/plan/planImport.ts` (escritura por lotes + `plan_imports`), `components/plan/PlanTree.tsx`, `PlanImportWizard.tsx`, `ProjectPlan.tsx` (pestaña "🗂️ Plan" en `ProjectManagement`) | Lector contra el Excel real de Transpais. E2E en emulador con `importPlan()` real como PM y reglas activas: 13/13 (603 tareas en ~3 s, lote `applied`, roles y cadena padre/antepasados, computed inicial, todo `pending`, responsable por prefijo, friendlyId únicos y respetados por la función, 2ª importación bloqueada, cierre propagado hasta el flujo). `tsc` y `next build` OK. **UI no probada en navegador** (requiere sesión). |
+| 6 Reimportación | `lib/plan/planReimport.ts`, `lib/plan/planReimportApply.ts`, `components/plan/PlanReimportWizard.tsx`, `readPlanFile.ts`; `planBaseline`/`importKind` en `types.ts` e importación inicial; `functions/src/planRollup.ts` (altas `importKind: 'reimport'` sí recalculan; desplegada) | Puras con el Excel de Transpais 25/25 (mismo Excel → 0 cambios con y sin foto; cambio solo Excel / solo UniTask / conflicto; 100 % → cierre; errata → a confirmar (0,96); rechazo → nueva + archivar; fila nueva bajo su hito; borrada → archivar; movida → a confirmar con nuevo padre y antepasados; tarea de UniTask conservada). E2E emulador 16/16 con reglas y planRollup: importación inicial + edición en UniTask + `applyReimport` real como PM, lote `applied`, planRollup recalcula hito (+1 hijo), padre de la cerrada (+1 cerrada) y de la archivada (−1 hijo), segunda pasada del mismo Excel sin cambios, consultor sin permiso. Gotcha emulador: procesa los 603 disparos de la importación inicial en serie; esperar varios minutos. `tsc`/`next build` OK. **UI no probada en navegador.** |
 | 5 Árbol accionable | `lib/plan/planTasks.ts` (herencia `buildDraft`, `createPlanTask` sobre `createTask`, `discardBlock`, `isPlanStateLocked`), `components/plan/PlanTaskModal.tsx`, acciones por fila en `PlanTree`/`ProjectPlan` (+ Tarea aquí, + Sub, Descartar bloque PM+, abrir en `/tasks?id=`), botón "Tarea suelta" y sección "Fuera de plan"; `TaskManagement.tsx`: estado "· calculado" no editable en nodos bloqueados y no reenvía `computed`/`planChildCount`/`planRole` (ni estado/progreso si está bloqueado); `firestore.rules`: `projectId` inmutable en tareas de plan | E2E emulador 23/23 (los 13 del paso 3 + herencia de deadline/ruta, alta bajo hito con `TRA-604` y suma en el hito, subtarea sobre hoja cerrada → padre y reapertura en cadena, tarea suelta, descartar bloque → `out_of_scope` por propagación con traza por tarea, reglas `projectId` y cierre de hito). Regresión paso 2: 24/24. `tsc`/`next build` OK. **UI no probada en navegador.** |

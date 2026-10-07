@@ -368,6 +368,16 @@ export interface PlanComputed {
     updatedAt: any;
 }
 
+/** [Plan] Valores del Excel en el último lote, para distinguir "cambió el Excel" de "se editó en UniTask". */
+export interface PlanBaseline {
+    title: string;
+    planCode: string | null;
+    startDate: string | null;   // ISO
+    endDate: string | null;     // ISO
+    estimatedEffort: number | null;
+    percent: number | null;
+}
+
 /** [Plan] Lote de importación de plan (colección plan_imports). Permite deshacer. */
 export interface PlanImport {
     id: string;
@@ -457,6 +467,10 @@ export interface Task {
     planOrigin?: 'import' | 'unitask';
     importId?: string;        // Lote de plan_imports que la creó (para deshacer)
     lastImportId?: string;    // Último lote que la modificó
+    /** Tipo del lote que la creó: las altas de una reimportación sí disparan planRollup. */
+    importKind?: 'initial' | 'reimport';
+    /** Lo que decía el Excel la última vez (importación o reimportación): base de la comparación a tres bandas. */
+    planBaseline?: PlanBaseline;
     /** Nº de hijos vivos (no archivados). Lo mantiene la Cloud Function planRollup. */
     planChildCount?: number;
     /** Valores agregados de los hijos. Solo los escribe planRollup. */

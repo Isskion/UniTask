@@ -19,6 +19,7 @@ import type { Project, Task, PlanImport } from '@/types';
 import { CLOSED_STATUSES } from '@/functions/src/planRollupCore';
 import { inferResponsibleSide, type ParsedPlan, type PlanNode } from './planParser';
 import { computeInitialStates, siblingOrder } from './planInitialState';
+import { baselineOf } from './planReimport';
 
 const BATCH_SIZE = 400;
 
@@ -135,7 +136,9 @@ export async function importPlan({ project, tenantId, userId, fileName, plan, on
                     planPath: n.path,
                     planOrigin: 'import',
                     importId,
+                    importKind: 'initial',
                     lastImportId: importId,
+                    planBaseline: baselineOf(n),
                     externalSource: { system: 'excel_plan', id: n.path },
                     startDate: n.start,
                     endDate: n.end,
