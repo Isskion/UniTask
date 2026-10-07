@@ -346,21 +346,13 @@ service cloud.firestore {
       );
     }
 
-    // Project Hierarchy (MS Project Import Nodes)
+    // Project Hierarchy: importador antiguo, RETIRADO (sustituido por la pestaña Plan, docs/plan-import-design.md §8).
+    // Solo lectura; nadie crea ni modifica. SuperAdmin puede borrar para la migración/limpieza.
     match /project_hierarchy/{nodeId} {
-        // READ: Broad tenant access for hierarchy visibility
-        allow read: if isSuperAdmin() || 
+        allow read: if isSuperAdmin() ||
                     (isAuthenticated() && docTenantMatches(resource.data));
-        
-        // WRITE/DELETE: Only Admins or Project Managers (Role >= 60) can import/rollback
-        allow create: if isAuthenticated() && (
-            isSuperAdmin() || 
-            (docTenantMatches(request.resource.data) && getRealRole() >= 60)
-        );
-        allow update, delete: if isAuthenticated() && (
-            isSuperAdmin() ||
-            (docTenantMatches(resource.data) && getRealRole() >= 60)
-        );
+        allow create, update: if false;
+        allow delete: if isSuperAdmin();
     }
 
     // [Plan] Lotes de importación de plan (docs/plan-import-design.md §3). Solo PM y superiores

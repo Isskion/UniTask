@@ -85,6 +85,19 @@
     "read": true
   },
   {
+    "id": "17pTwmRmdI4ifdp0ShZX",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-275 - III.2.1.1.6 Maersk Container_Update",
+    "taskId": "SgipooQayYixm7yb70MH",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372409,
+      "_nanoseconds": 726000000
+    }
+  },
+  {
     "id": "1I2VG5ZuuPAbXnCiCoEx",
     "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
     "tenantId": "3",
@@ -242,6 +255,34 @@
     "read": true
   },
   {
+    "id": "3twBUiqShqNhQcTbRKm3",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-315 - III.2.2.5.8 Ajustar en TEST Interfaz #12 Maersk Apointment PICKUP",
+    "taskId": "McE4KsdbTMv1qLQqkxkw",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372392,
+      "_nanoseconds": 177000000
+    }
+  },
+  {
+    "id": "45vi3QnD8X5aPNnXVukf",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-248 - \"III.1.5 Disponibilizar desarrollos requeridos para el proyecto\" has reached its deadline.",
+    "taskId": "T1GVW7gpcA37CU4CkuhQ",
+    "read": false,
+    "link": "/?view=task-manager&taskId=T1GVW7gpcA37CU4CkuhQ",
+    "createdAt": {
+      "_seconds": 1791374389,
+      "_nanoseconds": 183000000
+    }
+  },
+  {
     "id": "472iKi6Lj5qUOuglGKzI",
     "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
     "type": "deadline_expired",
@@ -254,6 +295,19 @@
       "_nanoseconds": 168000000
     },
     "read": true
+  },
+  {
+    "id": "4NuLfJ7xM7jh7CVoIav0",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-277 - III.2.1.1.8 Maersk Apointment DROPOFF",
+    "taskId": "cvyRCxb9KMWF6PUfcGPo",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372705,
+      "_nanoseconds": 968000000
+    }
   },
   {
     "id": "4fJquh8zUomr5f4NkxbV",
@@ -479,6 +533,19 @@
     }
   },
   {
+    "id": "71gpz2vZ6hA5gDa9n52r",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-320 - III.2.2.5.13 Probar en TEST Interfaz #15 Maersk Driver Update",
+    "taskId": "2UNlZFDp28WUlhABclLx",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372296,
+      "_nanoseconds": 533000000
+    }
+  },
+  {
     "id": "73vSc2HpNqmn2jTxy0AY",
     "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
     "type": "assignment",
@@ -489,6 +556,32 @@
     "createdAt": {
       "_seconds": 1770210643,
       "_nanoseconds": 936000000
+    }
+  },
+  {
+    "id": "7bJEg5RRvOnPN0NlO3j2",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-291 - III.2.2.1.7 Interfaz #12 Maersk Apointment PICKUP JSON Syncout",
+    "taskId": "HFmN5s7yD9IHIB109yQe",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372370,
+      "_nanoseconds": 519000000
+    }
+  },
+  {
+    "id": "7v6gsyKXD7yjMvjwglyj",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-294 - III.2.2.1.10 Interfaz #15 Maersk Driver Update JSON Syncout",
+    "taskId": "6H6vF6IFFUd1UVZOvc0K",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372331,
+      "_nanoseconds": 483000000
     }
   },
   {
@@ -637,6 +730,19 @@
     }
   },
   {
+    "id": "9HYZuzgDnuT4383qa5xP",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-310 - III.2.2.5.3 Probar en TEST Interfaz #10 Maersk Arrival",
+    "taskId": "Uq1NoamiZnjcQf4Azhzy",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372429,
+      "_nanoseconds": 386000000
+    }
+  },
+  {
     "id": "9txb7SacNq79QngheOtg",
     "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
     "tenantId": "3",
@@ -735,6 +841,19 @@
     "createdAt": {
       "_seconds": 1768565275,
       "_nanoseconds": 756000000
+    }
+  },
+  {
+    "id": "CFFEKtZnLTVFNTDeVZkb",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-295 - III.2.2.1.11 Interfaz #16 Maersk Tiempo de Espera / WAIT_TIME JSON Syncout",
+    "taskId": "KNgIt3kmOKI0PLU6FTjN",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372380,
+      "_nanoseconds": 565000000
     }
   },
   {
@@ -906,6 +1025,34 @@
     }
   },
   {
+    "id": "GPvi7G72bnEkbL95Sm9I",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-248 - \"III.1.5 Disponibilizar desarrollos requeridos para el proyecto\" has reached its deadline.",
+    "taskId": "T1GVW7gpcA37CU4CkuhQ",
+    "read": false,
+    "link": "/?view=task-manager&taskId=T1GVW7gpcA37CU4CkuhQ",
+    "createdAt": {
+      "_seconds": 1791374389,
+      "_nanoseconds": 301000000
+    }
+  },
+  {
+    "id": "GVAPo85pwQzzkslQpeKE",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-293 - III.2.2.1.9 Interfaz #14 Maersk Asignación de PRECINTO / SEAL JSON Syncout",
+    "taskId": "h9vbxTr2qNy3TUGSsUtG",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372649,
+      "_nanoseconds": 874000000
+    }
+  },
+  {
     "id": "HLjQood4B2KnKzRITYkr",
     "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "tenantId": "3",
@@ -976,6 +1123,19 @@
     }
   },
   {
+    "id": "IPHTsNxnh87UXewjL8fY",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-279 - III.2.1.1.10 Maersk Driver Update",
+    "taskId": "ksLoC2K3FtW9b9PQ1pJw",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372873,
+      "_nanoseconds": 504000000
+    }
+  },
+  {
     "id": "IvD62SO5TgyCGESs23bS",
     "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "tenantId": "3",
@@ -1001,6 +1161,19 @@
     "createdAt": {
       "_seconds": 1771842165,
       "_nanoseconds": 196000000
+    }
+  },
+  {
+    "id": "JDIyYFm8TaOvZkPhVuoU",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-281 - III.2.1.1.12 Maersk Futile_trip",
+    "taskId": "Uejx6HSnSHP375SiFRol",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372420,
+      "_nanoseconds": 142000000
     }
   },
   {
@@ -1126,6 +1299,19 @@
     "createdAt": {
       "_seconds": 1771226579,
       "_nanoseconds": 353000000
+    }
+  },
+  {
+    "id": "LivhyZYhWBLSXvZOtYPK",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-292 - III.2.2.1.8 Interfaz #13 Maersk Apointment DROPOFF JSON Syncout",
+    "taskId": "9IZGgWHBAJWFVdfaceV4",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372343,
+      "_nanoseconds": 215000000
     }
   },
   {
@@ -1366,6 +1552,19 @@
     }
   },
   {
+    "id": "RA0uHgi1USXqS48h8ttz",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-313 - III.2.2.5.6 Ajustar en TEST Interfaz #11 Maersk Container_Update",
+    "taskId": "1A2EGgLC2CJ3JBsx3YpO",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372286,
+      "_nanoseconds": 560000000
+    }
+  },
+  {
     "id": "RTYC1J1dGF8lVgGJLR9G",
     "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
     "type": "assignment",
@@ -1471,6 +1670,32 @@
     "createdAt": {
       "_seconds": 1769186421,
       "_nanoseconds": 358000000
+    }
+  },
+  {
+    "id": "V8WFMyKt943nFCRbof9t",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-276 - III.2.1.1.7 Maersk Apointment PICKUP",
+    "taskId": "qtpcMu3XIYoR37bOtYNf",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372904,
+      "_nanoseconds": 408000000
+    }
+  },
+  {
+    "id": "VZx5zRENahlqkDcO3k9l",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-280 - III.2.1.1.11 Maersk Tiempo de Espera / WAIT_TIME",
+    "taskId": "lEMYEOvJ38IxsJ1yxfLP",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372890,
+      "_nanoseconds": 407000000
     }
   },
   {
@@ -1657,6 +1882,19 @@
     }
   },
   {
+    "id": "ZR0Y5QOlwcILRRpVUGLF",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-296 - III.2.2.1.12 Interfaz #17 Maersk Futile_trip JSON Syncout",
+    "taskId": "vZfna0RHr716yKbta2sF",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372856,
+      "_nanoseconds": 717000000
+    }
+  },
+  {
     "id": "ZawALuZNuAiSdtb4VnKq",
     "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
     "tenantId": "3",
@@ -1794,6 +2032,19 @@
     "createdAt": {
       "_seconds": 1768565266,
       "_nanoseconds": 651000000
+    }
+  },
+  {
+    "id": "eRdH99VYk93ylycAv7Qi",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-274 - III.2.1.1.5 Maersk Arrival VALIDAR PROTOCOLO Y METODO LLAMADA",
+    "taskId": "Rki55Z5DsYyXwcktVm0G",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372400,
+      "_nanoseconds": 920000000
     }
   },
   {
@@ -2092,6 +2343,19 @@
     }
   },
   {
+    "id": "j1NgybGiyiXGDzLXIlii",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-312 - III.2.2.5.5 Probar en TEST Interfaz #11 Maersk Container_Update",
+    "taskId": "2rXPlzT5IFI1kptg1BYd",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372321,
+      "_nanoseconds": 168000000
+    }
+  },
+  {
     "id": "jCYpxuSTeVOHoGw6UB8j",
     "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
     "tenantId": "2",
@@ -2204,6 +2468,19 @@
     "read": true
   },
   {
+    "id": "l9vm9QxktU7qT2TBuuP0",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-319 - III.2.2.5.12 Ajustar en TEST Interfaz #14 Maersk Asginación de PRECINTO / SEAL",
+    "taskId": "2Xpx7uOtOimB3UNAAWeH",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372306,
+      "_nanoseconds": 247000000
+    }
+  },
+  {
     "id": "ldApIsY2bm8z2WmI2RPd",
     "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
     "tenantId": "3",
@@ -2216,6 +2493,19 @@
     "createdAt": {
       "_seconds": 1772012912,
       "_nanoseconds": 566000000
+    }
+  },
+  {
+    "id": "mCXK3iMsN3L5yKxY1paH",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-290 - III.2.2.1.6 Interfaz #11 Maersk Container_Update JSON Syncout",
+    "taskId": "YGu0Nz5jcseFmFgUjW6k",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372528,
+      "_nanoseconds": 127000000
     }
   },
   {
@@ -2425,6 +2715,19 @@
     "createdAt": {
       "_seconds": 1770237444,
       "_nanoseconds": 829000000
+    }
+  },
+  {
+    "id": "pnsbkkJUpGlOCMhx8X0m",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-311 - III.2.2.5.4 Ajustar en TEST Interfaz #110 Maersk Arrival",
+    "taskId": "DP1bLG3J9FyRgmADGwuU",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372355,
+      "_nanoseconds": 854000000
     }
   },
   {
@@ -2683,6 +2986,19 @@
     }
   },
   {
+    "id": "v1X5fy0j12AfKmoeF5Lw",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-278 - III.2.1.1.9 Maersk Asignación de PRECINTO / SEAL",
+    "taskId": "yrrJXuX2QDZh8g64zcOP",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372914,
+      "_nanoseconds": 990000000
+    }
+  },
+  {
     "id": "v7qxbuTajz3L5BBL8uHT",
     "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
     "type": "deadline_expired",
@@ -2846,6 +3162,19 @@
     "createdAt": {
       "_seconds": 1771225521,
       "_nanoseconds": 302000000
+    }
+  },
+  {
+    "id": "zmGUt3QBIiRtS8egwUpJ",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-289 - III.2.2.1.5 Interfaz #10 Maersk Arrival",
+    "taskId": "VXFVtg1GC9gOOwUS115x",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1791372515,
+      "_nanoseconds": 478000000
     }
   },
   {

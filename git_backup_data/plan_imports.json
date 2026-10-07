@@ -1,1 +1,6282 @@
-[]
+[
+  {
+    "id": "EUCtGuBN4VQTFb9kFYEQ",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "fileName": "TRNP - Extracto Plan Etapa III, IV y V.xlsx",
+    "kind": "reimport",
+    "milestoneLevel": 2,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "created": [],
+    "archived": [],
+    "stats": {
+      "matched": 603,
+      "created": 0,
+      "fieldsFromExcel": 0,
+      "keptUniTask": 0,
+      "closed": 17,
+      "moved": 0,
+      "archived": 0,
+      "unarchived": 0
+    },
+    "warnings": [
+      {
+        "code": "milestone_without_children",
+        "severity": "info",
+        "message": "49 hito(s) sin tareas: se tratarán como hitos individuales (se cierran a mano).",
+        "rows": [
+          17,
+          18,
+          55,
+          209,
+          210,
+          212,
+          213,
+          233,
+          234,
+          418,
+          419,
+          421,
+          422,
+          435,
+          436,
+          527,
+          528,
+          530,
+          531,
+          536,
+          537,
+          538,
+          539,
+          540,
+          541,
+          543,
+          544,
+          545,
+          546,
+          547,
+          548,
+          550,
+          551,
+          552,
+          553,
+          554,
+          555,
+          559,
+          560,
+          561,
+          563,
+          573,
+          574,
+          575,
+          577,
+          587,
+          588,
+          589,
+          591
+        ]
+      },
+      {
+        "code": "above_milestone_without_children",
+        "severity": "warning",
+        "message": "5 fila(s) por encima del nivel de hito no tienen hijos: se importan como tareas sueltas del agrupador.",
+        "rows": [
+          600,
+          601,
+          602,
+          603,
+          604
+        ]
+      },
+      {
+        "code": "summary_without_detail",
+        "severity": "warning",
+        "message": "15 tarea(s) resumen (negrita en MS Project) llegan sin detalle: pendientes de desglosar.",
+        "rows": [
+          55,
+          183,
+          184,
+          335,
+          349,
+          488,
+          489,
+          490,
+          491,
+          492,
+          493,
+          494,
+          495,
+          496,
+          600
+        ]
+      },
+      {
+        "code": "duplicate_codes",
+        "severity": "info",
+        "message": "36 código(s) EDT repetidos (p. ej. III.1.4.2.7.11 ×2, III.1.4.2.9.3 ×3, III.1.4.6.4 ×2). No afecta: la jerarquía sale de la sangría.",
+        "rows": [
+          141,
+          148,
+          162,
+          163,
+          164,
+          184,
+          191,
+          271,
+          279,
+          280,
+          272,
+          281,
+          282,
+          273,
+          283,
+          284,
+          274,
+          285,
+          286,
+          342,
+          349,
+          343,
+          350,
+          344,
+          351,
+          345,
+          352,
+          346,
+          353,
+          347,
+          354,
+          348,
+          355,
+          404,
+          411,
+          405,
+          412,
+          406,
+          413,
+          407,
+          414,
+          442,
+          471,
+          445,
+          452,
+          446,
+          453,
+          447,
+          454,
+          448,
+          455,
+          449,
+          456,
+          527,
+          528,
+          558,
+          559,
+          573,
+          587,
+          560,
+          562,
+          574,
+          588,
+          561,
+          575,
+          589,
+          563,
+          572,
+          577,
+          591,
+          564,
+          576,
+          578,
+          592,
+          565,
+          579,
+          593,
+          566,
+          580,
+          594,
+          567,
+          581,
+          595,
+          568,
+          582,
+          596,
+          569,
+          583,
+          597,
+          570,
+          584,
+          598
+        ]
+      },
+      {
+        "code": "no_code",
+        "severity": "info",
+        "message": "6 fila(s) sin código EDT; se colocan por su sangría.",
+        "rows": [
+          4,
+          536,
+          543,
+          550,
+          556,
+          599
+        ]
+      },
+      {
+        "code": "predecessors_ignored",
+        "severity": "info",
+        "message": "Las predecesoras referencian IDs internos de MS Project que no vienen en el Excel: no se importan. Las dependencias se definen en UniTask.",
+        "rows": []
+      },
+      {
+        "code": "completed_from_excel",
+        "severity": "info",
+        "message": "17 tarea(s) al 100 % en el Excel entran en Aprobación Final (fecha de cierre = su Fin). Sus hitos y padres se calculan a partir de ellas.",
+        "rows": [
+          8,
+          9,
+          25,
+          43,
+          58,
+          65,
+          66,
+          67,
+          68,
+          69,
+          71,
+          72,
+          73,
+          78,
+          199,
+          201,
+          204
+        ]
+      },
+      {
+        "code": "percent_ignored",
+        "severity": "info",
+        "message": "26 tarea(s) con avance parcial en el Excel entran como pendientes: solo el 100 % se importa (el avance se calcula en UniTask).",
+        "rows": [
+          10,
+          11,
+          12,
+          13,
+          14,
+          17,
+          44,
+          59,
+          70,
+          74,
+          75,
+          76,
+          77,
+          79,
+          80,
+          81,
+          84,
+          85,
+          86,
+          87,
+          95,
+          96,
+          97,
+          98,
+          99,
+          206
+        ]
+      },
+      {
+        "code": "overdue",
+        "severity": "info",
+        "message": "88 tarea(s) tienen fecha de fin ya pasada; entran como pendientes y aparecerán vencidas.",
+        "rows": [
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          23,
+          26,
+          28,
+          44,
+          59,
+          60,
+          61,
+          62,
+          70,
+          74,
+          75,
+          76,
+          77,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          200,
+          202,
+          205,
+          206,
+          207,
+          219,
+          220,
+          221,
+          222,
+          223,
+          224,
+          225,
+          226,
+          227,
+          228,
+          229,
+          230,
+          290,
+          291,
+          292,
+          536,
+          537,
+          538,
+          539,
+          540,
+          541,
+          543,
+          544,
+          545,
+          546,
+          547,
+          548,
+          550,
+          551,
+          552,
+          553,
+          554,
+          555,
+          565,
+          566,
+          567,
+          568,
+          569,
+          570,
+          579,
+          580,
+          581,
+          582,
+          583,
+          584,
+          593,
+          594,
+          595,
+          596,
+          597,
+          598
+        ]
+      }
+    ],
+    "createdAt": {
+      "_seconds": 1791367964,
+      "_nanoseconds": 530000000
+    },
+    "updated": [
+      {
+        "taskId": "7zdp8RQCXton8jtKzZ0Y",
+        "before": {
+          "planBaseline": null
+        }
+      },
+      {
+        "taskId": "VWW0wh4e0YyliH0X3wnL",
+        "before": {
+          "planBaseline": null
+        }
+      },
+      {
+        "taskId": "rym0x2IF29YU0PN4uupx",
+        "before": {
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "REYjtf5M5K1FzcZYMX36",
+        "before": {
+          "title": "Flujo logístico INTERNACIONAL",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "poZDj454JaB5z4fTp1HP",
+        "before": {
+          "title": "Mapear Interfaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "cLtd9YvkHYKWdHXEjnXa",
+        "before": {
+          "title": "Realizar sesiones de mapeo de interfaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "h2seqobxNRdYvBCs9DSL",
+        "before": {
+          "title": "Sesiones Transporeon Alta de pedido",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "xmx2F99gjV8Hm0ok9Y69",
+        "before": {
+          "title": "Sesión de Webfleet",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "a2fZEloFacEfIZgZDEAi",
+        "before": {
+          "title": "Sesiones Bussiness Central Maestros - CrearClientesDadores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "dJRJV1iQGNVeuMD3xcjn",
+        "before": {
+          "title": "Sesiones Bussiness Central Maestros - CrearClientesOrden",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "8ayMLm4aDmnjlKBRaXgW",
+        "before": {
+          "title": "Sesiones Bussiness Central Maestros - CrearTransportes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ihPZOvJ7GfzowxQlOW17",
+        "before": {
+          "title": "Sesiones Bussiness Central Maestros - CrearVehiculos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "eokTYbQSjf9rDYVxtDaj",
+        "before": {
+          "title": "Sesiones Bussiness Central Maestros - CrearConductores - VALIDAR",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "YKqWOCDX7OH801AQRZGu",
+        "before": {
+          "title": "Sesiones Bussiness Central Preliquidaciones de Venta",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ldqmVoE20PcqD29AhNTm",
+        "before": {
+          "title": "Sesiones Bussiness Central Preliquidaciones de Costo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "mtcdkeEneBOJwJwJFBpc",
+        "before": {
+          "title": "Elaborar el documento de mapeo de interfaces Internacional",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "HGzzJjvRbFPSAUeLEXds",
+        "before": {
+          "title": "Acordar el documento final de mapeo de interfaces Internacional",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "kkGBJfEDdTgtC81Mwql8",
+        "before": {
+          "title": "Mapeo de interfaces aprobado",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "e8HvrARZnlnTTrdmiNuT",
+        "before": {
+          "title": "Desarrollar y configurar Interfaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "FcOnUPfZ9Ju0d24nbPxb",
+        "before": {
+          "title": "Desarrollar y Configurar interfaces Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "rzdDPGMn63We46dP6ZTi",
+        "before": {
+          "title": "Interfaz #1 Transporeon Creación de Pedidos desarrollada por Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "nJKwLqvRKnM20YIDB8Z0",
+        "before": {
+          "title": "Interfaz #2 JSON Syncout BC Preliquidaciones de Venta",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bPqZw2Yhfuwf2jnSgw0b",
+        "before": {
+          "title": "Interfaz #3 JSON Syncout BC Preliquidaciones de Costo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "adPXB9FSrjsdDP8DCoRn",
+        "before": {
+          "title": "Interfaz #4 Webfleet desarrollada por Unigis",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "planned": 0,
+            "actual": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "NRRc5qyWtvADa0AssD7X",
+        "before": {
+          "title": "Interfaces Unigis Desarrolladas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "YGBB5gkcbyg9yDnOv0Je",
+        "before": {
+          "title": "Desarrollar y Configurar interfaces Cliente / Proveedores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "5x56hj76moeCEslo4AW3",
+        "before": {
+          "title": "TRSP Aitana Interfaz #5 Maestros de Conductores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "NSjuc5RwWdqmZQIiKAnx",
+        "before": {
+          "title": "TRSP Aitana Interfaz #2 Preliquidaciones de Venta",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SjaFpgzziEQeamBcnVVR",
+        "before": {
+          "title": "TRSP Aitana Interfaz #3 Preliquidaciones de Costo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "gbvhNP2VUzmpUn3ycZkz",
+        "before": {
+          "title": "TRSP Aitana Interfaz #6 Maestros - CrearClientesDadores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "TwJvJUKC5koziaSnjRft",
+        "before": {
+          "title": "TRSP Aitana Interfaz #7 Maestros - CrearClientesOrden",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "hORJ78iqgUVZxqemDFmu",
+        "before": {
+          "title": "TRSP Aitana Interfaz #8 Maestros - Maestros - CrearTransportes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "YmqNL8i993TUSd2IVNwh",
+        "before": {
+          "title": "TRSP Aitana Interfaz #9 Maestros - CrearVehiculos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "N6RShRvJ4YB5PUzowg7U",
+        "before": {
+          "title": "Interfaces Transpais Desarrolladas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "qhC9eYuuD9e9aYpZYtBl",
+        "before": {
+          "title": "Realizar pruebas unitarias intefaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "N0LyRgOG7vGtyDL6ACzi",
+        "before": {
+          "title": "Probar en TEST Interfaz #1 Transporeon Creación de Pedidos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "S0V8X0JikCntgryVgUSw",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #1 Transporeon Creación de Pedidos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "OCqmKtNyhHtMmk7Rvhjy",
+        "before": {
+          "title": "Probar en TEST Interfaz #2 BC Preliquidaciones de Venta",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SAAavQKIWVMqrsKN1wEt",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #2 BC Preliquidaciones de Venta",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "26EhU75pJzxLDcwDYZIW",
+        "before": {
+          "title": "Probar en TEST Interfaz #3 BC Preliquidaciones de Costo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "TpwPurgQl1jIQMufBRt6",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #3 BC Preliquidaciones de Costo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "9rfRpmiMlRActfVOUZXi",
+        "before": {
+          "title": "Probar en TEST Interfaz #4 Webfleet desarrollada por Unigis",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "BjRkhdQgpBg5ws7m32CC",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #4 Webfleet desarrollada por Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "T2XB8CqDfINsk5izBCyZ",
+        "before": {
+          "title": "Probar en TEST Interfaz #5 CrearVehículos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "NlexoFyUsToQH9GXHHmH",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #5 CrearVehiculos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "LQd5ScUEKQUuS1kVo7hS",
+        "before": {
+          "title": "Probar en TEST Interfaz #6 Maestros - CrearClientesDadores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "oq090IFXQcUBXu5gkerr",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #6 Maestros - CrearClientesDadores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "RKWam6Qv5v8gF4f4eqPl",
+        "before": {
+          "title": "Probar en TEST Interfaz #7 Maestros - CrearClientesOrden",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "yEf9B5A07A6o8PLN0CzT",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #7 Maestros - CrearClientesOrden",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "4hWTfzDxhkOioGqMfT7a",
+        "before": {
+          "title": "Probar en TEST Interfaz #8 Maestros - Maestros - CrearTransportes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "E78KTYe6uVJAMcv8CEFL",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #8 Maestros - Maestros - CrearTransportes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bUWo53iZwz4XvtQ2QfEj",
+        "before": {
+          "title": "Probar en TEST Interfaz #9 Maestros - CrearVehiculos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "1qw2dQAMUStBQmNusuJK",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #9 Maestros - CrearVhículos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "zZoMbcQCwyeDQvciDj01",
+        "before": {
+          "title": "Interfaces Desarrolladas y Probadas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "6YExcxTP0IhoinSqaDSR",
+        "before": {
+          "title": "Documentar requerimientos de desarrollo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "OqvM9bocrQDldjsXFnCE",
+        "before": {
+          "title": "Completar formatos de requerimientos de desarrollo (REQs)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "pAsqG2OR6WvQqnYLpL8U",
+        "before": {
+          "title": "Integración con Webfleet",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "planned": 0,
+            "actual": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ifZkeE8AeF53mKoI3cEN",
+        "before": {
+          "title": "Integración con Transporeon",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "agUllSalz78lCrRH6FFE",
+        "before": {
+          "title": "Sesión de mapeo y diseño de eCMR",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "rYtREd3yE3a5jI2C6e7W",
+        "before": {
+          "title": "Configuración de eCMR",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "QK12lWCcNR9U1HaJ8HQ8",
+        "before": {
+          "title": "Requerimientos a DEV reportados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "RMeXU3MgNx6tmJuPypHj",
+        "before": {
+          "title": "Configurar la solución y realizar pruebas unitarias",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ktuy0IkAmmZkQqtinjwH",
+        "before": {
+          "title": "Preparar y cargar datos maestros básicos para configuración",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "9E656OMgYMkTp7Mfvvqb",
+        "before": {
+          "title": "Transpais adjuntar datos de Empresa, Sucursal Operaciones para UNI",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "hQSbU0FexQTEabIQztgA",
+        "before": {
+          "title": "UNI Configurar y cargar Empresa Sucursal Operaciones",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "J4suO47IncrNARGT0m6b",
+        "before": {
+          "title": "Transpais adjuntar datos de Depósitos para UNI (tipo, geo y horarios)",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "planned": 0,
+            "actual": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "jrdBCsK5aRniIDlLHo7D",
+        "before": {
+          "title": "UNI Configurar y cargar Depósitos (tipo, geolocalización y horarios)",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "43zcVPXfM901RFVJDWZE",
+        "before": {
+          "title": "Transpais Compilar datos de Destinatarios para UNI (horarios, geo y restricciones)",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "biTE5vMOopQqhbk2sVlS",
+        "before": {
+          "title": "UNI configurar y cargar Destinatarios (horarios, geo y restricciones)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "5nUSantGCe6ED5ZxOYoQ",
+        "before": {
+          "title": "Transpais Compilar datos de Transportes y Tipo para UNI",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "phnk79Bg8KRHrFIjtEd7",
+        "before": {
+          "title": "UNI configurar y cargar Transportes y Tipo",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "planned": 0,
+            "actual": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "AnH0PoFGssYpETVmAoKS",
+        "before": {
+          "title": "Transpais Compilar datos de tipos de vehículos para UNI (vehículos, dimensiones, horarios y restricciones)",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "QxiNBqdLU22ShRBgxpGG",
+        "before": {
+          "title": "UNI configurar y cargar tipos de vehículos (vehículos, dimensiones, horarios y restricciones)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "JNMns5Rj7kFtlFMUVUDB",
+        "before": {
+          "title": "Transpais Compilar datos de conductores para UNI",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "HmKmYsdkkWXxBHLtpWo5",
+        "before": {
+          "title": "UNI configurar y cargar conductores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "zsnz5qLi5KBL84O8LKiW",
+        "before": {
+          "title": "UNI configurar y cargar tipos de Pedidos, y TiposOrden",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "XelcTllj0G3si53A1xoH",
+        "before": {
+          "title": "Transpais compilar datos de pedidos e items para UNI",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "planned": 0,
+            "actual": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "wkXSmgVywDINtYTbd2vo",
+        "before": {
+          "title": "Transpais compilar tipo de documentos de pedidos para UNI",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "R7TkyXi8F6894zjLBxy7",
+        "before": {
+          "title": "UNI configurar y cargar tipo de documentos de pedidos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "lbi8LATr37rrRfMWso0L",
+        "before": {
+          "title": "UNI configurar alta de pedidos e items",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "LzQQSk5FwMxdMtav9aqv",
+        "before": {
+          "title": "Transpais compilar datos de zonas de seguimiento, control y peligro para UNI",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "D8jS628LXo0hLasu7Bz9",
+        "before": {
+          "title": "UNI Configurar zonas de seguimiento, control y peligro",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "MZ0rfsZkp20WaUr30wQD",
+        "before": {
+          "title": "UNI Crear y configurar estados de Ordenes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "L0c7f7aAW32J3t1SCYEK",
+        "before": {
+          "title": "UNI Crear y configurar transiciones de estados de Ordenes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "5CMRS06OFAXNjbqLvzqi",
+        "before": {
+          "title": "Transpais compartir maestros de área de influencia de depósitos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "mWDb4P66pg13bWd1WpEK",
+        "before": {
+          "title": "UNI configurar maestros de área de influencia de depósitos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2rwCjoPRi8fgBRurMW7P",
+        "before": {
+          "title": "Transpais compilar y compartir credenciales para configurar login TMS SSO",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "JL3czHGEN2lqe9dnqsWt",
+        "before": {
+          "title": "UNI configurar login TMS SSO en TEST siguiendo la lista compartida por TRNP",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "AgM0dR6LamLJfptWy9os",
+        "before": {
+          "title": "Transpais compilar y compartir credenciales para configurar login TMS MFA",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "3ET4DSybBOvS9P3uQPW9",
+        "before": {
+          "title": "UNI configurar login TMS MFA en TEST siguiendo la lista compartida por TRNP",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "dApHh1oQmdpfSBkdZGsU",
+        "before": {
+          "title": "Datos maestros configurados y cargados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "EolLhzhp1ujLbDIdYOTS",
+        "before": {
+          "title": "Configurar y probar flujos logísticos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "lb45Uw4bFkkwpIAquSUU",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de Workflows",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "UV7QbF8rKy6wOdCqzRA4",
+        "before": {
+          "title": "Configurar Estados de Pedidos-Ordenes-Paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "l5BuyDapuA6ZdivNpCIa",
+        "before": {
+          "title": "Configurar TipoParada",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ZnBTeDzNjmk9y6wBTYMD",
+        "before": {
+          "title": "Configuración transiciones de estado de Pedido-Ordenes-Paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Tv7wOUMVd5wAcXiT1pCI",
+        "before": {
+          "title": "Configurar proceso Completar Pedido Cero",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "iA22tkbsxavsp2IPatGl",
+        "before": {
+          "title": "Configurar proceso Validacion de Pedidos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "fdQPgrmQmfir6sghlpYf",
+        "before": {
+          "title": "Configurar Tabla Z_ReglasAsignación4PL",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "u9C08HwhU2vOwDe0xO9J",
+        "before": {
+          "title": "Configurar Tabla Z_AreasInfluenciaAlmacenes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "tIeVzkcelIhULtg3Hk6z",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias OM básico",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "WZttx1ewcu01afXng48Q",
+        "before": {
+          "title": "Configurar proceso al editar Pedidos en OM",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "gaLv3uhyuU0IdUHTdZnm",
+        "before": {
+          "title": "UNI Generar layout básico en OM - Pedidos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "C1wESh8dXQ4hJ0q2VsTn",
+        "before": {
+          "title": "Configurar OrdenTipoPedido (Carga, Descarga)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "u5LrE8MEHueuVqa54nfB",
+        "before": {
+          "title": "Crear Proceso de Creacion de Ordenes desde Pedidos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "98ycCSrglwzBm2gM105P",
+        "before": {
+          "title": "Proceso que actualiza datos de la Orden en la creacion",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "fU3IH3bM6yOfaBNUAxSP",
+        "before": {
+          "title": "Configurar Geomaper",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "GWNyzHT03ZBCNQIT69bD",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de Circuito Intercompany",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ySH9ZmhuQW491oyagXnf",
+        "before": {
+          "title": "Sesión de analisis de la funcionalidad",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DFzNqR54wh3yCJa72fcs",
+        "before": {
+          "title": "Parametrizar la funcionalidad en TMS Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "lD1Mv5Zo42WFvbhrMgpf",
+        "before": {
+          "title": "Validar la funcionalidad Transpais",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "4qkqdW8tDFqOMci0u8hL",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de Modelo Operativo 4PL",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "1hDUWw39B9UYOw6AKtV7",
+        "before": {
+          "title": "Sesión de analisis de la funcionalidad",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "RyLZUZwbOtfDZNI7sEqj",
+        "before": {
+          "title": "Parametrizar la funcionalidad en TMS Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "816DprdZvgklzluRvdua",
+        "before": {
+          "title": "Validar la funcionalidad Transpais",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "o64C6XYpuNd6tjUqbRau",
+        "before": {
+          "title": "Configurar y probar portal B2B",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "b304Wx7NHmRMQj8oDhw6",
+        "before": {
+          "title": "Sesiones de definición de Layout con el cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bW5Ovh8wHfB2WF3OjOJL",
+        "before": {
+          "title": "Configurar PedidoConfiguraciónAtributo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "faQLSOHrdGMahlvO32KK",
+        "before": {
+          "title": "Transpais compartir listado de servicios adicionales",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "olvISwyMDwfojhPxMmBc",
+        "before": {
+          "title": "Unigis configurar servicios adicionales sobre el listado compartido por TRNP",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "t7S0kYD1Y0gvOji40udS",
+        "before": {
+          "title": "Configurar importanción masiva a través de Excel",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "5wkj5q2EQCYkeGRsOoEY",
+        "before": {
+          "title": "Configurar Proceso post importación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "UwmT8x1iSceYsbjivRxD",
+        "before": {
+          "title": "Configurar y probar Planificación / Ruteo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "R03806njdXKaToA7vowx",
+        "before": {
+          "title": "Crear y configurar estados de Rutas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "RZPhnhJRZy4D33F6Lkek",
+        "before": {
+          "title": "Crear y configurar transiciones de estados de Rutas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "HOyLfMWdxZvI7ZnwmPmm",
+        "before": {
+          "title": "Configurar proceso Pre Validación en cambio Estado de Pedido a Planificado",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "rAS1Vv5v5pRi4Be14pSJ",
+        "before": {
+          "title": "Configuración de dashboard de disponibilidad de recursos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Vf3JR2wrG8TTERs8wfjK",
+        "before": {
+          "title": "Workflows, OM y Planning Configurados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "5aY7gQGR2YW2dUxZmhHl",
+        "before": {
+          "title": "Creación y Validación de Viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "z64DbSKs6tOEaygRwIQA",
+        "before": {
+          "title": "Crear y configurar estados de Viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "gWCNsi7xtwXRanTJZDBB",
+        "before": {
+          "title": "Crear y configurar transiciones de estados de Viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "YdrObhWqvPuygXr1YvR7",
+        "before": {
+          "title": "Configurar proceso de creación de viaje Post cambio Estado de Pedido a Planificado",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bK21W8ucRyaKUweP3rys",
+        "before": {
+          "title": "Configurar proceso de actualización de viaje Post creación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Tpckc9ChIjrPInsUrnmx",
+        "before": {
+          "title": "Configurar proceso de actualización de parada Post creación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "kQbNSYigmVzk4RRxiPOV",
+        "before": {
+          "title": "Configurar proceso pre-validación al confirmar viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "mBnGQWLjpeE2En66lGpg",
+        "before": {
+          "title": "Configurar proceso post confirmación viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "mLaR9Sheo4164sGtzHHU",
+        "before": {
+          "title": "Configurar Hoja de Viaje",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SFkzK3UVDHP4P2NFdovw",
+        "before": {
+          "title": "Configurar CMR (estándar) - CONFIRMAR CON TRNP DIRECTO ECMR",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "PPy9lzbhRol9E101yORf",
+        "before": {
+          "title": "Configurar Carta de Porte",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "igtpgkg14LZxM4hgxvWu",
+        "before": {
+          "title": "Transpais compilar Tipos de Documentos para Viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "BrmurMvFGY4FrAXiAtot",
+        "before": {
+          "title": "Configurar Tipos de Doc para viajes (ADR, Packing list, Impresión del Portic, Albaranes del Cliente)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "gRBJTss4CiBkWPnyF3iF",
+        "before": {
+          "title": "Configurar Portal de Transporte",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "PB3KJOgDbNDMQhG1FB7I",
+        "before": {
+          "title": "Configurar Tracking",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SIcyiqfHmbE3EkfpiUHl",
+        "before": {
+          "title": "Configurar Dashboard",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "f6joYfXmAStkEnzt9lNi",
+        "before": {
+          "title": "Configurar asignacion automatica de Viajes a usuarios",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "g4dhuxXbHhMgRukuMNxb",
+        "before": {
+          "title": "Configurar Categoria de Viaje",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "OfGCIFkqACOA4Jt8Zr0t",
+        "before": {
+          "title": "Transpais compilar lista de Motivos de Transiciones de Paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "NHYjhiI6VLaB5dg1vzQy",
+        "before": {
+          "title": "Configurar Motivos de Transiciones de Paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "84lAwXqX4XltxTWz5q8L",
+        "before": {
+          "title": "Configurar Proceso de validacion en cambio de estado de paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "seq8axgBm2cjDvvmlyKH",
+        "before": {
+          "title": "Configurar Proceso de cambio de estado automatico de Viaje VALIDAR CRITERIO",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "1mIpW5Ke1s1MD1MasQy3",
+        "before": {
+          "title": "Configurar Proceso de cambio de estado automatico de Parada a Visitado",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "1htPtGA67eR2W3qoOL4q",
+        "before": {
+          "title": "Preparación y Actualización de Viaje",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "eV71a8np0mLtScJMTg5p",
+        "before": {
+          "title": "Configurar proceso SincronizarEstadodeViaje desde Paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "35vgZlVjEJ1xqSNWOq3i",
+        "before": {
+          "title": "Configurar confirmación de cargas Cantidad-Motivos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "MBBxHwO188nQF9v1k7Uy",
+        "before": {
+          "title": "Configurar creación y asignacion de paradas desde Dipatch",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "OnTqIvKdXpZDSye1ueoq",
+        "before": {
+          "title": "Configurar Tipos de incidencias y configuracion por Grupo de Usuarios",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "636BFalPxDk4bjksDRfW",
+        "before": {
+          "title": "Configurar proceso de creación de parada de Devolución",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "1mnZOoPURJRHddjfPFQs",
+        "before": {
+          "title": "Pruebas unitarias de Workflows (cliente)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Foqe1GXvFrW3s3H2dH5v",
+        "before": {
+          "title": "Transpais probar en TEST transiciones de estados de Pedidos B2B",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "UyDRUTKcDb3dFs91tVvI",
+        "before": {
+          "title": "Transpais probar en TEST transiciones de estados de Ordenes OM",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "0hGwRokiimooGySRn2jB",
+        "before": {
+          "title": "Transpais probar en TEST transiciones de estados de Rutas OM",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "vJ5SXZ0qBGoxlw0LJ1If",
+        "before": {
+          "title": "Transpais probar en TEST transiciones de estados de Paradas y Tracking",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ax7pvQ2YNOn1DC4KSqdd",
+        "before": {
+          "title": "Transpais probar en TEST transiciones de estados de Viajes y Tracking",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "IUVDzgbEE4Y2QqMLBRxt",
+        "before": {
+          "title": "Ajustes de Procesos y SP tras pruebas unitarias",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "lVTD5bMJxb3P1wsyJni5",
+        "before": {
+          "title": "Ajuste de proceso post-importación de Pedidos tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "m7l9Zpd1hmTRTB2EtqCy",
+        "before": {
+          "title": "Ajuste de proceso Completar Pedido 0 tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "78csdztji5qWAfMkZkxH",
+        "before": {
+          "title": "Ajuste de proceso Validación de Pedidos tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "6VeWlwbTfEgT2EGJk3FZ",
+        "before": {
+          "title": "Ajuste de proceso Editar Pedidos OM tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "PAbzY5vhYBiPK8eYSyEP",
+        "before": {
+          "title": "Ajuste de proceso post Creación de Orden tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "duWq4yfgNhn3yAA1lP53",
+        "before": {
+          "title": "Ajuste de proceso pre Validación en Cambio de Estado de Viaje tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "6lIswhlhGLg7nC89o3RB",
+        "before": {
+          "title": "Ajuste de proceso post Creación Viajes y Paradas tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "60E465uXjQjFKapLHMtk",
+        "before": {
+          "title": "Ajuste de proceso Validación en Cambio de Estado Paradas tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "uqFCknDEJUrJBSgsEABg",
+        "before": {
+          "title": "Ajuste de proceso Creación de Parada de Devolución tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Loa0rssAMQVqScPk83KZ",
+        "before": {
+          "title": "Configurar y probar aplicaciones Móviles",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "CyFn079EH14DCa2XbAiu",
+        "before": {
+          "title": "Configurar y probar Unigis Deliveries X",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "jQYDWAO2bUcFXcSm6Q90",
+        "before": {
+          "title": "Transpais realizar pruebas unitarias de instalación y configuración de Unigis Deliveries X",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "s922u2OYm9pPHEFtkzOV",
+        "before": {
+          "title": "Maestros, flujos, planning y mobile configurados y probados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "1wuanncuwlE39JAOd84a",
+        "before": {
+          "title": "Configurar y probar alarmas, notificaciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DGn0Uo6O9psyoqnMg9j7",
+        "before": {
+          "title": "Transpais compartir lista y especificación de alarmas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "jZgHfjBQ3Ui7WUzaXQmc",
+        "before": {
+          "title": "Transpais compartir lista y especificación de notificaciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DkJblRqDDVwLwhe78UEy",
+        "before": {
+          "title": "Transpais compartir lista y especificación de reportes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "EMBBusyUgn6BS75o1PJm",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de alarmas y notificaciones VALIDAR LISTA",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "fDVAwoOAGAxzYpQvjYdR",
+        "before": {
+          "title": "Transpais realizar pruebas unitarias de alarmas y notificaciones en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DLvGQRjAxlUVOkmel1Qd",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de reportes VALIDAR LISTA",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "XwLsWV4UssYmngMVHrCi",
+        "before": {
+          "title": "Configurar y probar Disponibilidad de vehículos y conductores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "VhIHAejTV0TSEqJGGxyH",
+        "before": {
+          "title": "Configurar y probar otros reportes Internacional",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "s8RdUvwn5227vyEXa2Bi",
+        "before": {
+          "title": "Transpais realizar pruebas unitarias de reportes en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "E1j4Xu79xpxIXqux6SCq",
+        "before": {
+          "title": "TRNP probar Disponibilidad de vehículos y conductores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "d0QyZDrcMFMBtgogRbL4",
+        "before": {
+          "title": "TRNP probar otros reportes Internacional",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "hYDTn5K79QJn8dKvjZf1",
+        "before": {
+          "title": "Unigis realizar ajustes de reportes en TEST tras pruebas Transpais",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "IfhG8BbGTb5WE8omh7eB",
+        "before": {
+          "title": "Alarmas, notificaciones y reportes aprobados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ImeVmcOMHsorKX6YgLv9",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de grupos de usuarios y permisos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "sEjZMN28jx1OwiyffWgj",
+        "before": {
+          "title": "Transpais compilar y enviar lista de Grupos y Usuarios",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2V6iL6ToK72KjBNIjlho",
+        "before": {
+          "title": "Configurar y cargar Grupos y Usuarios",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "uDLpkxMmcsGnxwvXEoEY",
+        "before": {
+          "title": "Transpais probar Grupos y Usuarios configurados en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "T1GVW7gpcA37CU4CkuhQ",
+        "before": {
+          "title": "Disponibilizar desarrollos requeridos para el proyecto",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "KyJZuSAaAfhXig54LBFn",
+        "before": {
+          "title": "Liberar REQs desarrollo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "FTkrL6Yhu6W8JPtpn2AM",
+        "before": {
+          "title": "Módulo Webfleet",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "pwwW1pqfjCxhZrUle0gy",
+        "before": {
+          "title": "Módulo Transporeon",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "dZwHD4uF9xtPTfJJlTqr",
+        "before": {
+          "title": "eCMR",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ca0QUwVd69AU3iPDxCjo",
+        "before": {
+          "title": "Desarrollos liberados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "zvOeyrLr9tv40aBGx3uR",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de desarrollos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "N6tBCJDOmkcvwvr2IGPU",
+        "before": {
+          "title": "Módulo Webfleet",
+          "status": "pending",
+          "closedAt": null,
+          "closedBy": null,
+          "progressV13": {
+            "actual": 0,
+            "planned": 0
+          },
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Vn1M6E4Y3MceyhixEuj2",
+        "before": {
+          "title": "Módulo Transporeon",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SFn25QGvE4k0DyQPiIZ7",
+        "before": {
+          "title": "eCMR",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "3bmPsEiCCEDPuAehthUV",
+        "before": {
+          "title": "Desarrollos configurados y probados en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "nmaw8awpzRh8fXVPYBmf",
+        "before": {
+          "title": "Realizar pruebas end to end",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ZTIjzy1BolH93arRDnZW",
+        "before": {
+          "title": "Preparar datos maestros y casos de prueba",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "TuUr5JKE6org7fU16UTj",
+        "before": {
+          "title": "Realizar pruebas y ajustar configuración",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Pxttvd8xw3ztS1h0lM65",
+        "before": {
+          "title": "Realizar pruebas integrales",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "A9ReLLbkwTAOHjWeNX1F",
+        "before": {
+          "title": "Preparar datos maestros y casos de prueba",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "lDiZrPKv4b4nwdR0QERd",
+        "before": {
+          "title": "Realizar ciclos de pruebas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "XtuIehiDm5Ut1ZR1G6wy",
+        "before": {
+          "title": "Pruebas End to end e Integrales finalizadas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "O4tiUNA7hOe07P3xXuqg",
+        "before": {
+          "title": "TMS Flujo INTERNACIONAL Configurado y Probado en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "N3kgjy4i9rfUrRTrnLOZ",
+        "before": {
+          "title": "Flujo logístico INTERMODAL",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "dWmcEVPOzeCDec2sn0t5",
+        "before": {
+          "title": "Mapear Interfaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ztv7erKfSpTmJvj9XV0Y",
+        "before": {
+          "title": "Realizar sesiones de mapeo de interfaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "zMuNoDTchUDOlXZAMIkr",
+        "before": {
+          "title": "Portic Alta de pedido",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "FGV9VJPIubcTjZFsGvuY",
+        "before": {
+          "title": "Portic Recepción de PIN",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "3qq2ujwykrODvFOc8Cur",
+        "before": {
+          "title": "Portic Exportación de instrucciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "VGC5cBL6O71Gmv4XElaP",
+        "before": {
+          "title": "Portic Aperak",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Rki55Z5DsYyXwcktVm0G",
+        "before": {
+          "title": "Maersk Arrival VALIDAR PROTOCOLO Y METODO LLAMADA",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SgipooQayYixm7yb70MH",
+        "before": {
+          "title": "Maersk Container_Update",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "qtpcMu3XIYoR37bOtYNf",
+        "before": {
+          "title": "Maersk Apointment PICKUP",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "cvyRCxb9KMWF6PUfcGPo",
+        "before": {
+          "title": "Maersk Apointment DROPOFF",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "yrrJXuX2QDZh8g64zcOP",
+        "before": {
+          "title": "Maersk Asignación de PRECINTO / SEAL",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ksLoC2K3FtW9b9PQ1pJw",
+        "before": {
+          "title": "Maersk Driver Update",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "lEMYEOvJ38IxsJ1yxfLP",
+        "before": {
+          "title": "Maersk Tiempo de Espera / WAIT_TIME",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Uejx6HSnSHP375SiFRol",
+        "before": {
+          "title": "Maersk Futile_trip",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "I5METBNJ2hdRNVQq65n5",
+        "before": {
+          "title": "Arkas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "fR3fNx0f7KTN6mZrFYkI",
+        "before": {
+          "title": "CMA",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "rNjZwewTIIP9IYMvzN7j",
+        "before": {
+          "title": "Elaborar el documento de mapeo de interfaces Intermodal",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "AtZponljIto2R61UzKfr",
+        "before": {
+          "title": "Acordar el documento final de mapeo de interfaces Intermodal",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "9Fl2W0AUQTZVI4im0qPX",
+        "before": {
+          "title": "Mapeo de interfaces aprobado",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "E334SqsWbrIyVwB1BOGM",
+        "before": {
+          "title": "Desarrollar y configurar Interfaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bAGhTYtbRARb2NXMTEMC",
+        "before": {
+          "title": "Desarrollar y Configurar interfaces Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "VXFVtg1GC9gOOwUS115x",
+        "before": {
+          "title": "Interfaz #10 Maersk Arrival",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "YGu0Nz5jcseFmFgUjW6k",
+        "before": {
+          "title": "Interfaz #11 Maersk Container_Update JSON Syncout",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "HFmN5s7yD9IHIB109yQe",
+        "before": {
+          "title": "Interfaz #12 Maersk Apointment PICKUP JSON Syncout",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "9IZGgWHBAJWFVdfaceV4",
+        "before": {
+          "title": "Interfaz #13 Maersk Apointment DROPOFF JSON Syncout",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "h9vbxTr2qNy3TUGSsUtG",
+        "before": {
+          "title": "Interfaz #14 Maersk Asignación de PRECINTO / SEAL JSON Syncout",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "6H6vF6IFFUd1UVZOvc0K",
+        "before": {
+          "title": "Interfaz #15 Maersk Driver Update JSON Syncout",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "KNgIt3kmOKI0PLU6FTjN",
+        "before": {
+          "title": "Interfaz #16 Maersk Tiempo de Espera / WAIT_TIME JSON Syncout",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "vZfna0RHr716yKbta2sF",
+        "before": {
+          "title": "Interfaz #17 Maersk Futile_trip JSON Syncout",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "6IMAKpjZW2i9aSZwasDF",
+        "before": {
+          "title": "Interfaz #18 Arkas - Configurar campos requeridos por proveedor",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "yw91eCjx4VYfYTRpV9fu",
+        "before": {
+          "title": "Interfaz #19 CMA - JSON Syncout",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "avQwKmHlooR0gaetPCEl",
+        "before": {
+          "title": "Interfaz #20 Portic Alta de pedido",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DbrJgG2uUej15BB2AF9O",
+        "before": {
+          "title": "Interfaz #21 Portic recepción de PIN",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ieUvmVTq6jVmuXP48oKj",
+        "before": {
+          "title": "Interfaz #22 Portic Exportación de instrucciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Q61XbWN3O73ZbEaeL8Ic",
+        "before": {
+          "title": "Interfaz #23 Portic Aperak",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Z3h8yhkWZXYvPTrmXtaA",
+        "before": {
+          "title": "Interfaces Unigis Desarrolladas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "eWuDlE1Lai7Rn0YONmga",
+        "before": {
+          "title": "Desarrollar y Configurar interfaces Cliente / Proveedores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "wICM76cNnacTr1nwQfYg",
+        "before": {
+          "title": "Interfaz #24 Arkas consumir API estándar Unigis ConsultarOrdenesPedido",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "nY0YOrQDaeH6rPx6DsYf",
+        "before": {
+          "title": "Interfaces Transpais Desarrolladas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "IqaW1G5L9sCCNWYjYYx2",
+        "before": {
+          "title": "Realizar pruebas unitarias intefaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ssdkhLsv0ta8xwlkugP5",
+        "before": {
+          "title": "En TEST Interfaz #2 y #3 BC Validar Preliquidaciones de Venta y Costo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "JYLVvxIcDC3zV9ZiRbyf",
+        "before": {
+          "title": "En TEST Interfaz #5 6 7 8 9 BC Validar Datos Maestros",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Uq1NoamiZnjcQf4Azhzy",
+        "before": {
+          "title": "Probar en TEST Interfaz #10 Maersk Arrival",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DP1bLG3J9FyRgmADGwuU",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #110 Maersk Arrival",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2rXPlzT5IFI1kptg1BYd",
+        "before": {
+          "title": "Probar en TEST Interfaz #11 Maersk Container_Update",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "1A2EGgLC2CJ3JBsx3YpO",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #11 Maersk Container_Update",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bazpyKLK1dujQnu2u5lw",
+        "before": {
+          "title": "Probar en TEST Interfaz #12 Maersk Apointment PICKUP",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "McE4KsdbTMv1qLQqkxkw",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #12 Maersk Apointment PICKUP",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "sDXgd40VwpBoGiOMsPr5",
+        "before": {
+          "title": "Probar en TEST Interfaz #13 Maersk Apointment DROPOFF",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "z3C3idxkP103waPVCheJ",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #13 Maersk Apointment DROPOFF",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "r5x45T4G0jlFpMRJwYjl",
+        "before": {
+          "title": "Probar en TEST Interfaz #14 Maersk Asignación de PRECINTO / SEAL",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2Xpx7uOtOimB3UNAAWeH",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #14 Maersk Asginación de PRECINTO / SEAL",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2UNlZFDp28WUlhABclLx",
+        "before": {
+          "title": "Probar en TEST Interfaz #15 Maersk Driver Update",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "cWZwUXWzzKmtwgLX1om4",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #15 Maersk Drive Update",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "vi1jQl7pws07mLj1p7L8",
+        "before": {
+          "title": "Probar en TEST Interfaz 16 Maersk Tiempo de Espera / WAIT_TIME",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "tB8IeZYIccf5nY8ByEi0",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #16 Maersk Tiempo de Espera / WAIT_TIME",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "tNdw2cPN4j3kGau25UiH",
+        "before": {
+          "title": "Probar en TEST Interfaz #17 Maersk Futile_trip",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "qPW4QTfE5TSJqXrBGhIb",
+        "before": {
+          "title": "Ajusar en TEST Interfaz #17 Maersk Futile_trip",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "tPdiVvDR7XP0wkWj5xmB",
+        "before": {
+          "title": "Probar en TEST Interfaz #18 Arkas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Sn9NDGNT6PyzYKFeqo5a",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #18 Arkas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "LnMN67qCy7rbhVEwXTYW",
+        "before": {
+          "title": "Probar en TEST Interfaz #19 CMA",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2r5OfyNoHElZ5vGfbvHt",
+        "before": {
+          "title": "Ajustar en TEST Interfaz #19 CMA",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SwulEdHbwzNZ45DZ2ixk",
+        "before": {
+          "title": "Probar Interfaz #20 Portic Alta de pedido",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "FdM2GvNZdoRiS87mFqAA",
+        "before": {
+          "title": "Ajustar Interfaz #20 Portic Alta de pedido",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "UF1JHibMuE8T6PloAYwN",
+        "before": {
+          "title": "Probar Interfaz #21 Portic recepción de PIN",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "akAlPyEfxvXBFotLnQy0",
+        "before": {
+          "title": "Ajustar Interfaz #21 Portic recepción de PIN",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "uZog7DcFzCFkmGVdulOB",
+        "before": {
+          "title": "Probar Interfaz #22 Portic Exportación de instrucciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "sB365erEcYCZFTHATmuX",
+        "before": {
+          "title": "Ajustar Interfaz #22 Portic Exportación de instrucciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "p9jzkEla1Kh7U2aMP9bb",
+        "before": {
+          "title": "Probar Interfaz #23 Portic Aperak",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "AYBiLEpd7afxepRZlAaF",
+        "before": {
+          "title": "Ajustar Interfaz #23 Portic Aperak",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "BuYgIUwLHmUA6GjD4esK",
+        "before": {
+          "title": "Interfaces Desarrolladas y Probadas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Ns8ZCl9mw7vwCpUFQAhI",
+        "before": {
+          "title": "Documentar requerimientos de desarrollo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Xxry9Igm3LlKg79zHjoc",
+        "before": {
+          "title": "Completar formatos de requerimientos de desarrollo (REQs)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "e2NKC1BtLT6xjupyvoLW",
+        "before": {
+          "title": "Portic",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "b1sL8zcm6i1olfaVzBOO",
+        "before": {
+          "title": "Probar eCMR en la operativa de Intermodal (entregado en Internacional)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "9FFWSXcn71SYJVVwHl7t",
+        "before": {
+          "title": "Requerimientos a DEV reportados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "te5OH0oYDivsntKvUMB5",
+        "before": {
+          "title": "Configurar la solución y realizar pruebas unitarias",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "0uDiXTnMpw3DfQqNbI0A",
+        "before": {
+          "title": "Preparar y cargar datos maestros básicos para configuración",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "MZCpsxeAh4jbhmygZyuB",
+        "before": {
+          "title": "Validar carga de datos base de empresa, depósito, destinatarios, transportes, vehículos y conductores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "wUnxtMK1dO94FXlR65xO",
+        "before": {
+          "title": "Transpais Compilar datos de tipos de Pedidos y TiposOrden para UNI",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "1Ax8hTeVz8jHmD8Rfq3T",
+        "before": {
+          "title": "UNI configurar y cargar tipos de Pedidos, y TiposOrden",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "UcNwsLqM6za1OO0svvnZ",
+        "before": {
+          "title": "Transpais compilar datos de pedidos e items para UNI",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "0T050OqEaVlH5UmJGCFU",
+        "before": {
+          "title": "UNI configurar y cargar pedidos e items",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Mi8oaTLR9cSrHQCDUcFx",
+        "before": {
+          "title": "Transpais compilar datos de zonas geográficas para UNI",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Qg7hxCSmMJPjMd9FxE6V",
+        "before": {
+          "title": "UNI Configurar zonas geográficas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "JNwL2m2R8APqEbcXBAKx",
+        "before": {
+          "title": "Transpais compartir maestros de área de influencia de depósitos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "hrLGWPsfLMljUwFACXhe",
+        "before": {
+          "title": "UNI configurar maestros de área de influencia de depósitos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "lYpcRlw34kPuX8FguIJS",
+        "before": {
+          "title": "Datos maestros configurados y cargados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "n48655RsayjmPvCzxz8n",
+        "before": {
+          "title": "Configurar y probar flujos logísticos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "6HtioQnr3tRmdvP7Nknk",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de Workflows",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "6pRi3XdNUA5QZEpguNMJ",
+        "before": {
+          "title": "Configurar Estados de Pedidos-Ordenes-Paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "p9ogz4k9Cp5qCmFoGgSb",
+        "before": {
+          "title": "Configurar TipoPedido",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "b6mbyrL8WTtWbgntvoUS",
+        "before": {
+          "title": "Configurar TipoOrden",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "PPgQk9394YESbALRF2ji",
+        "before": {
+          "title": "Configurar TipoParada",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "HuT8X8iuNpomW5j8zcVR",
+        "before": {
+          "title": "Configuración transiciones de estado de Pedido-Ordenes-Paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "hcJCXQA1ak81usHupENu",
+        "before": {
+          "title": "Configurar proceso Completar Pedido Cero",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "kS8VTerRkVKgrzTplwIg",
+        "before": {
+          "title": "Configurar proceso Validacion de Pedidos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "5h9XmHkx1hA4MhuOmPwp",
+        "before": {
+          "title": "Configurar proceso de validación de pre pedidos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "lEJZzGyKBrA69w6K7q3W",
+        "before": {
+          "title": "Configurar Tabla Z_ReglasAsignación4PL",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "AZLOQwnbRcQpysOjfzfy",
+        "before": {
+          "title": "Configurar Tabla Z_AreasInfluenciaAlmacenes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "EtUzJaV4tcIVIe8mnpWg",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias OM básico",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "I2fheAX2sEPATm0L5Yly",
+        "before": {
+          "title": "Configurar proceso al editar Pedidos en OM",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2eF33i0KA2y5zMrzt9PL",
+        "before": {
+          "title": "UNI Generar layout básico en OM - Pedidos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bwon046dzc2ySVJNgKaG",
+        "before": {
+          "title": "Configurar OrdenTipoPedido (Carga, Descarga, Recogidas)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "zYV9GrhFr9RbCRXaXaqj",
+        "before": {
+          "title": "Crear Proceso de Creacion de Ordenes desde Pedidos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "tsZBv6nNlK4dGb2hngCU",
+        "before": {
+          "title": "Proceso que actualiza datos de la Orden en la creacion",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "JPSt7VFXJnVUQJ6S4n1m",
+        "before": {
+          "title": "Configurar y probar portal B2B",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SV5SJ2vJvWKZR7yf93Jt",
+        "before": {
+          "title": "Sesiones de definición de Layout con el cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "OwZaWMU2YNdDcYM6Oyw6",
+        "before": {
+          "title": "Configurar PedidoConfiguraciónAtributo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "RKRbCR8IPQL1x2vRX02a",
+        "before": {
+          "title": "Transpais compartir listado de servicios adicionales",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "M2Aimu3K0aZHrEXIuid8",
+        "before": {
+          "title": "Unigis configurar servicios adicionales sobre el listado compartido por TRNP",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "sR5LheGVXYxq5aOOKXM1",
+        "before": {
+          "title": "Configurar importanción masiva a través de Excel",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "qJEEvaeOaqXd2TqRJSAs",
+        "before": {
+          "title": "Configurar Proceso post importación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "zvkgsgCdQ65KlJm4CdyY",
+        "before": {
+          "title": "Configurar y probar Planificación / Ruteo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "mJJcWIphYL6vjE7Kwibb",
+        "before": {
+          "title": "Crear y configurar estados de Rutas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "YFLhdX7jsAem0QMtUxmx",
+        "before": {
+          "title": "Crear y configurar transiciones de estados de Rutas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Yg1gpaWZHiTHGvdZAlXq",
+        "before": {
+          "title": "Configurar proceso Pre Validación en cambio Estado de Pedido a Planificado",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "PJfgoCQwKANA1uQZ767e",
+        "before": {
+          "title": "Configuración de dashboard de disponibilidad de recursos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "jws5uDSocJYjK6VFDOUQ",
+        "before": {
+          "title": "Workflows, OM y Planning Configurados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "qHtRn7rhip2SRDZdQuEq",
+        "before": {
+          "title": "Creación y Validación de Viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "vnoTEe5vGJab6hWLGrv6",
+        "before": {
+          "title": "Crear y configurar estados de Viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "1B3Tet2TkP2PuYiJwlGv",
+        "before": {
+          "title": "Crear y configurar transiciones de estados de Viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ymqilz2fFgzw9QesiJjb",
+        "before": {
+          "title": "Configurar proceso de creación de viaje Post cambio Estado de Pedido a Planificado",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "thY8fcy69P04kHYtQNp1",
+        "before": {
+          "title": "Configurar proceso de actualización de viaje Post creación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DAgngzjmiWoAiX0XjfGP",
+        "before": {
+          "title": "Configurar proceso de actualización de parada Post creación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "o2mjUALxFwbzp9sTKC1f",
+        "before": {
+          "title": "Configurar proceso de reprogramación de viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "n8iWxTk7cccRHzOfmswW",
+        "before": {
+          "title": "Configurar proceso pre-validación al confirmar viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "E6tG2wqO2VlCZyIhw9kY",
+        "before": {
+          "title": "Configurar proceso post confirmación viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "S1BivsgEQKgsuSfpMlaL",
+        "before": {
+          "title": "Configurar Hoja de Viaje",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "MfC29eoUbvdByx1M9Qi9",
+        "before": {
+          "title": "Configurar Carta de Porte",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "OizQwinsVkb84gua7HIB",
+        "before": {
+          "title": "Configurar Orden del Cliente (Impresión del Portic, Albaranes del Cliente, etc)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "IgepISnjwL0kIQE1VT6y",
+        "before": {
+          "title": "Configurar Documentos de carga (ADR, Packing list, etc.)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2eRReW3yVU3RoA99tmRi",
+        "before": {
+          "title": "Configurar Portal de Transporte",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "PIeCJMcWeEz8ENAlrOpU",
+        "before": {
+          "title": "Transpais compilar y compartir lista de zonas de seguimiento, control y peligro",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "9ck5SBiEFNfMN3mIGwI8",
+        "before": {
+          "title": "UNI da de Alta de zonas de seguimiento, de control, peligro",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "qZPlrGOh6zilYvtixvWS",
+        "before": {
+          "title": "Configurar Categoria de Viaje",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Q48hryW3K4XzwLEZSF7S",
+        "before": {
+          "title": "Configurar Motivos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "jXM2qpv2NbRsPPtl6eCd",
+        "before": {
+          "title": "Configurar Proceso de validacion en cambio de estado de paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "KBwJz1578N2OKqxfYfyR",
+        "before": {
+          "title": "Configurar Proceso de cambio de estado automatico de Viaje VALIDAR CRITERIO",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "xrIfzOzLH9s2WjmgjdN3",
+        "before": {
+          "title": "Configurar Proceso de cambio de estado automatico de Parada a Visitado",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Ir5gnPD2NM2MEZOIdmLV",
+        "before": {
+          "title": "Preparación y Actualización de Viaje",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "mfktHqCOJswZEuwbpkPb",
+        "before": {
+          "title": "Configurar proceso SincronizarEstadodeViaje desde Paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "nIjE3Xkio84uKR0LNl7F",
+        "before": {
+          "title": "Configurar confirmación de cargas Cantidad-Motivos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "qvfUlnb8ZrRkO8ximGRS",
+        "before": {
+          "title": "Configurar creación y asignacion de paradas desde Dipatch",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "uFpqfQM0z5XpflHrquLt",
+        "before": {
+          "title": "Configurar Tipos de incidencias y configuracion por Grupo de Usuarios",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "qsllEKp4dHIjsgvD9Orf",
+        "before": {
+          "title": "Configurar proceso de creación de parada de Devolución",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "rFrN436BJHtb2DhK8w5m",
+        "before": {
+          "title": "Pruebas unitarias de Workflows (cliente)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "D59345rRVEwJ58yTzyLM",
+        "before": {
+          "title": "Transpais probar en TEST transiciones de estados de Pedidos B2B",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "1ho0OJ64c8TXABunrB98",
+        "before": {
+          "title": "Transpais probar en TEST transiciones de estados de Ordenes OM",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "6OLq1zOvkVdPHSSVH402",
+        "before": {
+          "title": "Transpais probar en TEST transiciones de estados de Rutas OM",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "8gQ46zMZZOb0WWtx60Xh",
+        "before": {
+          "title": "Transpais probar en TEST transiciones de estados de Paradas y Tracking",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "duQt3mfIAfWaVr4IbnfF",
+        "before": {
+          "title": "Transpais probar en TEST transiciones de estados de Viajes y Tracking",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "BIauWllYfhUoxl1uEl2y",
+        "before": {
+          "title": "Ajustes de Procesos y SP tras pruebas unitarias",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "W3nif066fp2M3Pq9puAk",
+        "before": {
+          "title": "Ajuste de proceso post-importación de Pedidos tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Jpm4WXbH6FO4TsU0E8T1",
+        "before": {
+          "title": "Ajuste de proceso Completar Pedido 0 tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "vbPM4NAzx3c8s96Fg9bG",
+        "before": {
+          "title": "Ajuste de proceso Validación de Pedidos tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "9uZT5EIoWyyMmzPnSi4P",
+        "before": {
+          "title": "Ajuste de proceso Editar Pedidos OM tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "dV3qoTnCI7vj8Zk4cv0s",
+        "before": {
+          "title": "Ajuste de proceso post Creación de Orden tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "aVGgH8kJeUmpTRbrBmvp",
+        "before": {
+          "title": "Ajuste de proceso pre Validación en Cambio de Estado de Viaje tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "JD2ywmE0mjW6yoLBq8uQ",
+        "before": {
+          "title": "Ajuste de proceso post Creación Viajes y Paradas tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DuYtrEuPjRJEuPcdDcRm",
+        "before": {
+          "title": "Ajuste de proceso Validación en Cambio de Estado Paradas tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "JVYDpJM2tnRupzdZWpD3",
+        "before": {
+          "title": "Ajuste de proceso Creación de Parada de Devolución tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "aGO9c2PuWojLqXrATyuW",
+        "before": {
+          "title": "Ajuste de proceso de reprogramación de viajes tras pruebas unitarias de cliente",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "VpClKY9aNIjOcVbWShzQ",
+        "before": {
+          "title": "Configurar y probar aplicaciones Móviles",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "W2sVKt6r7gyvEwlX0pRf",
+        "before": {
+          "title": "Configurar y probar Unigis Deliveries X",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DAkbwFcEORBAGlhLh9df",
+        "before": {
+          "title": "Transpais realizar pruebas unitarias de instalación y configuración de Unigis Deliveries X",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "i20LnbcE3leDvswaeTxW",
+        "before": {
+          "title": "Maestros, flujos, planning y mobile configurados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "jUuKRLgxYpJaRfE3yqr8",
+        "before": {
+          "title": "Configurar y probar alarmas, notificaciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "mE3PzYWX81RcJ2pzW8tw",
+        "before": {
+          "title": "Transpais compartir lista y especificación de alarmas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "b03TfVA6QbdRkmPtwZUV",
+        "before": {
+          "title": "Transpais compartir lista y especificación de notificaciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bCrFZk1Eaz1aAtiZmh3Y",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de alarmas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "PnpUxeUSNdFJ0hONcqcJ",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de notificaciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "GwxMnmHXqmxjAKPonFIj",
+        "before": {
+          "title": "Transpais realizar pruebas unitarias de alarmas en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ZwDw1uDlJqWe9uffK2v4",
+        "before": {
+          "title": "Transpais realizar pruebas unitarias de notificaciones en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bqgSs7RK6GfCzh7SQcQK",
+        "before": {
+          "title": "Configurar y probar reportes VALIDAR LISTA",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "fEXL4gyYPtqhEUs5tnjK",
+        "before": {
+          "title": "Transpais compartir lista y especificación de reportes (lista inicial vista en Internacional)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "WL3Qf4fChkx0vrNbvSuo",
+        "before": {
+          "title": "Unigis configurar y realizar pruebas unitarias de reportes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SxGsPb20ChS1ExhpEs53",
+        "before": {
+          "title": "Transpais realizar pruebas unitarias de reportes en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "La8ZPIn6Ikgn1noSdrLw",
+        "before": {
+          "title": "Unigis realizar ajustes de reportes en TEST tras pruebas Transpais",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "NoLffbTa4g30Fh2BwFEh",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de grupos de usuarios y permisos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "i8NvnrUQ9LaHPPe42FZJ",
+        "before": {
+          "title": "Transpais compilar y enviar lista de Grupos y Usuarios",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "hObZni94mkLVFkoAAnzQ",
+        "before": {
+          "title": "Configurar y cargar Grupos y Usuarios",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "uU5M0y2zkBlYdGak3X38",
+        "before": {
+          "title": "Transpais probar Grupos y Usuarios configurados en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "MdD7C7EWq8OnAeX6b8UE",
+        "before": {
+          "title": "Alarmas, notificaciones y reportes aprobados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ZfAXlnJQKdcl5ESRw0RA",
+        "before": {
+          "title": "Disponibilizar desarrollos requeridos para el proyecto",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ERp82M1u9LwsbA1k1nUz",
+        "before": {
+          "title": "Liberar REQs desarrollo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "xDBrSLq9tmPqPgiJtQpO",
+        "before": {
+          "title": "Portic",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "rqc9jpXDReVUtQFeJehX",
+        "before": {
+          "title": "Portic Alta de pedido",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "4Bgr12QMDDQAC0crfm1m",
+        "before": {
+          "title": "Portic recepción de PIN",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "fMWYpeX6MnfrBV4nZO62",
+        "before": {
+          "title": "Portic Exportación de instrucciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "pEAXZUINt01rWRbFwtXO",
+        "before": {
+          "title": "Portic Aperak",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "JkyfbzQOmeZ4zBzvNEUe",
+        "before": {
+          "title": "Desarrollos liberados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "z5liBlOiIAit9GUviELf",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de desarrollos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "VcM9jQ8QOyGcB8OiJySC",
+        "before": {
+          "title": "Portic",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "eDeocard8ITieaagKLBg",
+        "before": {
+          "title": "Portic Alta de pedido",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "7bXqjxwtngIwDDraudjk",
+        "before": {
+          "title": "Portic recepción de PIN",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Kx7IGHi5ssRFn8CitA0H",
+        "before": {
+          "title": "Portic Exportación de instrucciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "xhzydx4Wtf6pgOaozmV1",
+        "before": {
+          "title": "Portic Aperak",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "jAolkcSrSKXOnXZnFOEa",
+        "before": {
+          "title": "eCMR (Entregado en Internacional)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "4erL1zAdmBfpi7DrWFlW",
+        "before": {
+          "title": "Desarrollos configurados y probados en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Zu6ZkORlIXn5YQYnNg3H",
+        "before": {
+          "title": "Realizar pruebas end to end",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "mp0NOGrgoWJyGdwUNAeD",
+        "before": {
+          "title": "Preparar datos maestros y casos de prueba",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "hX5RsNvSHBloKkbphFHS",
+        "before": {
+          "title": "Realizar pruebas y ajustar configuración",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "tb63frxuYXYrLdM4GyyV",
+        "before": {
+          "title": "Realizar pruebas integrales",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "yHWaxcxOdBZWUtzb3017",
+        "before": {
+          "title": "Preparar datos maestros y casos de prueba",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "FUlxJKPhfmcBlKCZAh2T",
+        "before": {
+          "title": "Realizar ciclos de pruebas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "HantSFdSqAd5evIT1KqY",
+        "before": {
+          "title": "Pruebas End to end e Integrales finalizadas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "iC3fmJSDThezbKa0CmtT",
+        "before": {
+          "title": "TMS Flujo INTERMODAL Configurado y Probado en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ro7YmztYfndQeCo4pEWu",
+        "before": {
+          "title": "Flujo logístico DISTRIBUCIÓN",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ADqixwcnV5u0wKqJrJHR",
+        "before": {
+          "title": "Mapear Interfaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "d4TzVNeH0Q6HE42ogj71",
+        "before": {
+          "title": "Realizar sesiones de mapeo de interfaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Vaf96v36jR1lmzTVdY64",
+        "before": {
+          "title": "Sesiones de mapeo de GENERIX - Alta, Baja, Modificación de pedidos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "yQiBGIucWcJ4ehstLzT4",
+        "before": {
+          "title": "Sesiones de GENERIX - Confirmación de Pedido",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "nPnlgkIpdAUu4faToVbY",
+        "before": {
+          "title": "Sesiones de GENERIX - JSON Syncout de Envío de Planificación desde Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Po9ZqJnQa9QR897OXNDA",
+        "before": {
+          "title": "Sesiones de GENERIX - Confirmación de Preparación y Actualización de datos del Viaje",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "0xJPcvy8VmIRLYeV7QPR",
+        "before": {
+          "title": "Sesiones de GENERIX - JSON Syncout de Reingreso a la almacén",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "eeL7d0cTO2HD2tJy7ohs",
+        "before": {
+          "title": "Sesiones de Actualización de Estados de Entregas (3ros Middleware)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "sCmjlp2TTROSY69XVlq3",
+        "before": {
+          "title": "Sesiones CMLogistics - JSON Syncout de Confirmación de Entregas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2QQeBvOHjceuwEz3LYCL",
+        "before": {
+          "title": "Elaborar el documento de mapeo de interfaces Distribución",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Qq0bUtHogDBVyeDMGw46",
+        "before": {
+          "title": "Acordar el documento final de mapeo de interfaces Distribución",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ueLW0E4Nx8rh0eidWKIn",
+        "before": {
+          "title": "Mapeo de interfaces aprobado",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "GLpFXaCws1iXUW2CvjzS",
+        "before": {
+          "title": "Desarrollar y configurar Interfaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "gCHPZ0GjgKmpQhUslAJG",
+        "before": {
+          "title": "Desarrollar y Configurar interfaces Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "RfM5qxEwXF4WMBvcDr7s",
+        "before": {
+          "title": "GENERIX - JSON Syncout de Envío de Planificación desde Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "tG9GR3mcg9n3amM6ME0I",
+        "before": {
+          "title": "GENERIX - JSON Syncout de Reingreso a la almacén",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bg9SeJwEs0ivslKarZrg",
+        "before": {
+          "title": "CMLogistics - JSON Syncout de Confirmación de Entregas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "aOiEJ7JcP6tjLjK4cMaY",
+        "before": {
+          "title": "Interfaces Unigis Desarrolladas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "MZfysgquOmLaOgQBXHzR",
+        "before": {
+          "title": "Desarrollar y Configurar interfaces Cliente / Proveedores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "IguEUBiCo1Hq7fvSw2Mu",
+        "before": {
+          "title": "GENERIX - Alta, Baja, Modificación de pedidos para llamada API estándar Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "te63t21jdgpIFcUmmvQA",
+        "before": {
+          "title": "GENERIX - Confirmación de Pedido para llamada API estándar Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Ao9YSIYPtIpjdAIzm5Ij",
+        "before": {
+          "title": "GENERIX disponibilizar end point método Envío Planificación para envío desde Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "gN541JBMhp1lf8jDs7ne",
+        "before": {
+          "title": "GENERIX - Confirmación de Preparación y Actualización de datos del Viaje para llamado API estándar Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "cQ7ZZlWIfB5SttUmORN4",
+        "before": {
+          "title": "CMLogistics disponibilizar end point Confirmación de Entregas para envío desde Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Lb5EzWecgfjtrqqR4Xng",
+        "before": {
+          "title": "Interfaces Transpais Desarrolladas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "vb3jMehv04sEvK1xrytT",
+        "before": {
+          "title": "Realizar pruebas unitarias intefaces",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bGld01vKQ0h03s3xhuOL",
+        "before": {
+          "title": "Probar en TEST Interfaz #2 y #3 BC Validar Preliquidaciones de Venta y Costo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "IQjZeEoh1oq8bBP3AeXd",
+        "before": {
+          "title": "Probar en TEST Interfaz #5 6 7 8 9 BC Validar Datos Maestros",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "dAV0i2Jd9Xh8KVpMSFiv",
+        "before": {
+          "title": "Probar GENERIX - JSON Syncout de Envío de Planificación desde Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "kx8S9USyxkLEh23BdYQY",
+        "before": {
+          "title": "Ajustar GENERIX - JSON Syncout de Envío de Planificación desde Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "s2D0AAnPFxhmDX3JG1di",
+        "before": {
+          "title": "Probar GENERIX - JSON Syncout de Reingreso a la almacén",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "nH4KCllANi9ip3qQGLqL",
+        "before": {
+          "title": "Ajustar GENERIX - JSON Syncout de Reingreso a la almacén",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "EWbaqnkLH5tGz1qoo5bf",
+        "before": {
+          "title": "Probar GENERIX - Alta, Baja, Modificación de pedidos para llamada API estándar Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "gsWCGPdBmsnpHP1t4sJ0",
+        "before": {
+          "title": "Ajustar GENERIX - Alta, Baja, Modificación de pedidos para llamada API estándar Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "XWtxFb8Z1COqW31EvCd5",
+        "before": {
+          "title": "Probar GENERIX - Confirmación de Pedido para llamada API estándar Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "yVj0rBUBdxXLnvvmKcqo",
+        "before": {
+          "title": "Ajustar GENERIX - Confirmación de Pedido para llamada API estándar Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "NYIoYdRdOKJnzivqd3YF",
+        "before": {
+          "title": "Probar GENERIX - Confirmación de Preparación y Actualización de datos del Viaje para llamado API estándar Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "lPJV5vfbTpbo4lmBxSGI",
+        "before": {
+          "title": "Ajustar GENERIX - Confirmación de Preparación y Actualización de datos del Viaje para llamado API estándar Unigis",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2zqEl3Ob0XaT5Yq1j5Hn",
+        "before": {
+          "title": "Probar CMLogistics - JSON Syncout de Confirmación de Entregas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "NVnr3Cm9CAWFdqdxddzh",
+        "before": {
+          "title": "Ajustar CMLogistics - JSON Syncout de Confirmación de Entregas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "WUj8KMrWM10YEJxk96sR",
+        "before": {
+          "title": "Probar Interfaz #30 Middleware método XXXY",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "0XVcWqIuoX04rdvutjqK",
+        "before": {
+          "title": "Ajustar Interfaz #30 CMLogistics método XXXY",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "UjHqvCU0Rc56cdQ5RhDH",
+        "before": {
+          "title": "Interfaces Desarrolladas y Probadas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "PI4ROMAYOkorSi3LOoxu",
+        "before": {
+          "title": "Documentar requerimientos de desarrollo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "VRV8VLa6OVSnUpImMyrK",
+        "before": {
+          "title": "Completar formatos de requerimientos de desarrollo (REQs)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "7h8HTs0k81ob7P4oNmTw",
+        "before": {
+          "title": "Middleware integrado con Unigis - actualización de datos de entrega DEFINIR PROVEEDOR CON TRNP + MAPEO RESPONS DE QUIEN",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ioXej645tu8Gtla83Fy1",
+        "before": {
+          "title": "Requerimientos a DEV reportados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "HOA0Yo697GwfdgVC7gzH",
+        "before": {
+          "title": "Configurar la solución y realizar pruebas unitarias",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "vrxv5rmWcqaeVU29aBIg",
+        "before": {
+          "title": "Preparar y cargar datos maestros básicos para configuración",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ZkOfZR8Bn48nnjgo3enP",
+        "before": {
+          "title": "Validar carga de datos base de empresa, depósito, destinatarios, transportes, vehículos y conductores",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "0xSeoT8ti3SmqBaafCi2",
+        "before": {
+          "title": "Transpais Compilar datos de tipos de Pedidos y TiposOrden para UNI",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "x0wqMJdssrlfruWBXqJ1",
+        "before": {
+          "title": "UNI configurar y cargar tipos de Pedidos, y TiposOrden",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "qty1Xa7FGgYd71dd6LHX",
+        "before": {
+          "title": "Transpais compilar datos de pedidos e items para UNI",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "MX2AQwtVGRVgXDfwIJ1z",
+        "before": {
+          "title": "UNI configurar y cargar pedidos e items",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "zpjRQ5NQyYJ2m2ziQe9v",
+        "before": {
+          "title": "Transpais compilar datos de zonas geográficas para UNI",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "HDIfWCH4lvj0mArRWPO8",
+        "before": {
+          "title": "UNI Configurar zonas geográficas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "9WG5aEt0KEBbwYOvxqPc",
+        "before": {
+          "title": "Transpais compartir maestros de área de influencia de depósitos propias",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "5euqlVgeFkacQk3ptylJ",
+        "before": {
+          "title": "UNI configurar maestros de área de influencia de depósitos propias",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "O4i23dwEXBIIDWSTWHW2",
+        "before": {
+          "title": "Transpais compartir maestros de área de influencia de depósitos terceros",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "20IlwnjXBHBEta4xJS5z",
+        "before": {
+          "title": "UNI configurar maestros de área de influencia de depósitos terceros",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "BIfh9GRmtrZdvQufhwmo",
+        "before": {
+          "title": "Datos maestros configurados y cargados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DtCuCrr1dJ2YaxLSfQri",
+        "before": {
+          "title": "Configurar y probar flujos logísticos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "eYKbiNQCaYHiNBzMVXji",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de Workflows",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "8pYGLR3NHglr9kfjbx27",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias OM básico",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "8kksrxoeo3VdjsuPyju8",
+        "before": {
+          "title": "Configurar y probar portal B2B",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ab1cSn9Rkwn12k6A8ZaP",
+        "before": {
+          "title": "Configurar y probar Planificación / Ruteo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "lkOftAfThxhU3yWBeKBO",
+        "before": {
+          "title": "Workflows, OM y Planning Configurados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "AW0CS1rB7IHFE0ufnoWG",
+        "before": {
+          "title": "Creación y Validación de Viajes",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "YMfSrehWu9BBf9mS6vRV",
+        "before": {
+          "title": "Preparación y Actualización de Viaje",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "HH6857uRPSRm0uqK2rmK",
+        "before": {
+          "title": "Pruebas unitarias de Workflows (cliente)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "qoGlAdfAc9T6AZEtlrb3",
+        "before": {
+          "title": "Ajustes de Procesos y SP tras pruebas unitarias",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "F6fTQjOmIPGaTGuP3eqS",
+        "before": {
+          "title": "Configurar y probar aplicaciones Móviles",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "dt7BkDOKtf0AJPGY2cCC",
+        "before": {
+          "title": "Configurar y probar Unigis Deliveries X",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "9X9K1ScgphZdbAXaDJbY",
+        "before": {
+          "title": "Transpais realizar pruebas unitarias de instalación y configuración de Unigis Deliveries X",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ph5Hf3GxETCGfetxtN4r",
+        "before": {
+          "title": "Maestros, flujos, planning y mobile configurados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "9sjXUT90sLynHWKienyQ",
+        "before": {
+          "title": "Configurar y probar alarmas, notificaciones COMPLETAR TRAS ESPECIFICACIÓN TRNP",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "k4gAbPZqHq8XYjUU6DH2",
+        "before": {
+          "title": "Transpais compartir lista y especificación de alarmas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "dqJ5SnOLnKq1JSQ58iYI",
+        "before": {
+          "title": "Transpais compartir lista y especificación de notificaciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "XQ6jP1t17EcFgWK60sLP",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de alarmas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ddK1GeKomyGSKCqSzcUK",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de notificaciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "nPdlriw8kC3qANOCrXxF",
+        "before": {
+          "title": "Transpais realizar pruebas unitarias de alarmas en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "jcivusnSHivp9nkSnJVU",
+        "before": {
+          "title": "Transpais realizar pruebas unitarias de notificaciones en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "rddk3XRFCdv4zjYGzUfZ",
+        "before": {
+          "title": "Configurar y probar reportes COMPLETAR TRAS ESPECIFICACIÓN TRNP",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "mW5i08deMcNkaM0hX5H6",
+        "before": {
+          "title": "Transpais compartir lista y especificación de reportes (ya compartido en Intern. E Interm.)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "uFP8V0pK2TbEdVs2ZliF",
+        "before": {
+          "title": "Configurar y realizar PU de Orden del Cliente ( Albaranes del Cliente, etc)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "B2vALJ4Cjhuy6iXam49w",
+        "before": {
+          "title": "Configurar y realizar PU de Documentos de carga (ADR, Packing list, etc.)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "QIhMnjTjIsiY0dwekb5j",
+        "before": {
+          "title": "Transpais realizar pruebas unitarias de reportes en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "HV7vtuvwq6EInoCibl9L",
+        "before": {
+          "title": "Unigis realizar ajustes de reportes en TEST tras pruebas Transpais",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DLVMROOckntXc5hQioPR",
+        "before": {
+          "title": "Alarmas, notificaciones y reportes aprobados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "55zUVNYUfnYtWPcg0q9W",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de grupos de usuarios y permisos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SKOtsq9hz2fms1mZ53Bv",
+        "before": {
+          "title": "Transpais compilar y enviar lista de Grupos y Usuarios",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "sET6Luk2lguLlgHrZsXV",
+        "before": {
+          "title": "Configurar y cargar Grupos y Usuarios",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "HLS6wxanbkmUA1of7rqS",
+        "before": {
+          "title": "Transpais probar Grupos y Usuarios configurados en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "6BuN6Ud4hfGHYrNkXFOG",
+        "before": {
+          "title": "Disponibilizar desarrollos requeridos para el proyecto",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "suzkPX56cnGpX9xvGgTD",
+        "before": {
+          "title": "Liberar REQs desarrollo",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "tEiVpDNZ1s2qnamkjX4M",
+        "before": {
+          "title": "Middleware integrado con Unigis - DEFINIR PROVEEDOR CON TRNP",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "AcaCm0VqOHEdxgLBsmuX",
+        "before": {
+          "title": "Desarrollos liberados",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "EMg55eFFBgvywKCbUSPG",
+        "before": {
+          "title": "Configurar y realizar pruebas unitarias de desarrollos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "QWIBPIEvsSfOBi5IdLtZ",
+        "before": {
+          "title": "Middleware integrado con Unigis - DEFINIR PROVEEDOR CON TRNP",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "LDZXaFsM7zEYRnxt7eht",
+        "before": {
+          "title": "Desarrollos configurados y probados en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "y5srBzsMv6qzWgKwO6Ru",
+        "before": {
+          "title": "Realizar pruebas end to end",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "shEVtnQyUe9OVsufrPTT",
+        "before": {
+          "title": "Preparar datos maestros y casos de prueba",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "LUxxdGvbZE5jx3a9cZSr",
+        "before": {
+          "title": "Realizar pruebas y ajustar configuración",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "0Jlcrrn4qVXPsvioH3DB",
+        "before": {
+          "title": "Realizar pruebas integrales",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "X3iAhuBx3Aa3yUGZbzDc",
+        "before": {
+          "title": "Preparar datos maestros y casos de prueba",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "zxC9WYv5JVldEiJzhZ2c",
+        "before": {
+          "title": "Realizar ciclos de pruebas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "kfI3IrvmktVeOq5viwKI",
+        "before": {
+          "title": "Pruebas End to end e Integrales finalizadas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "R8m9NtKyeVxWcCiuK1fX",
+        "before": {
+          "title": "TMS Flujo DISTRIBUCIÓN Configurado y Probado en TEST",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "3IN31VtKkYfssGqFQS94",
+        "before": {
+          "title": "Configurar Fleet - Tarifación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "tkZAJ1SMGJon8uRPFoHn",
+        "before": {
+          "title": "Flujos lógistico Internacional",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "c4Ueba26se6xp9mtB61J",
+        "before": {
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "QNWG8ion5D69zoRHJk0w",
+        "before": {
+          "title": "Configurar y probar tarifas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SsFm1axP6OnCR4o64CPr",
+        "before": {
+          "title": "Configurar y probar fórmulas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "4GU6eyXaA9ECvtWuVnJB",
+        "before": {
+          "title": "Configurar y probar conceptos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "rSMD6EQB3oAcCYS9k8OH",
+        "before": {
+          "title": "Configurar y probar liquidaciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "6vrXRxMOyukgVYfPP31D",
+        "before": {
+          "title": "Probar visualización / carga de documentos en viajes y paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "sXEMoZJuLRTPD3pBpipw",
+        "before": {
+          "title": "Flujos lógistico Intermodal",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "D0GG2Lq2whzW8gsQDE6E",
+        "before": {
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "JbT3ZpoSgJapOUvmvOhL",
+        "before": {
+          "title": "Configurar y probar tarifas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "r3xmGWMz3D2fjv8v20C3",
+        "before": {
+          "title": "Configurar y probar fórmulas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "gTenluI1Yd7sHhyrLBgz",
+        "before": {
+          "title": "Configurar y probar conceptos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ZfWRRjl3NzVD5tOScx2G",
+        "before": {
+          "title": "Configurar y probar liquidaciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Y9SpvXm8uEkIl4jUFbLi",
+        "before": {
+          "title": "Probar visualización / carga de documentos en viajes y paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "NZPfN0KAmpPDESfDWLtN",
+        "before": {
+          "title": "Flujos lógistico Distribución",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "LmaN0JXfJ5CZ00WcHRyL",
+        "before": {
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "YPQ1T1mkTlA0Dg7EVxfF",
+        "before": {
+          "title": "Configurar y probar tarifas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "wR6XRcgN7dg7JTKC4Rj6",
+        "before": {
+          "title": "Configurar y probar fórmulas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "X0ldrZkCKIz4DIJcQ99k",
+        "before": {
+          "title": "Configurar y probar conceptos",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "QdCuklth8nVA5DLMKsxM",
+        "before": {
+          "title": "Configurar y probar liquidaciones",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bHFQrb3roH8uBSKIWivB",
+        "before": {
+          "title": "Probar visualización / carga de documentos en viajes y paradas",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "8OFL221wbZXAnRx7l5rH",
+        "before": {
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "YgYwHKmvMqLsQnmNDaZo",
+        "before": {
+          "title": "Flujo logístico INTERNACIONAL",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "r5AdHdzmUg3NiwcoXIZl",
+        "before": {
+          "title": "Capacitar a usuarios finales y realizar pruebas UAT",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "i3Ks6W07cNskiF3bSEkB",
+        "before": {
+          "title": "Preparar material para capacitación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Fhvl5zi37I87ZOS4myWu",
+        "before": {
+          "title": "Dictar capacitación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "fQQA2loQNS63MBJHXwfN",
+        "before": {
+          "title": "Certificar usuarios finales (UAT)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "9LXSAqZaRBOOoktZ3nRR",
+        "before": {
+          "title": "Planificar y ejecutar pase a producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "RUvcU4Cq8cbyWWgq7nJi",
+        "before": {
+          "title": "Elaborar plan de cut over",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "zTqrlZUT3gHBE90AcT7l",
+        "before": {
+          "title": "Ejecutar plan de cut over",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "M9QOxyGbFHX87l1ILJap",
+        "before": {
+          "title": "Preparar información para cargar en TMS",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "DHLMcCEeaiizyVwg6fTF",
+        "before": {
+          "title": "Solicitar pasaje a producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Wd151cIKUiRatpeGPl53",
+        "before": {
+          "title": "Finalizar carga de datos maestros",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "TFdVW5ANMc4WMne3lLzC",
+        "before": {
+          "title": "Depurar ambiente de test",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "b2DfJxgNbmR7DHqi8cel",
+        "before": {
+          "title": "Realizar pasaje a producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "OAVkpH3odbdtmP8LW1H9",
+        "before": {
+          "title": "Cargar información en producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "vea8wNj7Q8962FjjOgyI",
+        "before": {
+          "title": "Flujo logístico INTERMODAL",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "GrH124LD1hnlFwSwK4Kk",
+        "before": {
+          "title": "Capacitar a usuarios finales y realizar pruebas UAT",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "zRcTe33GMytst3hOQaSG",
+        "before": {
+          "title": "Preparar material para capacitación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "XHRRpRAic1ZOAt6d7rFK",
+        "before": {
+          "title": "Dictar capacitación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "VJhBWbg2YmvhvwnGHav1",
+        "before": {
+          "title": "Certificar usuarios finales (UAT)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "UFmVJchW18zm99jku7WK",
+        "before": {
+          "title": "Planificar y ejecutar pase a producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "vQqiiK5BEldJMTsHAYsl",
+        "before": {
+          "title": "Elaborar plan de cut over",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "NDbsFeuJrI3ygvyiI9GV",
+        "before": {
+          "title": "Ejecutar plan de cut over",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2jnusj2bJHiv5ojh1Mes",
+        "before": {
+          "title": "Preparar información para cargar en TMS",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "4mtyLiYCXLvp6wZb4ZxC",
+        "before": {
+          "title": "Solicitar pasaje a producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "BsN3FZOdSHnjSNpBCDlf",
+        "before": {
+          "title": "Finalizar carga de datos maestros",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "un8uC1ojKB7Hj8Uv8dud",
+        "before": {
+          "title": "Depurar ambiente de test",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SBR49rRwPGVvHhy5GRgM",
+        "before": {
+          "title": "Realizar pasaje a producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "AlzGhHOGSxYjC5ilhNtD",
+        "before": {
+          "title": "Cargar información en producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SOhFu2CAtssGMOKk767h",
+        "before": {
+          "title": "Flujo logístico DISTRIBUCIÓN",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Ut9Ojd5n6bxg0i2Xt6UF",
+        "before": {
+          "title": "Capacitar a usuarios finales y realizar pruebas UAT",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "lUWrOGOiT4mZx7ccJrXA",
+        "before": {
+          "title": "Preparar material para capacitación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "m0WKsYtOJwqiVq8yTwNY",
+        "before": {
+          "title": "Dictar capacitación",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "U6UkDfuds18PuvGG4ylZ",
+        "before": {
+          "title": "Certificar usuarios finales (UAT)",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "XLLkHSRBTgLLFQMOuXJy",
+        "before": {
+          "title": "Planificar y ejecutar pase a producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "bF3oGd2UI9MdLmOpcSBp",
+        "before": {
+          "title": "Elaborar plan de cut over",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "tMnad8X4s0ad94F6kYeU",
+        "before": {
+          "title": "Ejecutar plan de cut over",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "MzLC3aaG8wZ9RbTqOi9E",
+        "before": {
+          "title": "Preparar información para cargar en TMS",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "fnravxTyZVFJexIjHn4g",
+        "before": {
+          "title": "Solicitar pasaje a producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "2CpRS1S6xUgaSz90b62w",
+        "before": {
+          "title": "Finalizar carga de datos maestros",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "SiI29TtqmIrlf3fEtBnU",
+        "before": {
+          "title": "Depurar ambiente de test",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "vvebHONIksWflUYzcCm6",
+        "before": {
+          "title": "Realizar pasaje a producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ev1jA0jIYdS59ihBghDl",
+        "before": {
+          "title": "Cargar información en producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Vs4sLGjYt4xWZyPIZAHn",
+        "before": {
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "rP10z07q9BkEj3XTTFlB",
+        "before": {
+          "title": "Go Live",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "s79vxS6rHyE1YtvRbuVR",
+        "before": {
+          "title": "Brindar apoyo durante estabilización",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "Pp7SiLKiP2m05ZULzr2a",
+        "before": {
+          "title": "Generar documento de pasaje a soporte",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "ZZuXnP7iZIzPosh9btW3",
+        "before": {
+          "title": "Dar capacitación a clientes sobre gestión de incidencias en producción",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      },
+      {
+        "taskId": "0hoodR6jhfamnsOSRBqv",
+        "before": {
+          "title": "Iniciar período de soporte",
+          "planBaseline": null,
+          "planTrail": null
+        }
+      }
+    ],
+    "status": "applied"
+  },
+  {
+    "id": "NXgpU7S3nk9WpAAuLzOj",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "fileName": "TRNP - Extracto Plan Etapa III, IV y V.xlsx",
+    "kind": "initial",
+    "milestoneLevel": 2,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "updated": [],
+    "archived": [],
+    "stats": {
+      "group": 42,
+      "milestone": 91,
+      "parent": 22,
+      "leaf": 412,
+      "gate": 36,
+      "total": 603
+    },
+    "warnings": [
+      {
+        "code": "milestone_without_children",
+        "severity": "info",
+        "message": "49 hito(s) sin tareas: se tratarán como hitos individuales (se cierran a mano).",
+        "rows": [
+          17,
+          18,
+          55,
+          209,
+          210,
+          212,
+          213,
+          233,
+          234,
+          418,
+          419,
+          421,
+          422,
+          435,
+          436,
+          527,
+          528,
+          530,
+          531,
+          536,
+          537,
+          538,
+          539,
+          540,
+          541,
+          543,
+          544,
+          545,
+          546,
+          547,
+          548,
+          550,
+          551,
+          552,
+          553,
+          554,
+          555,
+          559,
+          560,
+          561,
+          563,
+          573,
+          574,
+          575,
+          577,
+          587,
+          588,
+          589,
+          591
+        ]
+      },
+      {
+        "code": "above_milestone_without_children",
+        "severity": "warning",
+        "message": "5 fila(s) por encima del nivel de hito no tienen hijos: se importan como tareas sueltas del agrupador.",
+        "rows": [
+          600,
+          601,
+          602,
+          603,
+          604
+        ]
+      },
+      {
+        "code": "summary_without_detail",
+        "severity": "warning",
+        "message": "15 tarea(s) resumen (negrita en MS Project) llegan sin detalle: pendientes de desglosar.",
+        "rows": [
+          55,
+          183,
+          184,
+          335,
+          349,
+          488,
+          489,
+          490,
+          491,
+          492,
+          493,
+          494,
+          495,
+          496,
+          600
+        ]
+      },
+      {
+        "code": "duplicate_codes",
+        "severity": "info",
+        "message": "36 código(s) EDT repetidos (p. ej. III.1.4.2.7.11 ×2, III.1.4.2.9.3 ×3, III.1.4.6.4 ×2). No afecta: la jerarquía sale de la sangría.",
+        "rows": [
+          141,
+          148,
+          162,
+          163,
+          164,
+          184,
+          191,
+          271,
+          279,
+          280,
+          272,
+          281,
+          282,
+          273,
+          283,
+          284,
+          274,
+          285,
+          286,
+          342,
+          349,
+          343,
+          350,
+          344,
+          351,
+          345,
+          352,
+          346,
+          353,
+          347,
+          354,
+          348,
+          355,
+          404,
+          411,
+          405,
+          412,
+          406,
+          413,
+          407,
+          414,
+          442,
+          471,
+          445,
+          452,
+          446,
+          453,
+          447,
+          454,
+          448,
+          455,
+          449,
+          456,
+          527,
+          528,
+          558,
+          559,
+          573,
+          587,
+          560,
+          562,
+          574,
+          588,
+          561,
+          575,
+          589,
+          563,
+          572,
+          577,
+          591,
+          564,
+          576,
+          578,
+          592,
+          565,
+          579,
+          593,
+          566,
+          580,
+          594,
+          567,
+          581,
+          595,
+          568,
+          582,
+          596,
+          569,
+          583,
+          597,
+          570,
+          584,
+          598
+        ]
+      },
+      {
+        "code": "no_code",
+        "severity": "info",
+        "message": "6 fila(s) sin código EDT; se colocan por su sangría.",
+        "rows": [
+          4,
+          536,
+          543,
+          550,
+          556,
+          599
+        ]
+      },
+      {
+        "code": "predecessors_ignored",
+        "severity": "info",
+        "message": "Las predecesoras referencian IDs internos de MS Project que no vienen en el Excel: no se importan. Las dependencias se definen en UniTask.",
+        "rows": []
+      },
+      {
+        "code": "percent_ignored",
+        "severity": "info",
+        "message": "El \"% completado\" del Excel no se importa: el avance se calcula en UniTask a partir de las tareas cerradas. Todas las tareas entran como pendientes.",
+        "rows": []
+      },
+      {
+        "code": "overdue",
+        "severity": "info",
+        "message": "105 tarea(s) tienen fecha de fin ya pasada; entran como pendientes y aparecerán vencidas.",
+        "rows": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          23,
+          25,
+          26,
+          28,
+          43,
+          44,
+          58,
+          59,
+          60,
+          61,
+          62,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          199,
+          200,
+          201,
+          202,
+          204,
+          205,
+          206,
+          207,
+          219,
+          220,
+          221,
+          222,
+          223,
+          224,
+          225,
+          226,
+          227,
+          228,
+          229,
+          230,
+          290,
+          291,
+          292,
+          536,
+          537,
+          538,
+          539,
+          540,
+          541,
+          543,
+          544,
+          545,
+          546,
+          547,
+          548,
+          550,
+          551,
+          552,
+          553,
+          554,
+          555,
+          565,
+          566,
+          567,
+          568,
+          569,
+          570,
+          579,
+          580,
+          581,
+          582,
+          583,
+          584,
+          593,
+          594,
+          595,
+          596,
+          597,
+          598
+        ]
+      }
+    ],
+    "createdAt": {
+      "_seconds": 1791356960,
+      "_nanoseconds": 280000000
+    },
+    "created": [
+      "7zdp8RQCXton8jtKzZ0Y",
+      "VWW0wh4e0YyliH0X3wnL",
+      "rym0x2IF29YU0PN4uupx",
+      "REYjtf5M5K1FzcZYMX36",
+      "poZDj454JaB5z4fTp1HP",
+      "cLtd9YvkHYKWdHXEjnXa",
+      "h2seqobxNRdYvBCs9DSL",
+      "xmx2F99gjV8Hm0ok9Y69",
+      "a2fZEloFacEfIZgZDEAi",
+      "dJRJV1iQGNVeuMD3xcjn",
+      "8ayMLm4aDmnjlKBRaXgW",
+      "ihPZOvJ7GfzowxQlOW17",
+      "eokTYbQSjf9rDYVxtDaj",
+      "YKqWOCDX7OH801AQRZGu",
+      "ldqmVoE20PcqD29AhNTm",
+      "mtcdkeEneBOJwJwJFBpc",
+      "HGzzJjvRbFPSAUeLEXds",
+      "kkGBJfEDdTgtC81Mwql8",
+      "e8HvrARZnlnTTrdmiNuT",
+      "FcOnUPfZ9Ju0d24nbPxb",
+      "rzdDPGMn63We46dP6ZTi",
+      "nJKwLqvRKnM20YIDB8Z0",
+      "bPqZw2Yhfuwf2jnSgw0b",
+      "adPXB9FSrjsdDP8DCoRn",
+      "NRRc5qyWtvADa0AssD7X",
+      "YGBB5gkcbyg9yDnOv0Je",
+      "5x56hj76moeCEslo4AW3",
+      "NSjuc5RwWdqmZQIiKAnx",
+      "SjaFpgzziEQeamBcnVVR",
+      "gbvhNP2VUzmpUn3ycZkz",
+      "TwJvJUKC5koziaSnjRft",
+      "hORJ78iqgUVZxqemDFmu",
+      "YmqNL8i993TUSd2IVNwh",
+      "N6RShRvJ4YB5PUzowg7U",
+      "qhC9eYuuD9e9aYpZYtBl",
+      "N0LyRgOG7vGtyDL6ACzi",
+      "S0V8X0JikCntgryVgUSw",
+      "OCqmKtNyhHtMmk7Rvhjy",
+      "SAAavQKIWVMqrsKN1wEt",
+      "26EhU75pJzxLDcwDYZIW",
+      "TpwPurgQl1jIQMufBRt6",
+      "9rfRpmiMlRActfVOUZXi",
+      "BjRkhdQgpBg5ws7m32CC",
+      "T2XB8CqDfINsk5izBCyZ",
+      "NlexoFyUsToQH9GXHHmH",
+      "LQd5ScUEKQUuS1kVo7hS",
+      "oq090IFXQcUBXu5gkerr",
+      "RKWam6Qv5v8gF4f4eqPl",
+      "yEf9B5A07A6o8PLN0CzT",
+      "4hWTfzDxhkOioGqMfT7a",
+      "E78KTYe6uVJAMcv8CEFL",
+      "bUWo53iZwz4XvtQ2QfEj",
+      "1qw2dQAMUStBQmNusuJK",
+      "zZoMbcQCwyeDQvciDj01",
+      "6YExcxTP0IhoinSqaDSR",
+      "OqvM9bocrQDldjsXFnCE",
+      "pAsqG2OR6WvQqnYLpL8U",
+      "ifZkeE8AeF53mKoI3cEN",
+      "agUllSalz78lCrRH6FFE",
+      "rYtREd3yE3a5jI2C6e7W",
+      "QK12lWCcNR9U1HaJ8HQ8",
+      "RMeXU3MgNx6tmJuPypHj",
+      "ktuy0IkAmmZkQqtinjwH",
+      "9E656OMgYMkTp7Mfvvqb",
+      "hQSbU0FexQTEabIQztgA",
+      "J4suO47IncrNARGT0m6b",
+      "jrdBCsK5aRniIDlLHo7D",
+      "43zcVPXfM901RFVJDWZE",
+      "biTE5vMOopQqhbk2sVlS",
+      "5nUSantGCe6ED5ZxOYoQ",
+      "phnk79Bg8KRHrFIjtEd7",
+      "AnH0PoFGssYpETVmAoKS",
+      "QxiNBqdLU22ShRBgxpGG",
+      "JNMns5Rj7kFtlFMUVUDB",
+      "HmKmYsdkkWXxBHLtpWo5",
+      "zsnz5qLi5KBL84O8LKiW",
+      "XelcTllj0G3si53A1xoH",
+      "wkXSmgVywDINtYTbd2vo",
+      "R7TkyXi8F6894zjLBxy7",
+      "lbi8LATr37rrRfMWso0L",
+      "LzQQSk5FwMxdMtav9aqv",
+      "D8jS628LXo0hLasu7Bz9",
+      "MZ0rfsZkp20WaUr30wQD",
+      "L0c7f7aAW32J3t1SCYEK",
+      "5CMRS06OFAXNjbqLvzqi",
+      "mWDb4P66pg13bWd1WpEK",
+      "2rwCjoPRi8fgBRurMW7P",
+      "JL3czHGEN2lqe9dnqsWt",
+      "AgM0dR6LamLJfptWy9os",
+      "3ET4DSybBOvS9P3uQPW9",
+      "dApHh1oQmdpfSBkdZGsU",
+      "EolLhzhp1ujLbDIdYOTS",
+      "lb45Uw4bFkkwpIAquSUU",
+      "UV7QbF8rKy6wOdCqzRA4",
+      "l5BuyDapuA6ZdivNpCIa",
+      "ZnBTeDzNjmk9y6wBTYMD",
+      "Tv7wOUMVd5wAcXiT1pCI",
+      "iA22tkbsxavsp2IPatGl",
+      "fdQPgrmQmfir6sghlpYf",
+      "u9C08HwhU2vOwDe0xO9J",
+      "tIeVzkcelIhULtg3Hk6z",
+      "WZttx1ewcu01afXng48Q",
+      "gaLv3uhyuU0IdUHTdZnm",
+      "C1wESh8dXQ4hJ0q2VsTn",
+      "u5LrE8MEHueuVqa54nfB",
+      "98ycCSrglwzBm2gM105P",
+      "fU3IH3bM6yOfaBNUAxSP",
+      "GWNyzHT03ZBCNQIT69bD",
+      "ySH9ZmhuQW491oyagXnf",
+      "DFzNqR54wh3yCJa72fcs",
+      "lD1Mv5Zo42WFvbhrMgpf",
+      "4qkqdW8tDFqOMci0u8hL",
+      "1hDUWw39B9UYOw6AKtV7",
+      "RyLZUZwbOtfDZNI7sEqj",
+      "816DprdZvgklzluRvdua",
+      "o64C6XYpuNd6tjUqbRau",
+      "b304Wx7NHmRMQj8oDhw6",
+      "bW5Ovh8wHfB2WF3OjOJL",
+      "faQLSOHrdGMahlvO32KK",
+      "olvISwyMDwfojhPxMmBc",
+      "t7S0kYD1Y0gvOji40udS",
+      "5wkj5q2EQCYkeGRsOoEY",
+      "UwmT8x1iSceYsbjivRxD",
+      "R03806njdXKaToA7vowx",
+      "RZPhnhJRZy4D33F6Lkek",
+      "HOyLfMWdxZvI7ZnwmPmm",
+      "rAS1Vv5v5pRi4Be14pSJ",
+      "Vf3JR2wrG8TTERs8wfjK",
+      "5aY7gQGR2YW2dUxZmhHl",
+      "z64DbSKs6tOEaygRwIQA",
+      "gWCNsi7xtwXRanTJZDBB",
+      "YdrObhWqvPuygXr1YvR7",
+      "bK21W8ucRyaKUweP3rys",
+      "Tpckc9ChIjrPInsUrnmx",
+      "kQbNSYigmVzk4RRxiPOV",
+      "mBnGQWLjpeE2En66lGpg",
+      "mLaR9Sheo4164sGtzHHU",
+      "SFkzK3UVDHP4P2NFdovw",
+      "PPy9lzbhRol9E101yORf",
+      "igtpgkg14LZxM4hgxvWu",
+      "BrmurMvFGY4FrAXiAtot",
+      "gRBJTss4CiBkWPnyF3iF",
+      "PB3KJOgDbNDMQhG1FB7I",
+      "SIcyiqfHmbE3EkfpiUHl",
+      "f6joYfXmAStkEnzt9lNi",
+      "g4dhuxXbHhMgRukuMNxb",
+      "OfGCIFkqACOA4Jt8Zr0t",
+      "NHYjhiI6VLaB5dg1vzQy",
+      "84lAwXqX4XltxTWz5q8L",
+      "seq8axgBm2cjDvvmlyKH",
+      "1mIpW5Ke1s1MD1MasQy3",
+      "1htPtGA67eR2W3qoOL4q",
+      "eV71a8np0mLtScJMTg5p",
+      "35vgZlVjEJ1xqSNWOq3i",
+      "MBBxHwO188nQF9v1k7Uy",
+      "OnTqIvKdXpZDSye1ueoq",
+      "636BFalPxDk4bjksDRfW",
+      "1mnZOoPURJRHddjfPFQs",
+      "Foqe1GXvFrW3s3H2dH5v",
+      "UyDRUTKcDb3dFs91tVvI",
+      "0hGwRokiimooGySRn2jB",
+      "vJ5SXZ0qBGoxlw0LJ1If",
+      "ax7pvQ2YNOn1DC4KSqdd",
+      "IUVDzgbEE4Y2QqMLBRxt",
+      "lVTD5bMJxb3P1wsyJni5",
+      "m7l9Zpd1hmTRTB2EtqCy",
+      "78csdztji5qWAfMkZkxH",
+      "6VeWlwbTfEgT2EGJk3FZ",
+      "PAbzY5vhYBiPK8eYSyEP",
+      "duWq4yfgNhn3yAA1lP53",
+      "6lIswhlhGLg7nC89o3RB",
+      "60E465uXjQjFKapLHMtk",
+      "uqFCknDEJUrJBSgsEABg",
+      "Loa0rssAMQVqScPk83KZ",
+      "CyFn079EH14DCa2XbAiu",
+      "jQYDWAO2bUcFXcSm6Q90",
+      "s922u2OYm9pPHEFtkzOV",
+      "1wuanncuwlE39JAOd84a",
+      "DGn0Uo6O9psyoqnMg9j7",
+      "jZgHfjBQ3Ui7WUzaXQmc",
+      "DkJblRqDDVwLwhe78UEy",
+      "EMBBusyUgn6BS75o1PJm",
+      "fDVAwoOAGAxzYpQvjYdR",
+      "DLvGQRjAxlUVOkmel1Qd",
+      "XwLsWV4UssYmngMVHrCi",
+      "VhIHAejTV0TSEqJGGxyH",
+      "s8RdUvwn5227vyEXa2Bi",
+      "E1j4Xu79xpxIXqux6SCq",
+      "d0QyZDrcMFMBtgogRbL4",
+      "hYDTn5K79QJn8dKvjZf1",
+      "IfhG8BbGTb5WE8omh7eB",
+      "ImeVmcOMHsorKX6YgLv9",
+      "sEjZMN28jx1OwiyffWgj",
+      "2V6iL6ToK72KjBNIjlho",
+      "uDLpkxMmcsGnxwvXEoEY",
+      "T1GVW7gpcA37CU4CkuhQ",
+      "KyJZuSAaAfhXig54LBFn",
+      "FTkrL6Yhu6W8JPtpn2AM",
+      "pwwW1pqfjCxhZrUle0gy",
+      "dZwHD4uF9xtPTfJJlTqr",
+      "ca0QUwVd69AU3iPDxCjo",
+      "zvOeyrLr9tv40aBGx3uR",
+      "N6tBCJDOmkcvwvr2IGPU",
+      "Vn1M6E4Y3MceyhixEuj2",
+      "SFn25QGvE4k0DyQPiIZ7",
+      "3bmPsEiCCEDPuAehthUV",
+      "nmaw8awpzRh8fXVPYBmf",
+      "ZTIjzy1BolH93arRDnZW",
+      "TuUr5JKE6org7fU16UTj",
+      "Pxttvd8xw3ztS1h0lM65",
+      "A9ReLLbkwTAOHjWeNX1F",
+      "lDiZrPKv4b4nwdR0QERd",
+      "XtuIehiDm5Ut1ZR1G6wy",
+      "O4tiUNA7hOe07P3xXuqg",
+      "N3kgjy4i9rfUrRTrnLOZ",
+      "dWmcEVPOzeCDec2sn0t5",
+      "ztv7erKfSpTmJvj9XV0Y",
+      "zMuNoDTchUDOlXZAMIkr",
+      "FGV9VJPIubcTjZFsGvuY",
+      "3qq2ujwykrODvFOc8Cur",
+      "VGC5cBL6O71Gmv4XElaP",
+      "Rki55Z5DsYyXwcktVm0G",
+      "SgipooQayYixm7yb70MH",
+      "qtpcMu3XIYoR37bOtYNf",
+      "cvyRCxb9KMWF6PUfcGPo",
+      "yrrJXuX2QDZh8g64zcOP",
+      "ksLoC2K3FtW9b9PQ1pJw",
+      "lEMYEOvJ38IxsJ1yxfLP",
+      "Uejx6HSnSHP375SiFRol",
+      "I5METBNJ2hdRNVQq65n5",
+      "fR3fNx0f7KTN6mZrFYkI",
+      "rNjZwewTIIP9IYMvzN7j",
+      "AtZponljIto2R61UzKfr",
+      "9Fl2W0AUQTZVI4im0qPX",
+      "E334SqsWbrIyVwB1BOGM",
+      "bAGhTYtbRARb2NXMTEMC",
+      "VXFVtg1GC9gOOwUS115x",
+      "YGu0Nz5jcseFmFgUjW6k",
+      "HFmN5s7yD9IHIB109yQe",
+      "9IZGgWHBAJWFVdfaceV4",
+      "h9vbxTr2qNy3TUGSsUtG",
+      "6H6vF6IFFUd1UVZOvc0K",
+      "KNgIt3kmOKI0PLU6FTjN",
+      "vZfna0RHr716yKbta2sF",
+      "6IMAKpjZW2i9aSZwasDF",
+      "yw91eCjx4VYfYTRpV9fu",
+      "avQwKmHlooR0gaetPCEl",
+      "DbrJgG2uUej15BB2AF9O",
+      "ieUvmVTq6jVmuXP48oKj",
+      "Q61XbWN3O73ZbEaeL8Ic",
+      "Z3h8yhkWZXYvPTrmXtaA",
+      "eWuDlE1Lai7Rn0YONmga",
+      "wICM76cNnacTr1nwQfYg",
+      "nY0YOrQDaeH6rPx6DsYf",
+      "IqaW1G5L9sCCNWYjYYx2",
+      "ssdkhLsv0ta8xwlkugP5",
+      "JYLVvxIcDC3zV9ZiRbyf",
+      "Uq1NoamiZnjcQf4Azhzy",
+      "DP1bLG3J9FyRgmADGwuU",
+      "2rXPlzT5IFI1kptg1BYd",
+      "1A2EGgLC2CJ3JBsx3YpO",
+      "bazpyKLK1dujQnu2u5lw",
+      "McE4KsdbTMv1qLQqkxkw",
+      "sDXgd40VwpBoGiOMsPr5",
+      "z3C3idxkP103waPVCheJ",
+      "r5x45T4G0jlFpMRJwYjl",
+      "2Xpx7uOtOimB3UNAAWeH",
+      "2UNlZFDp28WUlhABclLx",
+      "cWZwUXWzzKmtwgLX1om4",
+      "vi1jQl7pws07mLj1p7L8",
+      "tB8IeZYIccf5nY8ByEi0",
+      "tNdw2cPN4j3kGau25UiH",
+      "qPW4QTfE5TSJqXrBGhIb",
+      "tPdiVvDR7XP0wkWj5xmB",
+      "Sn9NDGNT6PyzYKFeqo5a",
+      "LnMN67qCy7rbhVEwXTYW",
+      "2r5OfyNoHElZ5vGfbvHt",
+      "SwulEdHbwzNZ45DZ2ixk",
+      "FdM2GvNZdoRiS87mFqAA",
+      "UF1JHibMuE8T6PloAYwN",
+      "akAlPyEfxvXBFotLnQy0",
+      "uZog7DcFzCFkmGVdulOB",
+      "sB365erEcYCZFTHATmuX",
+      "p9jzkEla1Kh7U2aMP9bb",
+      "AYBiLEpd7afxepRZlAaF",
+      "BuYgIUwLHmUA6GjD4esK",
+      "Ns8ZCl9mw7vwCpUFQAhI",
+      "Xxry9Igm3LlKg79zHjoc",
+      "e2NKC1BtLT6xjupyvoLW",
+      "b1sL8zcm6i1olfaVzBOO",
+      "9FFWSXcn71SYJVVwHl7t",
+      "te5OH0oYDivsntKvUMB5",
+      "0uDiXTnMpw3DfQqNbI0A",
+      "MZCpsxeAh4jbhmygZyuB",
+      "wUnxtMK1dO94FXlR65xO",
+      "1Ax8hTeVz8jHmD8Rfq3T",
+      "UcNwsLqM6za1OO0svvnZ",
+      "0T050OqEaVlH5UmJGCFU",
+      "Mi8oaTLR9cSrHQCDUcFx",
+      "Qg7hxCSmMJPjMd9FxE6V",
+      "JNwL2m2R8APqEbcXBAKx",
+      "hrLGWPsfLMljUwFACXhe",
+      "lYpcRlw34kPuX8FguIJS",
+      "n48655RsayjmPvCzxz8n",
+      "6HtioQnr3tRmdvP7Nknk",
+      "6pRi3XdNUA5QZEpguNMJ",
+      "p9ogz4k9Cp5qCmFoGgSb",
+      "b6mbyrL8WTtWbgntvoUS",
+      "PPgQk9394YESbALRF2ji",
+      "HuT8X8iuNpomW5j8zcVR",
+      "hcJCXQA1ak81usHupENu",
+      "kS8VTerRkVKgrzTplwIg",
+      "5h9XmHkx1hA4MhuOmPwp",
+      "lEJZzGyKBrA69w6K7q3W",
+      "AZLOQwnbRcQpysOjfzfy",
+      "EtUzJaV4tcIVIe8mnpWg",
+      "I2fheAX2sEPATm0L5Yly",
+      "2eF33i0KA2y5zMrzt9PL",
+      "bwon046dzc2ySVJNgKaG",
+      "zYV9GrhFr9RbCRXaXaqj",
+      "tsZBv6nNlK4dGb2hngCU",
+      "JPSt7VFXJnVUQJ6S4n1m",
+      "SV5SJ2vJvWKZR7yf93Jt",
+      "OwZaWMU2YNdDcYM6Oyw6",
+      "RKRbCR8IPQL1x2vRX02a",
+      "M2Aimu3K0aZHrEXIuid8",
+      "sR5LheGVXYxq5aOOKXM1",
+      "qJEEvaeOaqXd2TqRJSAs",
+      "zvkgsgCdQ65KlJm4CdyY",
+      "mJJcWIphYL6vjE7Kwibb",
+      "YFLhdX7jsAem0QMtUxmx",
+      "Yg1gpaWZHiTHGvdZAlXq",
+      "PJfgoCQwKANA1uQZ767e",
+      "jws5uDSocJYjK6VFDOUQ",
+      "qHtRn7rhip2SRDZdQuEq",
+      "vnoTEe5vGJab6hWLGrv6",
+      "1B3Tet2TkP2PuYiJwlGv",
+      "ymqilz2fFgzw9QesiJjb",
+      "thY8fcy69P04kHYtQNp1",
+      "DAgngzjmiWoAiX0XjfGP",
+      "o2mjUALxFwbzp9sTKC1f",
+      "n8iWxTk7cccRHzOfmswW",
+      "E6tG2wqO2VlCZyIhw9kY",
+      "S1BivsgEQKgsuSfpMlaL",
+      "MfC29eoUbvdByx1M9Qi9",
+      "OizQwinsVkb84gua7HIB",
+      "IgepISnjwL0kIQE1VT6y",
+      "2eRReW3yVU3RoA99tmRi",
+      "PIeCJMcWeEz8ENAlrOpU",
+      "9ck5SBiEFNfMN3mIGwI8",
+      "qZPlrGOh6zilYvtixvWS",
+      "Q48hryW3K4XzwLEZSF7S",
+      "jXM2qpv2NbRsPPtl6eCd",
+      "KBwJz1578N2OKqxfYfyR",
+      "xrIfzOzLH9s2WjmgjdN3",
+      "Ir5gnPD2NM2MEZOIdmLV",
+      "mfktHqCOJswZEuwbpkPb",
+      "nIjE3Xkio84uKR0LNl7F",
+      "qvfUlnb8ZrRkO8ximGRS",
+      "uFpqfQM0z5XpflHrquLt",
+      "qsllEKp4dHIjsgvD9Orf",
+      "rFrN436BJHtb2DhK8w5m",
+      "D59345rRVEwJ58yTzyLM",
+      "1ho0OJ64c8TXABunrB98",
+      "6OLq1zOvkVdPHSSVH402",
+      "8gQ46zMZZOb0WWtx60Xh",
+      "duQt3mfIAfWaVr4IbnfF",
+      "BIauWllYfhUoxl1uEl2y",
+      "W3nif066fp2M3Pq9puAk",
+      "Jpm4WXbH6FO4TsU0E8T1",
+      "vbPM4NAzx3c8s96Fg9bG",
+      "9uZT5EIoWyyMmzPnSi4P",
+      "dV3qoTnCI7vj8Zk4cv0s",
+      "aVGgH8kJeUmpTRbrBmvp",
+      "JD2ywmE0mjW6yoLBq8uQ",
+      "DuYtrEuPjRJEuPcdDcRm",
+      "JVYDpJM2tnRupzdZWpD3",
+      "aGO9c2PuWojLqXrATyuW",
+      "VpClKY9aNIjOcVbWShzQ",
+      "W2sVKt6r7gyvEwlX0pRf",
+      "DAkbwFcEORBAGlhLh9df",
+      "i20LnbcE3leDvswaeTxW",
+      "jUuKRLgxYpJaRfE3yqr8",
+      "mE3PzYWX81RcJ2pzW8tw",
+      "b03TfVA6QbdRkmPtwZUV",
+      "bCrFZk1Eaz1aAtiZmh3Y",
+      "PnpUxeUSNdFJ0hONcqcJ",
+      "GwxMnmHXqmxjAKPonFIj",
+      "ZwDw1uDlJqWe9uffK2v4",
+      "bqgSs7RK6GfCzh7SQcQK",
+      "fEXL4gyYPtqhEUs5tnjK",
+      "WL3Qf4fChkx0vrNbvSuo",
+      "SxGsPb20ChS1ExhpEs53",
+      "La8ZPIn6Ikgn1noSdrLw",
+      "NoLffbTa4g30Fh2BwFEh",
+      "i8NvnrUQ9LaHPPe42FZJ",
+      "hObZni94mkLVFkoAAnzQ",
+      "uU5M0y2zkBlYdGak3X38",
+      "MdD7C7EWq8OnAeX6b8UE",
+      "ZfAXlnJQKdcl5ESRw0RA",
+      "ERp82M1u9LwsbA1k1nUz",
+      "xDBrSLq9tmPqPgiJtQpO",
+      "rqc9jpXDReVUtQFeJehX",
+      "4Bgr12QMDDQAC0crfm1m",
+      "fMWYpeX6MnfrBV4nZO62",
+      "pEAXZUINt01rWRbFwtXO",
+      "JkyfbzQOmeZ4zBzvNEUe",
+      "z5liBlOiIAit9GUviELf",
+      "VcM9jQ8QOyGcB8OiJySC",
+      "eDeocard8ITieaagKLBg",
+      "7bXqjxwtngIwDDraudjk",
+      "Kx7IGHi5ssRFn8CitA0H",
+      "xhzydx4Wtf6pgOaozmV1",
+      "jAolkcSrSKXOnXZnFOEa",
+      "4erL1zAdmBfpi7DrWFlW",
+      "Zu6ZkORlIXn5YQYnNg3H",
+      "mp0NOGrgoWJyGdwUNAeD",
+      "hX5RsNvSHBloKkbphFHS",
+      "tb63frxuYXYrLdM4GyyV",
+      "yHWaxcxOdBZWUtzb3017",
+      "FUlxJKPhfmcBlKCZAh2T",
+      "HantSFdSqAd5evIT1KqY",
+      "iC3fmJSDThezbKa0CmtT",
+      "ro7YmztYfndQeCo4pEWu",
+      "ADqixwcnV5u0wKqJrJHR",
+      "d4TzVNeH0Q6HE42ogj71",
+      "Vaf96v36jR1lmzTVdY64",
+      "yQiBGIucWcJ4ehstLzT4",
+      "nPnlgkIpdAUu4faToVbY",
+      "Po9ZqJnQa9QR897OXNDA",
+      "0xJPcvy8VmIRLYeV7QPR",
+      "eeL7d0cTO2HD2tJy7ohs",
+      "sCmjlp2TTROSY69XVlq3",
+      "2QQeBvOHjceuwEz3LYCL",
+      "Qq0bUtHogDBVyeDMGw46",
+      "ueLW0E4Nx8rh0eidWKIn",
+      "GLpFXaCws1iXUW2CvjzS",
+      "gCHPZ0GjgKmpQhUslAJG",
+      "RfM5qxEwXF4WMBvcDr7s",
+      "tG9GR3mcg9n3amM6ME0I",
+      "bg9SeJwEs0ivslKarZrg",
+      "aOiEJ7JcP6tjLjK4cMaY",
+      "MZfysgquOmLaOgQBXHzR",
+      "IguEUBiCo1Hq7fvSw2Mu",
+      "te63t21jdgpIFcUmmvQA",
+      "Ao9YSIYPtIpjdAIzm5Ij",
+      "gN541JBMhp1lf8jDs7ne",
+      "cQ7ZZlWIfB5SttUmORN4",
+      "Lb5EzWecgfjtrqqR4Xng",
+      "vb3jMehv04sEvK1xrytT",
+      "bGld01vKQ0h03s3xhuOL",
+      "IQjZeEoh1oq8bBP3AeXd",
+      "dAV0i2Jd9Xh8KVpMSFiv",
+      "kx8S9USyxkLEh23BdYQY",
+      "s2D0AAnPFxhmDX3JG1di",
+      "nH4KCllANi9ip3qQGLqL",
+      "EWbaqnkLH5tGz1qoo5bf",
+      "gsWCGPdBmsnpHP1t4sJ0",
+      "XWtxFb8Z1COqW31EvCd5",
+      "yVj0rBUBdxXLnvvmKcqo",
+      "NYIoYdRdOKJnzivqd3YF",
+      "lPJV5vfbTpbo4lmBxSGI",
+      "2zqEl3Ob0XaT5Yq1j5Hn",
+      "NVnr3Cm9CAWFdqdxddzh",
+      "WUj8KMrWM10YEJxk96sR",
+      "0XVcWqIuoX04rdvutjqK",
+      "UjHqvCU0Rc56cdQ5RhDH",
+      "PI4ROMAYOkorSi3LOoxu",
+      "VRV8VLa6OVSnUpImMyrK",
+      "7h8HTs0k81ob7P4oNmTw",
+      "ioXej645tu8Gtla83Fy1",
+      "HOA0Yo697GwfdgVC7gzH",
+      "vrxv5rmWcqaeVU29aBIg",
+      "ZkOfZR8Bn48nnjgo3enP",
+      "0xSeoT8ti3SmqBaafCi2",
+      "x0wqMJdssrlfruWBXqJ1",
+      "qty1Xa7FGgYd71dd6LHX",
+      "MX2AQwtVGRVgXDfwIJ1z",
+      "zpjRQ5NQyYJ2m2ziQe9v",
+      "HDIfWCH4lvj0mArRWPO8",
+      "9WG5aEt0KEBbwYOvxqPc",
+      "5euqlVgeFkacQk3ptylJ",
+      "O4i23dwEXBIIDWSTWHW2",
+      "20IlwnjXBHBEta4xJS5z",
+      "BIfh9GRmtrZdvQufhwmo",
+      "DtCuCrr1dJ2YaxLSfQri",
+      "eYKbiNQCaYHiNBzMVXji",
+      "8pYGLR3NHglr9kfjbx27",
+      "8kksrxoeo3VdjsuPyju8",
+      "ab1cSn9Rkwn12k6A8ZaP",
+      "lkOftAfThxhU3yWBeKBO",
+      "AW0CS1rB7IHFE0ufnoWG",
+      "YMfSrehWu9BBf9mS6vRV",
+      "HH6857uRPSRm0uqK2rmK",
+      "qoGlAdfAc9T6AZEtlrb3",
+      "F6fTQjOmIPGaTGuP3eqS",
+      "dt7BkDOKtf0AJPGY2cCC",
+      "9X9K1ScgphZdbAXaDJbY",
+      "ph5Hf3GxETCGfetxtN4r",
+      "9sjXUT90sLynHWKienyQ",
+      "k4gAbPZqHq8XYjUU6DH2",
+      "dqJ5SnOLnKq1JSQ58iYI",
+      "XQ6jP1t17EcFgWK60sLP",
+      "ddK1GeKomyGSKCqSzcUK",
+      "nPdlriw8kC3qANOCrXxF",
+      "jcivusnSHivp9nkSnJVU",
+      "rddk3XRFCdv4zjYGzUfZ",
+      "mW5i08deMcNkaM0hX5H6",
+      "uFP8V0pK2TbEdVs2ZliF",
+      "B2vALJ4Cjhuy6iXam49w",
+      "QIhMnjTjIsiY0dwekb5j",
+      "HV7vtuvwq6EInoCibl9L",
+      "DLVMROOckntXc5hQioPR",
+      "55zUVNYUfnYtWPcg0q9W",
+      "SKOtsq9hz2fms1mZ53Bv",
+      "sET6Luk2lguLlgHrZsXV",
+      "HLS6wxanbkmUA1of7rqS",
+      "6BuN6Ud4hfGHYrNkXFOG",
+      "suzkPX56cnGpX9xvGgTD",
+      "tEiVpDNZ1s2qnamkjX4M",
+      "AcaCm0VqOHEdxgLBsmuX",
+      "EMg55eFFBgvywKCbUSPG",
+      "QWIBPIEvsSfOBi5IdLtZ",
+      "LDZXaFsM7zEYRnxt7eht",
+      "y5srBzsMv6qzWgKwO6Ru",
+      "shEVtnQyUe9OVsufrPTT",
+      "LUxxdGvbZE5jx3a9cZSr",
+      "0Jlcrrn4qVXPsvioH3DB",
+      "X3iAhuBx3Aa3yUGZbzDc",
+      "zxC9WYv5JVldEiJzhZ2c",
+      "kfI3IrvmktVeOq5viwKI",
+      "R8m9NtKyeVxWcCiuK1fX",
+      "3IN31VtKkYfssGqFQS94",
+      "tkZAJ1SMGJon8uRPFoHn",
+      "c4Ueba26se6xp9mtB61J",
+      "QNWG8ion5D69zoRHJk0w",
+      "SsFm1axP6OnCR4o64CPr",
+      "4GU6eyXaA9ECvtWuVnJB",
+      "rSMD6EQB3oAcCYS9k8OH",
+      "6vrXRxMOyukgVYfPP31D",
+      "sXEMoZJuLRTPD3pBpipw",
+      "D0GG2Lq2whzW8gsQDE6E",
+      "JbT3ZpoSgJapOUvmvOhL",
+      "r3xmGWMz3D2fjv8v20C3",
+      "gTenluI1Yd7sHhyrLBgz",
+      "ZfWRRjl3NzVD5tOScx2G",
+      "Y9SpvXm8uEkIl4jUFbLi",
+      "NZPfN0KAmpPDESfDWLtN",
+      "LmaN0JXfJ5CZ00WcHRyL",
+      "YPQ1T1mkTlA0Dg7EVxfF",
+      "wR6XRcgN7dg7JTKC4Rj6",
+      "X0ldrZkCKIz4DIJcQ99k",
+      "QdCuklth8nVA5DLMKsxM",
+      "bHFQrb3roH8uBSKIWivB",
+      "8OFL221wbZXAnRx7l5rH",
+      "YgYwHKmvMqLsQnmNDaZo",
+      "r5AdHdzmUg3NiwcoXIZl",
+      "i3Ks6W07cNskiF3bSEkB",
+      "Fhvl5zi37I87ZOS4myWu",
+      "fQQA2loQNS63MBJHXwfN",
+      "9LXSAqZaRBOOoktZ3nRR",
+      "RUvcU4Cq8cbyWWgq7nJi",
+      "zTqrlZUT3gHBE90AcT7l",
+      "M9QOxyGbFHX87l1ILJap",
+      "DHLMcCEeaiizyVwg6fTF",
+      "Wd151cIKUiRatpeGPl53",
+      "TFdVW5ANMc4WMne3lLzC",
+      "b2DfJxgNbmR7DHqi8cel",
+      "OAVkpH3odbdtmP8LW1H9",
+      "vea8wNj7Q8962FjjOgyI",
+      "GrH124LD1hnlFwSwK4Kk",
+      "zRcTe33GMytst3hOQaSG",
+      "XHRRpRAic1ZOAt6d7rFK",
+      "VJhBWbg2YmvhvwnGHav1",
+      "UFmVJchW18zm99jku7WK",
+      "vQqiiK5BEldJMTsHAYsl",
+      "NDbsFeuJrI3ygvyiI9GV",
+      "2jnusj2bJHiv5ojh1Mes",
+      "4mtyLiYCXLvp6wZb4ZxC",
+      "BsN3FZOdSHnjSNpBCDlf",
+      "un8uC1ojKB7Hj8Uv8dud",
+      "SBR49rRwPGVvHhy5GRgM",
+      "AlzGhHOGSxYjC5ilhNtD",
+      "SOhFu2CAtssGMOKk767h",
+      "Ut9Ojd5n6bxg0i2Xt6UF",
+      "lUWrOGOiT4mZx7ccJrXA",
+      "m0WKsYtOJwqiVq8yTwNY",
+      "U6UkDfuds18PuvGG4ylZ",
+      "XLLkHSRBTgLLFQMOuXJy",
+      "bF3oGd2UI9MdLmOpcSBp",
+      "tMnad8X4s0ad94F6kYeU",
+      "MzLC3aaG8wZ9RbTqOi9E",
+      "fnravxTyZVFJexIjHn4g",
+      "2CpRS1S6xUgaSz90b62w",
+      "SiI29TtqmIrlf3fEtBnU",
+      "vvebHONIksWflUYzcCm6",
+      "ev1jA0jIYdS59ihBghDl",
+      "Vs4sLGjYt4xWZyPIZAHn",
+      "rP10z07q9BkEj3XTTFlB",
+      "s79vxS6rHyE1YtvRbuVR",
+      "Pp7SiLKiP2m05ZULzr2a",
+      "ZZuXnP7iZIzPosh9btW3",
+      "0hoodR6jhfamnsOSRBqv"
+    ],
+    "status": "applied"
+  }
+]

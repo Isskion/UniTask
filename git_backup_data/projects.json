@@ -951,35 +951,45 @@
       "_seconds": 1775654901,
       "_nanoseconds": 250000000
     },
-    "environments": [
-      {
-        "id": "prod",
-        "name": "Producción",
-        "isProduction": true,
-        "ip": "",
-        "user": "",
-        "pass": "[REDACTED]",
-        "url": "",
-        "mapiToken": ""
-      },
-      {
-        "id": "test",
-        "name": "Test",
-        "isProduction": false,
-        "ip": "",
-        "user": "[REDACTED]",
-        "pass": "[REDACTED]",
-        "url": "",
-        "mapiToken": ""
-      }
-    ],
     "aliases": [
       "LGF/REVISION PLANIFICACION RIACHOS LOCAL AUTOMATICO"
     ],
     "lastUpdate": {
       "_seconds": 1790950279,
       "_nanoseconds": 474000000
-    }
+    },
+    "environments": [
+      {
+        "isProduction": true,
+        "id": "prod",
+        "mapiToken": "",
+        "user": "",
+        "url": "",
+        "ip": "",
+        "pass": "[REDACTED]",
+        "name": "Producción"
+      },
+      {
+        "mapiToken": "",
+        "url": "",
+        "name": "Test",
+        "pass": "[REDACTED]",
+        "ip": "",
+        "isProduction": false,
+        "id": "test",
+        "user": "[REDACTED]"
+      },
+      {
+        "id": "8826cc40-c818-4e6a-b06d-3fd40e4078fc",
+        "name": "Homologación",
+        "isProduction": false,
+        "ip": "172.17.133.4",
+        "user": "[REDACTED]",
+        "pass": "[REDACTED]",
+        "url": "https://eu-test.unigis.com/LOGIFRIO_HOMOLOGACION",
+        "mapiToken": "CD-82-B3-A3-B9-8"
+      }
+    ]
   },
   {
     "id": "c0HRtaCkKXxeiQf897sY",
