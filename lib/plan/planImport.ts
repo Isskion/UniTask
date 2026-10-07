@@ -16,7 +16,7 @@ import {
     collection, doc, getDocs, query, where, writeBatch, setDoc, updateDoc, serverTimestamp,
 } from 'firebase/firestore';
 import type { Project, Task, PlanImport } from '@/types';
-import { CLOSED_STATUSES } from '@/functions/src/planRollupCore';
+import { CLOSED_STATUSES, statusProgress } from '@/functions/src/planRollupCore';
 import { inferResponsibleSide, type ParsedPlan, type PlanNode } from './planParser';
 import { computeInitialStates, siblingOrder } from './planInitialState';
 import { baselineOf } from './planReimport';
@@ -145,7 +145,7 @@ export async function importPlan({ project, tenantId, userId, fileName, plan, on
                     priority: 'medium',
                     progressV13: like.computed
                         ? { actual: like.computed.progress ?? 0, planned: 0, aggregated: like.computed.progress ?? 0 }
-                        : { actual: like.status === 'completed' ? 100 : 0, planned: 0 },
+                        : { actual: statusProgress(like.status), planned: 0 },
                     friendlyId: `${prefix}-${taskNumber}`,
                     taskNumber,
                     creationSource: 'import',

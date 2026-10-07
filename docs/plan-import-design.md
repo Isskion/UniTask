@@ -19,7 +19,7 @@
 | D9 | **El % del Excel se descarta.** Es una estimación a ojo del PM; el avance se calcula siempre en UniTask (regla 0/100 por hoja ponderada por esfuerzo). El % de proyecto, dashboard y burndown se tratarán aparte. |
 | D11 | **(2026-10-07, matiza D9) Las hojas al 100 % del Excel entran en Aprobación Final** (`completed`, `closedAt` = su Fin, `closedBy: system:planImport`) para no tener que tratarlas. Solo hojas e hitos individuales; padres, hitos con tareas y controles se calculan (`lib/plan/planInitialState.ts`, mismo código que planRollup; la vista previa ya muestra el estado). El % parcial sigue descartándose (entran pendientes). |
 | D12 | **(2026-10-07) Las tareas ya existentes del proyecto se quedan como están**: la importación no las toca ni las vincula (no aparecen en la pestaña Plan); la numeración continúa tras ellas. El usuario borrará a mano las no empezadas. |
-| D13 | **(2026-10-07) % al exportar** (paso 7) según el estado UniTask de cada hoja: Aprobación Final (`completed`) **100 %**, Revisión **75 %**, En curso **50 %**, Pendiente 0 %; padres e hitos, media de sus hojas ponderada por esfuerzo. Así los PM ven el avance real en MS Project. Al reimportar ese Excel los parciales se ignoran (D11), por lo que el viaje de ida y vuelta no altera nada. *Pendiente de confirmar si el avance dentro de UniTask usa la misma escala o sigue 0/100.* |
+| D13 | **(2026-10-07) % al exportar** (paso 7) según el estado UniTask de cada hoja: Aprobación Final (`completed`) **100 %**, Revisión **75 %**, En curso **50 %**, Pendiente 0 %; padres e hitos, media de sus hojas ponderada por esfuerzo. Así los PM ven el avance real en MS Project. Al reimportar ese Excel los parciales se ignoran (D11), por lo que el viaje de ida y vuelta no altera nada. **Confirmado (2026-10-07): el avance dentro de UniTask usa la misma escala** (`STATUS_PROGRESS` en `functions/src/planRollupCore.ts`): tareas que esperan dependencias o revisión también cuentan como avance. Sustituye la regla 0/100 de D9 y §5. |
 | D10 | **§3 Deshacer importación queda EN VIGILANCIA**: se desarrolla, pero el usuario no está convencido del enfoque; revisar con él tras probarlo. |
 
 ## 1. Modelo
@@ -136,7 +136,7 @@ tarea sin foto (lotes anteriores al 2026-10-07) → conflicto "sin referencia" (
   - `discarded` / `out_of_scope` si todos los hijos lo están.
   - `in_progress` si algún hijo ha empezado; si no, `pending`.
   - Reabrir un hijo reabre la cadena; añadir un hijo a un nodo cerrado lo reabre.
-- **Avance** ponderado por esfuerzo estimado (o duración del Excel si no hay esfuerzo).
+- **Avance** por estado de cada hoja (100/75/50/0, D13) ponderado por esfuerzo estimado (o duración del Excel si no hay esfuerzo).
 - **Esfuerzo** estimado y real = suma de hijos. **Fechas** = mín. inicio / máx. fin de hijos.
 - Los nodos calculados se cierran sin pedir `actualEffort` (hoy obligatorio al cerrar): se agrega de los hijos.
 - Nodos `gate` se cierran cuando su bloque (hermanos anteriores dentro del mismo padre) está completo.

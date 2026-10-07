@@ -9,9 +9,10 @@
  *     todos cerrados y ≥1 completado → completed; todos cerrados sin completados → discarded
  *     (out_of_scope si todos lo son); todos los abiertos en review → review; alguno empezado
  *     → in_progress; si no → pending.
- * - Avance: regla 0/100 por hoja (completada = 100, si no 0), ponderada por esfuerzo estimado
+ * - Avance por hoja según su estado (STATUS_PROGRESS: Aprobación Final 100, Revisión 75, En curso 50,
+ *   Pendiente 0), ponderado por esfuerzo estimado
  *   (mínimo 1 para que las hojas sin estimar cuenten). Descartadas / fuera de alcance no pesan.
- *   Es deliberadamente binario: el % "a ojo" del Excel no se usa.
+ *   El % "a ojo" del Excel no se usa: cuenta el estado real en UniTask.
  * - Esfuerzo estimado (sin descartadas) y real (todas) = suma; fechas = mín. inicio / máx. fin.
  * - Gates (filas de control de 0 días) se excluyen del cálculo del padre y se cierran solos
  *   cuando están cerrados todos sus hermanos anteriores.
@@ -22,6 +23,10 @@ export type PlanRole = 'group' | 'milestone' | 'parent' | 'leaf' | 'gate';
 
 export const CLOSED_STATUSES: ReadonlySet<string> = new Set(['completed', 'discarded', 'out_of_scope']);
 const NOT_COUNTING: ReadonlySet<string> = new Set(['discarded', 'out_of_scope']);
+/** Avance de una hoja según su estado (D13): lo que espera dependencias o revisión también cuenta. */
+export const STATUS_PROGRESS: Readonly<Record<string, number>> = { completed: 100, review: 75, in_progress: 50, pending: 0 };
+export const statusProgress = (status?: string): number => STATUS_PROGRESS[String(status || 'pending')] ?? 0;
+
 export const COMPUTED_ROLES: ReadonlySet<string> = new Set(['group', 'milestone', 'parent']);
 
 export interface PlanNodeLike {
@@ -110,7 +115,7 @@ function effective(c: PlanNodeLike) {
     }
     return {
         status,
-        progress: status === 'completed' ? 100 : 0,
+        progress: statusProgress(status),
         estimated: toNumber(c.estimatedEffort),
         actual: toNumber(c.actualEffort),
         start: c.startDate ?? null,

@@ -358,7 +358,7 @@ export type PlanRole = 'group' | 'milestone' | 'parent' | 'leaf' | 'gate';
 
 export interface PlanComputed {
     status: Task['status'];
-    progress: number;          // 0-100, regla 0/100 por hoja ponderada por esfuerzo estimado
+    progress: number;          // 0-100, avance por estado de cada hoja (100/75/50/0) ponderado por esfuerzo estimado
     estimatedEffort: number;   // días, suma de hijos
     actualEffort: number;      // días, suma de hijos
     startDate: any | null;     // mínimo de los hijos

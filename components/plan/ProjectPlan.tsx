@@ -218,7 +218,7 @@ export function ProjectPlan({ project }: { project: Project }) {
                         </div>
                     )}
                     <p className="text-[11px] text-zinc-500">
-                        El avance cuenta solo tareas cerradas (0/100), ponderadas por esfuerzo. Hitos, padres y agrupadores no se cierran a mano: pasa el ratón por una fila para añadir tareas o abrirla.
+                        Avance por estado de cada tarea (Aprobación Final 100 %, Revisión 75 %, En curso 50 %, Pendiente 0 %), ponderado por esfuerzo. Hitos, padres y agrupadores no se cierran a mano: pasa el ratón por una fila para añadir tareas o abrirla.
                     </p>
                     <PlanTree rows={rows} isLight={isLight} showStatus initialExpandLevel={5} filter={filter} renderActions={renderActions} />
                 </>
