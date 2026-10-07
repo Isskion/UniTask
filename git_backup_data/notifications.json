@@ -1032,12 +1032,12 @@
     "title": "Overdue Task",
     "message": "Your task TRA-248 - \"III.1.5 Disponibilizar desarrollos requeridos para el proyecto\" has reached its deadline.",
     "taskId": "T1GVW7gpcA37CU4CkuhQ",
-    "read": false,
     "link": "/?view=task-manager&taskId=T1GVW7gpcA37CU4CkuhQ",
     "createdAt": {
       "_seconds": 1791374389,
       "_nanoseconds": 301000000
-    }
+    },
+    "read": true
   },
   {
     "id": "GVAPo85pwQzzkslQpeKE",

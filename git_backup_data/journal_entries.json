@@ -5560,6 +5560,38 @@
     "updatedAt": "2026-10-07T05:46:10.146Z"
   },
   {
+    "id": "3_2026-10-07",
+    "date": "2026-10-07",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Transpais - Seguimiento semanal 23-09-2026\n\nSolicitada información sobre\n  -- Ventanas horarias\n  -- Calendario\n  -- Restricciones de domiciliosorden.\n\n\nIdTipoVehiculo\tRefVehiculoExterno\tDescripción\n1\t1\tNo Determinado\n2\tCH\tREMOLQUE CHATARRERA\n3\tCR\tREMOLQUE C+R\n4\tCUBA\tCUBA\n5\tGR CONT\tGRUA CONTENEDOR\n6\tLONA\tLONA\n7\tPLA.BAS.20'Y30'\tPLATAFORMA BASCULANTE 20' Y 30'\n8\tPLA.BASC. 20'\tPLATAFORMA BASCULANTE 20'\n9\tPLA.BASC. 40'\tPLATAFORMA BASCULANTE 40'\n10\tPLA.EXT.MULT.RF\tPLATAFORMA EXTENSIBLE MULTIFUNCION REEFER\n11\tPLA.EXT.MULTI\tPLATAFORMA EXTENSIBLE MULTIFUNCION\n12\tPLA.FI.40'Y45'\tPLATAFORMA FIJA 40' y 45' REBAJADA CON PISO\n13\tPLA.FI.45'REB.E\tPLATAFORMA FIJA 45' REBAJADA ESQUELETO\n14\tPLA.FIJ.20'PI\tPLATAFORMA FIJA 20' CON PISO\n15\tPLA.FIJ.MU.PISO\tPLATAFORMA FIJA MULTIFUNCION CON PISO\n16\tPLA.FIJ.MULTI\tPLATAFORMA FIJA MULTIFUNCION\n17\tPLATAFORMA\tPLATAFORMA\n18\tPMOV\tPISO MOVIL\n19\tRDOLLY\tREMOLQUE DOLLY\n20\tREM_PROV\tREMOLQUE_PROV\n21\tRLB\tREMOLQUE LIVE BED\n22\tRN\tREMOLQUE NAZ\n23\tRV\tREMOLQUE VIGO\n24\tTRAC\tTRACTORA\n25\tTRAC.BALL\tTRAC.BALL\n26\tTRAC.C+R-LONA\tTRACTORA C+R - LONA\n27\tTRAC.CONTEN\tTRACTORA CONTENEDOR\n28\tTRAC.CORTOS\tTRACTORA CORTOS\n29\tTRAC.FERRY\tTRAC.FERRY\n30\tTRAC.GRA\tTRACTORA GRANELES\n31\tTRAC.NAZ\tTRACTORA NAZ\n32\tTRAC.TREN\tTRACTORA TREN\n33\tTRAC.VIGO\tTRACTORA VIGO\n34\tTRAC_PRO\tTRACTORA_PROV\n35\tTUR\tTURISMO\n36\tNO DETERMINADO\tNO DETERMINADO\n\nVemos de cerrar agenda conforme a excel enviado ayer.\nEnviamos tabla de tipos de vehículo para su validación.\nPORTIC -- > confirmado el mapeo, queda definir una tabla de conversión de las refercnias externas para hacer matching entre pedidos de portic y Unigis.\n\nInterfaces:\n-> Aitana Business Central: Se dan accesos al equipo para accesos a Swagger. Se ha solicitado hoy por mail información para preliquidaciones, la idea es empezar este apartado para tenerlo lo mas avanzado posible cuando lleguemos al punto.\n   -- Sacamos de las interfaces los productos, dar solución a Transpias para crearlos manualmente.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega. Jonsyncout V2\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. En desarrollo, aproximada la entrega para Q4, no confirmada a falta de una reunión interna.\n\n--> Ver la posibilidad de integrar un excel de conductores sin pasar por el ERP.  Es Ok lo estamos preparados.\n--> ver que tipos de vehículo \n\n-- Leo señala que ya hay un excel de equivalencia para las interfaces. Unigis lo revisa.\n\n------------\n\nGenerix nos enviará consultor para comenzar proyecto\n\nTranspais nos envía los grupos de usuario por operación para integrar en el sistema. Me muestran listado y lo van a limpiar.\nTranspais - definir las areas o zonas de efecto de cada deposito.\n\nRevisar la configuración de sucursales, nos envían mail con aclaración de la relación entre sucursales  y operaciones. --> ",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Transpais - Seguimiento semanal 23-09-2026\n\nSolicitada información sobre\n  -- Ventanas horarias\n  -- Calendario\n  -- Restricciones de domiciliosorden.\n\n\nIdTipoVehiculo\tRefVehiculoExterno\tDescripción\n1\t1\tNo Determinado\n2\tCH\tREMOLQUE CHATARRERA\n3\tCR\tREMOLQUE C+R\n4\tCUBA\tCUBA\n5\tGR CONT\tGRUA CONTENEDOR\n6\tLONA\tLONA\n7\tPLA.BAS.20'Y30'\tPLATAFORMA BASCULANTE 20' Y 30'\n8\tPLA.BASC. 20'\tPLATAFORMA BASCULANTE 20'\n9\tPLA.BASC. 40'\tPLATAFORMA BASCULANTE 40'\n10\tPLA.EXT.MULT.RF\tPLATAFORMA EXTENSIBLE MULTIFUNCION REEFER\n11\tPLA.EXT.MULTI\tPLATAFORMA EXTENSIBLE MULTIFUNCION\n12\tPLA.FI.40'Y45'\tPLATAFORMA FIJA 40' y 45' REBAJADA CON PISO\n13\tPLA.FI.45'REB.E\tPLATAFORMA FIJA 45' REBAJADA ESQUELETO\n14\tPLA.FIJ.20'PI\tPLATAFORMA FIJA 20' CON PISO\n15\tPLA.FIJ.MU.PISO\tPLATAFORMA FIJA MULTIFUNCION CON PISO\n16\tPLA.FIJ.MULTI\tPLATAFORMA FIJA MULTIFUNCION\n17\tPLATAFORMA\tPLATAFORMA\n18\tPMOV\tPISO MOVIL\n19\tRDOLLY\tREMOLQUE DOLLY\n20\tREM_PROV\tREMOLQUE_PROV\n21\tRLB\tREMOLQUE LIVE BED\n22\tRN\tREMOLQUE NAZ\n23\tRV\tREMOLQUE VIGO\n24\tTRAC\tTRACTORA\n25\tTRAC.BALL\tTRAC.BALL\n26\tTRAC.C+R-LONA\tTRACTORA C+R - LONA\n27\tTRAC.CONTEN\tTRACTORA CONTENEDOR\n28\tTRAC.CORTOS\tTRACTORA CORTOS\n29\tTRAC.FERRY\tTRAC.FERRY\n30\tTRAC.GRA\tTRACTORA GRANELES\n31\tTRAC.NAZ\tTRACTORA NAZ\n32\tTRAC.TREN\tTRACTORA TREN\n33\tTRAC.VIGO\tTRACTORA VIGO\n34\tTRAC_PRO\tTRACTORA_PROV\n35\tTUR\tTURISMO\n36\tNO DETERMINADO\tNO DETERMINADO\n\nVemos de cerrar agenda conforme a excel enviado ayer.\nEnviamos tabla de tipos de vehículo para su validación.\nPORTIC -- > confirmado el mapeo, queda definir una tabla de conversión de las refercnias externas para hacer matching entre pedidos de portic y Unigis.\n\nInterfaces:\n-> Aitana Business Central: Se dan accesos al equipo para accesos a Swagger. Se ha solicitado hoy por mail información para preliquidaciones, la idea es empezar este apartado para tenerlo lo mas avanzado posible cuando lleguemos al punto.\n   -- Sacamos de las interfaces los productos, dar solución a Transpias para crearlos manualmente.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega. Jonsyncout V2\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. En desarrollo, aproximada la entrega para Q4, no confirmada a falta de una reunión interna.\n\n--> Ver la posibilidad de integrar un excel de conductores sin pasar por el ERP.  Es Ok lo estamos preparados.\n--> ver que tipos de vehículo \n\n-- Leo señala que ya hay un excel de equivalencia para las interfaces. Unigis lo revisa.\n\n------------\n\nGenerix nos enviará consultor para comenzar proyecto\n\nTranspais nos envía los grupos de usuario por operación para integrar en el sistema. Me muestran listado y lo van a limpiar.\nTranspais - definir las areas o zonas de efecto de cada deposito.\n\nRevisar la configuración de sucursales, nos envían mail con aclaración de la relación entre sucursales  y operaciones. --> ",
+            "isCollapsed": false
+          },
+          {
+            "id": "1791379394571",
+            "title": "",
+            "content": "",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-10-07T13:18:36.072Z",
+    "updatedAt": "2026-10-07T13:45:58.483Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
