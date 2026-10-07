@@ -51,7 +51,7 @@ Ajustes de gobierno (`lib/hierarchy-governance.ts`): `MAX_DEPTH` 5 → 10; `isVa
 ## 2. Importación (asistente en Proyecto → pestaña **Plan**)
 
 1. **Proyecto obligatorio** (D4): el asistente se abre desde un proyecto; no hay selector "sin proyecto".
-2. **Subir Excel** y mapear columnas (reutiliza `ProjectImportService.extractHeaders` y el mapeo existente).
+2. **Subir Excel** y mapear columnas (lector propio `lib/plan/planParser.ts`).
    Columnas reconocidas: Nombre, Código/EDT (embebido en el nombre en Transpais), Duración, % completado,
    Predecesoras, Comienzo, Fin; opcionales si existen (formato Europastry): Esfuerzo, Notas, Asignado a, Prioridad, Hito.
 3. **Elegir nivel de hito** (D2, por defecto "2 desde el flujo").
@@ -168,8 +168,13 @@ Botón en la pestaña Plan → Excel con el **mismo formato que el de entrada** 
 
 - `project_hierarchy` actual → script que convierte nodos en tareas con `planRole` y re-enlaza las tareas
   que tenían `planId` (por id de documento). Ejecución en seco primero, informe, luego real.
-- `ProjectMindMapModal` pasa a leer el árbol de `tasks` (deja de depender de `project_hierarchy`).
-- `LinkTaskModal` se mantiene para "colgar una tarea existente suelta de un nodo del plan".
+- **Hecho (2026-10-07): importador antiguo retirado del código.** Borrados `lib/project-import.ts`,
+  `ImportMappingModal`, `LinkTaskModal`. `ProjectMindMapModal` ("Jerarquía") pinta solo el árbol de `tasks` por
+  `parentId` (sin importar/exportar a Planner/deshacer). `TaskManagement` ya no lee `project_hierarchy`: el selector
+  de padre solo ofrece tareas y el buscador de dependencias busca tareas abiertas del proyecto (antes solo buscaba
+  nodos de `project_hierarchy`). Reglas: `project_hierarchy` solo lectura, borrado solo SuperAdmin.
+  Los datos existentes y los `planId`/`dependencies` que apunten a nodos viejos siguen ahí hasta la migración
+  (son inertes: el bloqueo por dependencias solo mira tareas).
 
 ## 9. Entregas
 

@@ -8,10 +8,7 @@ import { X, Search, ZoomIn, ZoomOut, AlertTriangle, Box, Layers, CheckSquare, Fi
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { getProgressSafe } from "@/lib/data-migration";
-import { ImportMappingModal } from "./ImportMappingModal";
 import { DataIntegratorModal } from "./DataIntegratorModal";
-import { ProjectPlanNode } from "@/lib/project-import";
-import { LinkTaskModal } from "./LinkTaskModal";
 import { useAuth } from "@/context/AuthContext";
 
 interface Props {
@@ -22,14 +19,11 @@ interface Props {
 
 interface TreeNode {
     id: string;
-    isPlanNode: boolean;
-    task?: Task;
-    plan?: ProjectPlanNode;
+    task: Task;
     title: string;
     children: TreeNode[];
     level: number;
     order: number;
-    wbs?: string;
 }
 
 export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) {
@@ -38,23 +32,14 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
     const { userRole, tenantId } = useAuth();
 
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [planNodes, setPlanNodes] = useState<ProjectPlanNode[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     const [selectedTaskId, setSelectedTaskId] = useState<string | null>(initialTaskId || null);
     const [showDataIntegrator, setShowDataIntegrator] = useState(false);
-    const [linkingPlanNode, setLinkingPlanNode] = useState<ProjectPlanNode | null>(null);
-
-    // Mapping State
-    const [importHeaders, setImportHeaders] = useState<string[]>([]);
-    const [importFile, setImportFile] = useState<File | null>(null);
 
     const [scale, setScale] = useState(1);
     const containerRef = useRef<HTMLDivElement>(null);
-
-    // ... (rest of the component state and hooks remain unchanged) ...
-    // Note: To avoid sending an extremely large replacement string, I will replace only the relevant parts.
 
     useEffect(() => {
         // [FIX] Guard against premature firing before auth context resolves
@@ -74,11 +59,6 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
                     .filter(t => t.isActive !== false);
                 loadedT.sort((a, b) => (a.order || 0) - (b.order || 0));
                 setTasks(loadedT);
-
-                const qP = query(collection(db, "project_hierarchy"), where("projectId", "==", project.id), ...tenantQueryPart);
-                const snapP = await getDocs(qP);
-                const loadedP = snapP.docs.map(d => ({ id: d.id, ...d.data() } as ProjectPlanNode));
-                setPlanNodes(loadedP);
             } catch (e) {
                 console.error("Error loading mind map tasks", e);
             } finally {
@@ -92,71 +72,25 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
         const nodeMap = new Map<string, TreeNode>();
         const roots: TreeNode[] = [];
 
-        if (planNodes.length > 0) {
-            planNodes.forEach(p => {
-                nodeMap.set('plan_' + p.id, {
-                    id: 'plan_' + p.id,
-                    isPlanNode: true,
-                    plan: p,
-                    title: p.title,
-                    children: [],
-                    level: 0,
-                    order: 0,
-                    wbs: p.id
-                });
+        tasks.forEach(t => {
+            nodeMap.set('task_' + t.id, {
+                id: 'task_' + t.id,
+                task: t,
+                title: t.title,
+                children: [],
+                level: 0,
+                order: t.order || 0
             });
+        });
 
-            planNodes.forEach(p => {
-                const node = nodeMap.get('plan_' + p.id)!;
-                if (p.parentId && nodeMap.has('plan_' + p.parentId)) {
-                    nodeMap.get('plan_' + p.parentId)!.children.push(node);
-                } else {
-                    roots.push(node);
-                }
-            });
-
-            tasks.forEach(t => {
-                const tNode: TreeNode = {
-                    id: 'task_' + t.id,
-                    isPlanNode: false,
-                    task: t,
-                    title: t.title,
-                    children: [],
-                    level: 0,
-                    order: t.order || 0
-                };
-                if (t.planId && nodeMap.has('plan_' + t.planId)) {
-                    nodeMap.get('plan_' + t.planId)!.children.push(tNode);
-                } else if (t.parentId && nodeMap.has('task_' + t.parentId)) {
-                    nodeMap.get('task_' + t.parentId)!.children.push(tNode);
-                } else {
-                    roots.push(tNode);
-                }
-                nodeMap.set('task_' + t.id, tNode);
-            });
-
-        } else {
-            tasks.forEach(t => {
-                nodeMap.set('task_' + t.id, {
-                    id: 'task_' + t.id,
-                    isPlanNode: false,
-                    task: t,
-                    title: t.title,
-                    children: [],
-                    level: 0,
-                    order: t.order || 0
-                });
-            });
-
-            tasks.forEach(t => {
-                const node = nodeMap.get('task_' + t.id)!;
-                if (t.parentId && nodeMap.has('task_' + t.parentId)) {
-                    nodeMap.get('task_' + t.parentId)!.children.push(node);
-                } else {
-                    roots.push(node);
-                }
-            });
-        }
+        tasks.forEach(t => {
+            const node = nodeMap.get('task_' + t.id)!;
+            if (t.parentId && nodeMap.has('task_' + t.parentId)) {
+                nodeMap.get('task_' + t.parentId)!.children.push(node);
+            } else {
+                roots.push(node);
+            }
+        });
 
         const setLevel = (nodes: TreeNode[], lvl: number) => {
             nodes.forEach(n => {
@@ -167,18 +101,13 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
         setLevel(roots, 0);
 
         const sortNodes = (nodes: TreeNode[]) => {
-            nodes.sort((a, b) => {
-                if (a.isPlanNode && b.isPlanNode) {
-                    return a.plan!.id.localeCompare(b.plan!.id, undefined, { numeric: true });
-                }
-                return (a.order || 0) - (b.order || 0);
-            });
+            nodes.sort((a, b) => (a.order || 0) - (b.order || 0));
             nodes.forEach(n => sortNodes(n.children));
         };
         sortNodes(roots);
 
         return roots;
-    }, [tasks, planNodes]);
+    }, [tasks]);
 
     const handleSearch = () => {
         if (!searchQuery.trim()) return;
@@ -189,8 +118,7 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
             t.title.toLowerCase().includes(term) ||
             (t.friendlyId && t.friendlyId.toLowerCase().includes(term))
         );
-        const foundPlan = planNodes.find(p => p.title.toLowerCase().includes(term) || p.id.toLowerCase().includes(term));
-        const foundId = foundTask ? 'task_' + foundTask.id : foundPlan ? 'plan_' + foundPlan.id : null;
+        const foundId = foundTask ? 'task_' + foundTask.id : null;
 
         if (foundId) {
             setSelectedTaskId(foundId);
@@ -206,8 +134,7 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
     };
 
     const getTypeColor = (node: TreeNode) => {
-        if (node.isPlanNode) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-        const type = node.task?.type;
+        const type = node.task.type;
         switch (type) {
             case 'epic': return 'text-purple-400 bg-purple-500/10 border-purple-500/20';
             case 'milestone': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
@@ -218,8 +145,7 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
     };
 
     const getTypeIcon = (node: TreeNode) => {
-        if (node.isPlanNode) return <Database className="w-3.5 h-3.5" />;
-        const type = node.task?.type;
+        const type = node.task.type;
         switch (type) {
             case 'epic': return <Box className="w-3.5 h-3.5" />;
             case 'milestone': return <AlertTriangle className="w-3.5 h-3.5" />;
@@ -232,7 +158,7 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
     const renderNode = (node: TreeNode) => {
         const hasChildren = node.children.length > 0;
         const isExpanded = expanded[node.id] !== false;
-        const progress = node.isPlanNode ? { actual: node.plan?.percentComplete || 0 } : getProgressSafe(node.task || {} as any);
+        const progress = getProgressSafe(node.task);
 
         return (
             <div key={node.id} id={`node-${node.id}`} className="flex flex-col relative items-start pl-8 transition-all">
@@ -268,27 +194,12 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
                                 {node.title || "Sin título"}
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
-                                {node.isPlanNode ? (
-                                    <span className="text-[10px] font-mono text-emerald-500">MS Plan: WBS {node.plan?.id} {node.plan?.durationText && `| ${node.plan.durationText}`}</span>
-                                ) : (
-                                    <>
-                                        <span className="text-[10px] font-mono text-zinc-500">{node.task?.friendlyId}</span>
-                                        {node.task?.status === 'completed' && <CheckCircle className="w-3 h-3 text-emerald-500" />}
-                                        {node.task?.status === 'discarded' && <XCircle className="w-3 h-3 text-rose-500" />}
-                                        {node.task?.status === 'out_of_scope' && <MinusCircle className="w-3 h-3 text-purple-500" />}
-                                    </>
-                                )}
+                                <span className="text-[10px] font-mono text-zinc-500">{node.task.friendlyId}</span>
+                                {node.task.status === 'completed' && <CheckCircle className="w-3 h-3 text-emerald-500" />}
+                                {node.task.status === 'discarded' && <XCircle className="w-3 h-3 text-rose-500" />}
+                                {node.task.status === 'out_of_scope' && <MinusCircle className="w-3 h-3 text-purple-500" />}
                             </div>
                         </div>
-
-                        {selectedTaskId === node.id && node.isPlanNode && (
-                            <button
-                                onClick={(e) => { e.stopPropagation(); setLinkingPlanNode(node.plan!); }}
-                                className="px-3 py-1.5 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white border border-indigo-500/50 rounded-lg text-xs font-semibold mr-2 transition-all shadow-sm"
-                            >
-                                Vincular Tarea
-                            </button>
-                        )}
 
                         {progress.actual > 0 && (
                             <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden shrink-0 ml-2">
@@ -322,85 +233,6 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <div>
-                        <input
-                            type="file"
-                            accept=".xlsx"
-                            id="ms-project-upload"
-                            className="hidden"
-                            onChange={async (e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                    try {
-                                        const file = e.target.files[0];
-                                        const { ProjectImportService } = await import('@/lib/project-import');
-                                        const headers = await ProjectImportService.extractHeaders(file);
-                                        setImportHeaders(headers);
-                                        setImportFile(file);
-                                    } catch (err: any) {
-                                        alert("Error leyendo el archivo: " + err.message);
-                                    }
-                                    e.target.value = ''; // Reset input
-                                }
-                            }}
-                        />
-                        <label
-                            htmlFor="ms-project-upload"
-                            className="p-2 hover:bg-white/10 text-emerald-400 hover:text-emerald-300 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold border border-emerald-500/20 bg-emerald-500/10"
-                            title="Importar Cronograma (MS Project XLSX)"
-                        >
-                            <Database className="w-4 h-4" /> Importar Jerarquía
-                        </label>
-                    </div>
-
-                    <div className="h-6 w-[1px] bg-zinc-700/50" />
-
-                    <div>
-                        <button
-                            onClick={async () => {
-                                const { ProjectImportService } = await import('@/lib/project-import');
-                                ProjectImportService.exportToPlannerCSV(planNodes, tasks);
-                            }}
-                            className="p-2 hover:bg-white/10 text-blue-400 hover:text-blue-300 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold border border-blue-500/20 bg-blue-500/10"
-                            title="Exportar a Microsoft Planner (CSV)"
-                        >
-                            <Database className="w-4 h-4" /> Exportar a Planner
-                        </button>
-                    </div>
-
-                    {(userRole === 'admin' || userRole === 'app_admin' || userRole === 'project_manager') && planNodes.length > 0 && (
-                        <>
-                            <div className="h-6 w-[1px] bg-zinc-700/50" />
-                            <div>
-                                <button
-                                    onClick={async () => {
-                                        if (window.confirm("¿Estás seguro de que quieres Deshacer la Importación?\nEsto eliminará el cronograma maestro y desvinculará todas las tareas de UniTask asociadas a él.")) {
-                                            try {
-                                                const { ProjectImportService } = await import('@/lib/project-import');
-                                                const userTenantId = ((userRole as string) === 'superadmin' && project.tenantId) ? project.tenantId : tenantId;
-                                                if (!userTenantId) throw new Error("Tenant ID not found");
-                                                await ProjectImportService.rollbackImport(project.id, userTenantId);
-
-                                                // Refresh local state
-                                                setPlanNodes([]);
-                                                setTasks(prev => prev.map(t => ({ ...t, planId: undefined })));
-
-                                                alert("Importación deshecha correctamente.");
-                                            } catch (err: any) {
-                                                alert("Error al deshacer importación: " + err.message);
-                                            }
-                                        }
-                                    }}
-                                    className="p-2 hover:bg-red-500/20 text-red-500 hover:text-red-400 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold border border-red-500/20 bg-red-500/10"
-                                    title="Deshacer Importación (Solo PMs y Admins)"
-                                >
-                                    <AlertTriangle className="w-4 h-4" /> Deshacer Importación
-                                </button>
-                            </div>
-                        </>
-                    )}
-
-                    <div className="h-6 w-[1px] bg-zinc-700/50" />
-
                     <button
                         onClick={() => setShowDataIntegrator(true)}
                         className="p-2 hover:bg-white/10 text-zinc-400 hover:text-white rounded-lg transition-colors hidden sm:block"
@@ -473,39 +305,6 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
                     onClose={() => setShowDataIntegrator(false)}
                     projectId={project.id}
                     tenantId={project.tenantId}
-                />
-            )}
-            {linkingPlanNode && (
-                <LinkTaskModal
-                    project={project}
-                    planNode={linkingPlanNode}
-                    tasks={tasks}
-                    onClose={() => setLinkingPlanNode(null)}
-                    onLinked={(taskId) => {
-                        setLinkingPlanNode(null);
-                        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, planId: linkingPlanNode.id } : t));
-                    }}
-                />
-            )}
-            {importHeaders.length > 0 && importFile && (
-                <ImportMappingModal
-                    headers={importHeaders}
-                    onCancel={() => {
-                        setImportHeaders([]);
-                        setImportFile(null);
-                    }}
-                    onConfirm={async (mapping) => {
-                        try {
-                            const { ProjectImportService } = await import('@/lib/project-import');
-                            const nodes = await ProjectImportService.parseXlsxWithMapping(importFile, mapping, project.id);
-                            await ProjectImportService.saveHierarchyToFirebase(project.id, project.tenantId || "1", nodes);
-                            setPlanNodes(nodes); // Update UI
-                            setImportHeaders([]);
-                            setImportFile(null);
-                        } catch (err: any) {
-                            alert("Error importando el plan: " + err.message);
-                        }
-                    }}
                 />
             )}
         </div>

@@ -132,7 +132,6 @@ export default function TaskManagement({
     });
 
     // Project Hierarchy State (Loaded dynamically per selected project)
-    const [projectHierarchyNodes, setProjectHierarchyNodes] = useState<any[]>([]);
 
 
     // Load Attribute Definitions
@@ -229,41 +228,6 @@ export default function TaskManagement({
     const [formData, setFormData] = useState<Partial<Task>>({});
     const [isNew, setIsNew] = useState(false);
     const [saving, setSaving] = useState(false);
-
-    // Fetch Project Hierarchy Nodes when projectId changes in the form
-    useEffect(() => {
-        if (!formData.projectId || !tenantId) {
-            setProjectHierarchyNodes([]);
-            return;
-        }
-
-        const fetchHierarchy = async () => {
-            try {
-                const targetTenantId = tenantId || "1";
-                const q = query(
-                    collection(db, "project_hierarchy"),
-                    where("projectId", "==", formData.projectId),
-                    where("tenantId", "==", targetTenantId) // Use targetTenantId like loadData does
-                );
-                const snap = await getDocs(q);
-                const nodes: any[] = [];
-                snap.forEach(doc => nodes.push({ id: doc.id, ...doc.data() }));
-
-                // Sort nodes by WBS (natural sort for strings like "1.2", "1.10")
-                nodes.sort((a, b) => {
-                    const wbsA = a.wbs || "";
-                    const wbsB = b.wbs || "";
-                    return wbsA.localeCompare(wbsB, undefined, { numeric: true, sensitivity: 'base' });
-                });
-                setProjectHierarchyNodes(nodes);
-            } catch (error) {
-                console.error("Error fetching project hierarchy:", error);
-                setProjectHierarchyNodes([]);
-            }
-        };
-
-        fetchHierarchy();
-    }, [formData.projectId, tenantId]);
 
     // Permissions Helper - now using usePermissions hook
     const isAdmin = checkIsAdmin();
@@ -1860,26 +1824,24 @@ export default function TaskManagement({
                                         <div className="space-y-2 mb-3">
                                             {formData.dependencies?.map(depId => {
                                                 const depTask = tasks.find(t => t.id === depId);
-                                                const depNode = projectHierarchyNodes.find(n => n.id === depId);
+                                                if (!depTask) return null;
+                                                // Las dependencias cerradas ya no bloquean
+                                                if (['completed', 'discarded', 'out_of_scope'].includes(depTask.status)) return null;
 
-                                                if (!depTask && !depNode) return null;
-                                                // If it's a regular task, hide if closed
-                                                if (depTask && ['completed', 'discarded', 'out_of_scope'].includes(depTask.status)) return null;
-
-                                                const title = depNode ? depNode.title : depTask?.title;
-                                                const identifier = depNode ? (depNode.wbs ? `[WBS: ${depNode.wbs}]` : '') : (depTask?.friendlyId || 'Unknown');
+                                                const title = depTask.title;
+                                                const identifier = depTask.friendlyId || 'Unknown';
 
                                                 return (
                                                     <div key={depId} className="flex items-center gap-3 p-2 bg-red-500/5 text-red-400 rounded-lg text-xs border border-red-500/10 justify-between group hover:border-red-500/30 transition-all">
                                                         <button
-                                                            onClick={() => depTask && handleSelectTask(depTask)}
-                                                            className={cn("flex items-center gap-2 text-left flex-1 outline-none", !depTask && "cursor-default")}
-                                                            title={depTask ? "Ver Tarea Dependiente" : "Nodo del Cronograma"}
+                                                            onClick={() => handleSelectTask(depTask)}
+                                                            className="flex items-center gap-2 text-left flex-1 outline-none"
+                                                            title="Ver Tarea Dependiente"
                                                         >
                                                             <AlertTriangle className="w-4 h-4 shrink-0" />
                                                             <div>
                                                                 <span className="font-bold block text-[9px] uppercase opacity-70">{t('task_manager.blocked_by')}</span>
-                                                                <div className={cn("font-medium transition-all", depTask ? "text-zinc-300 hover:text-red-300 underline underline-offset-2 decoration-red-500/30" : "text-zinc-400")}>
+                                                                <div className="font-medium transition-all text-zinc-300 hover:text-red-300 underline underline-offset-2 decoration-red-500/30">
                                                                     {identifier} {title}
                                                                 </div>
                                                             </div>
@@ -1916,10 +1878,12 @@ export default function TaskManagement({
                                             </div>
                                             {dependencySearch.length > 1 && (
                                                 <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-xl z-50 max-h-40 overflow-y-auto custom-scrollbar">
-                                                    {projectHierarchyNodes
+                                                    {tasks
                                                         .filter(n =>
                                                             n.id !== formData.id && // Don't depend on self
-                                                            ((n.wbs && n.wbs.toLowerCase().includes(dependencySearch.toLowerCase())) ||
+                                                            n.projectId === formData.projectId &&
+                                                            !['completed', 'discarded', 'out_of_scope'].includes(n.status) &&
+                                                            ((n.friendlyId && n.friendlyId.toLowerCase().includes(dependencySearch.toLowerCase())) ||
                                                                 n.title?.toLowerCase().includes(dependencySearch.toLowerCase()))
                                                         )
                                                         .slice(0, 10)
@@ -1936,7 +1900,7 @@ export default function TaskManagement({
                                                                 }}
                                                                 className="w-full text-left px-3 py-2 text-xs text-zinc-400 hover:bg-white/5 hover:text-white border-b border-white/5 last:border-0"
                                                             >
-                                                                {n.wbs && <span className="font-bold font-mono text-indigo-400 mr-2">[{n.wbs}]</span>}
+                                                                {n.friendlyId && <span className="font-bold font-mono text-indigo-400 mr-2">[{n.friendlyId}]</span>}
                                                                 {n.title}
                                                             </button>
                                                         ))}
@@ -2159,18 +2123,6 @@ export default function TaskManagement({
                                                 >
                                                     <option value="">(Raíz / Sin Padre)</option>
 
-                                                    {/* 1. Hierarchy Nodes (from Import) */}
-                                                    {projectHierarchyNodes.length > 0 && (
-                                                        <optgroup label="Nodos del Cronograma (Plan)">
-                                                            {projectHierarchyNodes.map(node => (
-                                                                <option key={node.id} value={node.id}>
-                                                                    {node.type === 'root_epic' ? '🟢 ' : node.type === 'epic' ? '🔵 ' : '🟣 '}{node.title.substring(0, 50)} {node.wbs ? `(WBS: ${node.wbs})` : ''}
-                                                                </option>
-                                                            ))}
-                                                        </optgroup>
-                                                    )}
-
-                                                    {/* 2. Standard Tasks (Fallback/Manual) */}
                                                     <optgroup label="Tareas del Proyecto">
                                                         {tasks
                                                             .filter(t => t.id !== formData.id && t.projectId === formData.projectId) // Valid parents (Same Project, Not Self)
