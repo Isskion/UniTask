@@ -17,6 +17,8 @@
 | D7 | **8 h = 1 día** al convertir duración del Excel en esfuerzo. |
 | D8 | **PM y superiores** (roleLevel ≥ 60) importan, deshacen y descartan bloques. |
 | D9 | **El % del Excel se descarta.** Es una estimación a ojo del PM; el avance se calcula siempre en UniTask (regla 0/100 por hoja ponderada por esfuerzo). El % de proyecto, dashboard y burndown se tratarán aparte. |
+| D11 | **(2026-10-07, matiza D9) Las hojas al 100 % del Excel entran en Aprobación Final** (`completed`, `closedAt` = su Fin, `closedBy: system:planImport`) para no tener que tratarlas. Solo hojas e hitos individuales; padres, hitos con tareas y controles se calculan (`lib/plan/planInitialState.ts`, mismo código que planRollup; la vista previa ya muestra el estado). El % parcial sigue descartándose (entran pendientes). |
+| D12 | **(2026-10-07) Las tareas ya existentes del proyecto se quedan como están**: la importación no las toca ni las vincula (no aparecen en la pestaña Plan); la numeración continúa tras ellas. El usuario borrará a mano las no empezadas. |
 | D10 | **§3 Deshacer importación queda EN VIGILANCIA**: se desarrolla, pero el usuario no está convencido del enfoque; revisar con él tras probarlo. |
 
 ## 1. Modelo

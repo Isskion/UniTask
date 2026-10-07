@@ -2,7 +2,8 @@
  * [Plan] Escritura de un plan importado como árbol de tareas (docs/plan-import-design.md §2).
  *
  * - Todas las tareas pertenecen al proyecto declarado (D4) y heredan su ámbito (región/división).
- * - Entran como `pending`: el % del Excel se descarta (D9).
+ * - Entran como `pending`, salvo las hojas al 100 % en el Excel, que entran en Aprobación Final
+ *   (`completed`, cerradas en su fecha de Fin). El % parcial se descarta (D9).
  * - Los nodos con hijos llevan ya `computed` y `planChildCount`, calculados con el mismo código que
  *   la Cloud Function planRollup; las altas con `importId` no disparan recálculos.
  * - `friendlyId`/`taskNumber` se asignan aquí de una vez (mismo formato que lib/tasks.ts): con
@@ -15,8 +16,9 @@ import {
     collection, doc, getDocs, query, where, writeBatch, setDoc, updateDoc, serverTimestamp,
 } from 'firebase/firestore';
 import type { Project, Task, PlanImport } from '@/types';
-import { aggregateChildren, type PlanNodeLike } from '@/functions/src/planRollupCore';
+import { CLOSED_STATUSES } from '@/functions/src/planRollupCore';
 import { inferResponsibleSide, type ParsedPlan, type PlanNode } from './planParser';
+import { computeInitialStates, siblingOrder } from './planInitialState';
 
 const BATCH_SIZE = 400;
 
@@ -75,25 +77,8 @@ export async function importPlan({ project, tenantId, userId, fileName, plan, on
         return chain;
     };
 
-    // 4. Estado inicial de nodos con hijos, de abajo arriba (postorden = preorden invertido)
-    const likeOf = new Map<string, PlanNodeLike>();
-    for (const n of [...plan.nodes].reverse()) {
-        const like: PlanNodeLike = {
-            id: n.key,
-            status: 'pending',
-            planRole: n.role,
-            order: 0,
-            estimatedEffort: n.children.length ? null : (n.effortDays ?? n.durationDays ?? null),
-            startDate: n.start,
-            endDate: n.end,
-            planChildCount: n.children.length,
-        };
-        if (n.children.length) {
-            const agg = aggregateChildren(n.children.map((c) => likeOf.get(c.key)!));
-            if (agg) { like.status = agg.status; like.computed = agg; }
-        }
-        likeOf.set(n.key, like);
-    }
+    // 4. Estado inicial (mismo cálculo que la vista previa y que planRollup)
+    const likeOf = computeInitialStates(plan);
 
     // 5. Lote de importación (antes de escribir tareas: si algo falla queda rastro)
     const importRef = doc(collection(db, 'plan_imports'));
@@ -121,11 +106,7 @@ export async function importPlan({ project, tenantId, userId, fileName, plan, on
     for (const k of ['regionId', 'divisionId', '_accessKey', '_tenantAccessKey'] as const) {
         if (project[k]) scope[k] = project[k];
     }
-    const orderIndex = new Map<string, number>();
-    for (const n of plan.nodes) {
-        const siblings = n.parentKey ? byKey.get(n.parentKey)!.children : plan.roots;
-        orderIndex.set(n.key, (siblings.indexOf(n) + 1) * 1000);
-    }
+    const orderIndex = siblingOrder(plan);
 
     const createdIds: string[] = [];
     try {
@@ -159,7 +140,9 @@ export async function importPlan({ project, tenantId, userId, fileName, plan, on
                     startDate: n.start,
                     endDate: n.end,
                     priority: 'medium',
-                    progressV13: { actual: 0, planned: 0 },
+                    progressV13: like.computed
+                        ? { actual: like.computed.progress ?? 0, planned: 0, aggregated: like.computed.progress ?? 0 }
+                        : { actual: like.status === 'completed' ? 100 : 0, planned: 0 },
                     friendlyId: `${prefix}-${taskNumber}`,
                     taskNumber,
                     creationSource: 'import',
@@ -168,6 +151,13 @@ export async function importPlan({ project, tenantId, userId, fileName, plan, on
                     updatedAt: serverTimestamp(),
                 };
                 if (n.parentKey) data.parentId = idOf.get(n.parentKey);
+                if (CLOSED_STATUSES.has(String(like.status))) {
+                    // Cerrada en su Fin del Excel (no hoy): no infla el burndown del día de la importación
+                    const end = like.computed ? like.computed.endDate : n.end;
+                    const endDate = typeof end === 'string' ? new Date(end) : null;
+                    data.closedAt = endDate && !Number.isNaN(endDate.getTime()) ? endDate : serverTimestamp();
+                    data.closedBy = 'system:planImport';
+                }
                 if (!n.children.length) data.estimatedEffort = like.estimatedEffort ?? null;
                 if (n.children.length) {
                     data.planChildCount = n.children.length;

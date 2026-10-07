@@ -36,7 +36,7 @@ const STATUS_META: Record<string, { label: string; className: string }> = {
     pending: { label: "Pendiente", className: "text-zinc-500" },
     in_progress: { label: "En curso", className: "text-emerald-500" },
     review: { label: "Revisión", className: "text-amber-500" },
-    completed: { label: "Hecho", className: "text-blue-500" },
+    completed: { label: "Aprobación Final", className: "text-blue-500" },
     discarded: { label: "Descartada", className: "text-rose-500" },
     out_of_scope: { label: "Fuera de alcance", className: "text-purple-500" },
 };
@@ -143,7 +143,7 @@ export function PlanTree({ rows, isLight, initialExpandLevel = Infinity, showSta
                                 <span className="text-[10px] text-zinc-500 w-7 text-right">{Math.round(r.progress)}%</span>
                             </span>
                         )}
-                        {showStatus && status && <span className={cn("text-[10px] font-medium shrink-0 w-20 text-right", status.className)}>{status.label}</span>}
+                        {showStatus && status && <span className={cn("text-[10px] font-medium shrink-0 w-24 text-right whitespace-nowrap", status.className)}>{status.label}</span>}
                         {r.effortDays != null && r.effortDays > 0 && <span className="text-[10px] text-zinc-500 shrink-0 w-10 text-right">{Math.round(r.effortDays * 10) / 10}d</span>}
                         <span className={cn("text-[10px] shrink-0 w-16 text-right", overdue ? "text-rose-500 font-semibold" : "text-zinc-500")} title={overdue ? "Vencida" : undefined}>
                             {fmtDate(r.end)}

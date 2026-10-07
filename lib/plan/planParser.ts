@@ -15,7 +15,7 @@ export interface PlanWarning {
     code:
         | 'duplicate_codes' | 'no_code' | 'milestone_without_children' | 'summary_without_detail'
         | 'above_milestone_without_children' | 'level_jump' | 'predecessors_ignored'
-        | 'percent_ignored' | 'overdue' | 'duplicate_path' | 'no_milestones';
+        | 'percent_ignored' | 'completed_from_excel' | 'overdue' | 'duplicate_path' | 'no_milestones';
     severity: 'info' | 'warning';
     message: string;
     rows?: number[];
@@ -32,6 +32,7 @@ export interface PlanNode {
     start: string | null;      // ISO de medianoche local (mismo formato que el selector de fechas de tareas)
     end: string | null;
     notes: string | null;
+    percent: number | null;    // "% completado" del Excel, 0–100 (solo decide si una hoja entra cerrada)
     bold: boolean;             // MS Project marca en negrita las tareas resumen
     parentKey: string | null;
     children: PlanNode[];
@@ -103,6 +104,25 @@ export function parseDurationDays(v: unknown): number | null {
     if (u.startsWith('sem') || u.startsWith('w')) return n * 5;
     if (u.startsWith('mes') || u.startsWith('mo')) return n * 20;
     return n; // d, día, días, day, sin unidad
+}
+
+/** "% completado": fracción de Excel (1 = 100 %), número 0–100 o texto "100%" → 0–100. */
+export function parsePercent(v: unknown): number | null {
+    if (v == null || v === '') return null;
+    if (typeof v === 'number') return Number.isFinite(v) ? (v <= 1 ? v * 100 : v) : null;
+    const m = String(v).trim().match(/^([\d.,]+)\s*(%?)/);
+    if (!m) return null;
+    const n = parseFloat(m[1].replace(',', '.'));
+    if (!Number.isFinite(n)) return null;
+    return m[2] === '%' || n > 1 ? n : n * 100;
+}
+
+/**
+ * Fila que entra ya en Aprobación Final (`completed`): trabajable (sin hijos, no control) y al 100 %
+ * en el Excel. Padres, hitos con tareas y controles no miran su %: su estado se calcula.
+ */
+export function isCompletedInExcel(n: Pick<PlanNode, 'percent' | 'children' | 'role'>): boolean {
+    return n.children.length === 0 && n.role !== 'gate' && (n.percent ?? 0) >= 100;
 }
 
 /** "2982 horas" → días; números sin unidad se interpretan como horas (columna Trabajo de MS Project). */
@@ -200,6 +220,7 @@ export function parsePlanRows(rows: unknown[][], opts: ParseOptions = {}): Parse
             start: cols.start !== undefined ? parsePlanDate(row[cols.start]) : null,
             end: cols.end !== undefined ? parsePlanDate(row[cols.end]) : null,
             notes: cols.notes !== undefined && row[cols.notes] != null && String(row[cols.notes]).trim() !== '' ? String(row[cols.notes]).trim() : null,
+            percent: cols.percent !== undefined ? parsePercent(row[cols.percent]) : null,
             bold: opts.boldRows?.has(i + 1) ?? false,
             indent,
             explicitLevel: Number.isFinite(lvlRaw) ? lvlRaw : null,
@@ -324,10 +345,13 @@ export function parsePlanRows(rows: unknown[][], opts: ParseOptions = {}): Parse
     if (noCode.length) warnings.push({ code: 'no_code', severity: 'info', rows: noCode, message: `${noCode.length} fila(s) sin código EDT; se colocan por su sangría.` });
     if (flat.some((f) => f.hasPredecessors)) warnings.push({ code: 'predecessors_ignored', severity: 'info', message: 'Las predecesoras referencian IDs internos de MS Project que no vienen en el Excel: no se importan. Las dependencias se definen en UniTask.' });
     const hasPercentColumn = cols.percent !== undefined;
-    if (hasPercentColumn) warnings.push({ code: 'percent_ignored', severity: 'info', message: 'El "% completado" del Excel no se importa: el avance se calcula en UniTask a partir de las tareas cerradas. Todas las tareas entran como pendientes.' });
+    const doneRows = nodes.filter(isCompletedInExcel).map((n) => n.rowNumber);
+    if (doneRows.length) warnings.push({ code: 'completed_from_excel', severity: 'info', rows: doneRows, message: `${doneRows.length} tarea(s) al 100 % en el Excel entran en Aprobación Final (fecha de cierre = su Fin). Sus hitos y padres se calculan a partir de ellas.` });
+    const partialRows = nodes.filter((n) => n.children.length === 0 && n.role !== 'gate' && (n.percent ?? 0) > 0 && (n.percent ?? 0) < 100).map((n) => n.rowNumber);
+    if (partialRows.length) warnings.push({ code: 'percent_ignored', severity: 'info', rows: partialRows, message: `${partialRows.length} tarea(s) con avance parcial en el Excel entran como pendientes: solo el 100 % se importa (el avance se calcula en UniTask).` });
     const today = opts.today ?? new Date();
     const todayMs = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-    const overdue = nodes.filter((n) => (n.role === 'leaf' || n.role === 'gate' || (n.role === 'milestone' && !n.children.length)) && n.end && Date.parse(n.end) < todayMs).map((n) => n.rowNumber);
+    const overdue = nodes.filter((n) => (n.role === 'leaf' || n.role === 'gate' || (n.role === 'milestone' && !n.children.length)) && !isCompletedInExcel(n) && n.end && Date.parse(n.end) < todayMs).map((n) => n.rowNumber);
     if (overdue.length) warnings.push({ code: 'overdue', severity: 'info', rows: overdue, message: `${overdue.length} tarea(s) tienen fecha de fin ya pasada; entran como pendientes y aparecerán vencidas.` });
 
     return { roots, nodes, warnings, levels, flowMode, milestoneLevel, suggestedMilestoneLevel: suggested, roleCounts, hasPercentColumn };

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
 import { parsePlanRows, inferResponsibleSide, type ParsedPlan } from "@/lib/plan/planParser";
 import { importPlan } from "@/lib/plan/planImport";
+import { computeInitialStates } from "@/lib/plan/planInitialState";
 import { PlanTree, ROLE_META, type PlanTreeRow } from "./PlanTree";
 
 interface Props {
@@ -70,6 +71,8 @@ export function PlanImportWizard({ project, tenantId, userId, isLight, onClose, 
         return new Set(w?.rows || []);
     }, [parsed, openWarning]);
 
+    const initialStates = useMemo(() => (parsed ? computeInitialStates(parsed) : null), [parsed]);
+
     const treeRows: PlanTreeRow[] = useMemo(() => (parsed ? parsed.nodes.map((n) => ({
         key: n.key,
         parentKey: n.parentKey,
@@ -77,12 +80,14 @@ export function PlanImportWizard({ project, tenantId, userId, isLight, onClose, 
         code: n.code,
         title: n.name,
         role: n.role,
+        status: initialStates?.get(n.key)?.status,
+        progress: initialStates?.get(n.key)?.computed?.progress ?? null,
         end: n.end,
         effortDays: n.children.length ? null : (n.effortDays ?? n.durationDays),
         responsible: inferResponsibleSide(n.name, project.clientName),
         childCount: n.children.length,
         highlight: warningRows.has(n.rowNumber),
-    })) : []), [parsed, warningRows, project.clientName]);
+    })) : []), [parsed, initialStates, warningRows, project.clientName]);
 
     const handleFile = async (file: File) => {
         setError(null);
@@ -152,7 +157,7 @@ export function PlanImportWizard({ project, tenantId, userId, isLight, onClose, 
                         <div className={cn("rounded-xl border-2 border-dashed p-10 text-center space-y-3", isLight ? "border-zinc-300" : "border-white/15")}>
                             <FileSpreadsheet className="w-10 h-10 mx-auto text-zinc-400" />
                             <p className="text-sm">Excel exportado de MS Project (columnas <b>Nombre de tarea</b>, Duración, Comienzo, Fin…).</p>
-                            <p className="text-xs text-zinc-500">La jerarquía se lee de la sangría de los nombres. El "% completado" no se importa: el avance se calcula en UniTask.</p>
+                            <p className="text-xs text-zinc-500">La jerarquía se lee de la sangría de los nombres. Las tareas al 100 % entran en Aprobación Final; el resto, pendientes (el avance se calcula en UniTask).</p>
                             <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden"
                                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
                             <button onClick={() => fileRef.current?.click()} disabled={reading}
@@ -213,6 +218,7 @@ export function PlanImportWizard({ project, tenantId, userId, isLight, onClose, 
                                 key={`${parsed.milestoneLevel}-${openWarning}`}
                                 rows={treeRows}
                                 isLight={isLight}
+                                showStatus
                                 initialExpandLevel={openWarning ? Infinity : (parsed.nodes.find((n) => n.role === "milestone")?.level ?? 4) + 1}
                                 filter={openWarning && warningRows.size ? (r) => !!r.highlight : undefined}
                             />
