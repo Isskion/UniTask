@@ -636,14 +636,8 @@ export default function TaskManagement({
             if (!isAllowed) return showToast("UniTaskController", t('task_manager.no_project_permission'), "error");
         }
 
-        // [V13.3] Effort Tracking Validation
-        const actualEffortValue = typeof formData.actualEffort === 'string'
-            ? parseFloat((formData.actualEffort as any).replace(',', '.'))
-            : formData.actualEffort;
-
-        if (formData.status === 'completed' && !actualEffortValue) {
-            return showToast("UniTaskController", "⚠️ Esfuerzo real obligatorio: Debes registrar los días invertidos para cerrar la tarea", "error");
-        }
+        // [V13.3] El esfuerzo real ya NO es obligatorio al cerrar (2026-10-07): se puede registrar
+        // si se conoce, pero no bloquea el cierre (ni el individual ni el cambio de estado masivo).
 
         // [Plan] Hitos con tareas, padres, agrupadores y controles calculan su estado (planRollup);
         // las reglas lo rechazarían con un "permission denied" opaco.
@@ -2006,7 +2000,7 @@ export default function TaskManagement({
                                             {formData.status === 'completed' && (
                                                 <div>
                                                     <label className={cn("text-[10px] font-bold uppercase mb-1 block flex items-center gap-1", isLight ? "text-zinc-500" : "text-zinc-400")}>
-                                                        Esfuerzo Real <span className="text-red-500">*</span>
+                                                        Esfuerzo Real <span className="font-normal normal-case opacity-70">(opcional)</span>
                                                     </label>
                                                     <input
                                                         type="text"

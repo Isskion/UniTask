@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { Project, Task, UserProfile, AttributeDefinition, MasterDataItem } from '@/types';
+import { Project, Task, UserProfile, AttributeDefinition, MasterDataItem, getRoleLevel, RoleLevel } from '@/types';
 import { subscribeToAllTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useTaskAdvancedFilters, initialFilters, TaskFiltersState } from '@/hooks/useTaskAdvancedFilters';
-import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle, Pencil, Plus, XCircle, MinusCircle, Camera } from 'lucide-react';
+import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle, Pencil, Plus, XCircle, MinusCircle, Camera, ListChecks } from 'lucide-react';
 
 import { format, isBefore, startOfToday } from 'date-fns';
 import { db } from "@/lib/firebase";
@@ -27,6 +27,9 @@ import { useLanguage } from '@/context/LanguageContext';
 import HighlightText from './ui/HighlightText';
 import { formatPlanTrail } from '@/lib/plan/planTitle';
 import TaskManagement from './TaskManagement';
+import { BulkStatusModal } from './BulkStatusModal';
+import { STATUS_LABEL, type TaskStatus } from '@/lib/bulkTaskStatus';
+import { useToast } from '@/context/ToastContext';
 import { toPng } from 'html-to-image';
 
 
@@ -45,7 +48,19 @@ interface TaskDashboardProps {
 import { useRouter } from 'next/navigation';
 
 export default function TaskDashboard({ projects, userProfile, permissionLoading }: TaskDashboardProps) {
-    const { user, tenantId } = useAuth();
+    const { user, tenantId, userRole, identity } = useAuth();
+    const { showToast } = useToast();
+    // Cambio de estado masivo (PM y superiores)
+    const canBulk = Number(identity?.realRole ?? getRoleLevel(userRole)) >= RoleLevel.PM;
+    const [bulkMode, setBulkMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [bulkTarget, setBulkTarget] = useState<TaskStatus | ''>('');
+    const [showBulk, setShowBulk] = useState(false);
+    const toggleSelected = (id: string) => setSelectedIds(prev => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+    });
     // ...
     const { permissions, isAdmin, getAllowedProjectIds, loading: permissionsLoading } = usePermissions();
     const { t } = useLanguage();
@@ -180,6 +195,9 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
         return groups;
     }, [filteredTasks, projects, allowedProjectIds, filters.projectIds]);
 
+
+    const visibleTasks = useMemo(() => Object.values(groupedTasks).flat(), [groupedTasks]);
+    const selectedTasks = useMemo(() => tasks.filter(t => selectedIds.has(t.id)), [tasks, selectedIds]);
 
     const exportRef = useRef<HTMLDivElement>(null);
     const [isExportingImage, setIsExportingImage] = useState(false);
@@ -341,6 +359,20 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                         Crear Tarea
                     </button>
 
+                    {canBulk && (
+                        <button
+                            onClick={() => { setBulkMode(m => !m); setSelectedIds(new Set()); setBulkTarget(''); }}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-lg transition-all border",
+                                bulkMode ? "bg-red-600 border-red-500 text-white" : "bg-card border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
+                            )}
+                            title="Seleccionar varias tareas y cambiarles el estado de una vez"
+                        >
+                            <ListChecks className="w-3.5 h-3.5" />
+                            {bulkMode ? "Salir de selección" : "Selección múltiple"}
+                        </button>
+                    )}
+
                     <button
                         onClick={() => setIsFilterOpen(true)}
                         className={cn(
@@ -389,6 +421,47 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                 </div>
             </div>
 
+
+            {/* Barra de cambio de estado masivo */}
+            {bulkMode && (
+                <div className="border-b border-red-500/30 bg-red-500/5 px-6 py-2 flex flex-wrap items-center gap-3 text-xs shrink-0">
+                    <span className="font-bold">{selectedIds.size} seleccionada(s)</span>
+                    <button onClick={() => setSelectedIds(new Set(visibleTasks.map(t => t.id)))} className="px-2 py-1 rounded border border-border hover:bg-secondary">
+                        Seleccionar visibles ({visibleTasks.length})
+                    </button>
+                    <button onClick={() => setSelectedIds(new Set())} disabled={!selectedIds.size} className="px-2 py-1 rounded border border-border hover:bg-secondary disabled:opacity-40">Ninguna</button>
+                    <span className="text-muted-foreground hidden md:inline">Filtra (proyecto, buscar…) y selecciona; nada cambia hasta confirmar.</span>
+                    <div className="flex-1" />
+                    <label className="flex items-center gap-2 font-semibold">Cambiar a
+                        <select value={bulkTarget} onChange={e => setBulkTarget(e.target.value as TaskStatus | '')}
+                            className="rounded border border-border bg-background px-2 py-1 text-xs">
+                            <option value="">(elige estado)</option>
+                            {(Object.keys(STATUS_LABEL) as TaskStatus[]).map(st => <option key={st} value={st}>{STATUS_LABEL[st]}</option>)}
+                        </select>
+                    </label>
+                    <button onClick={() => setShowBulk(true)} disabled={!selectedIds.size || !bulkTarget}
+                        className="px-3 py-1.5 rounded-lg bg-red-600 text-white font-bold hover:bg-red-500 disabled:opacity-40">
+                        Revisar cambio…
+                    </button>
+                </div>
+            )}
+
+            {showBulk && bulkTarget && user && tenantId && (
+                <BulkStatusModal
+                    selected={selectedTasks}
+                    allTasks={tasks}
+                    target={bulkTarget}
+                    projectName={(id) => projects.find(p => p.id === id)?.name || "Sin proyecto"}
+                    tenantId={tenantId}
+                    user={{ uid: user.uid, email: user.email, displayName: userProfile?.displayName || user.displayName }}
+                    onClose={() => setShowBulk(false)}
+                    onDone={(n) => {
+                        setShowBulk(false);
+                        setSelectedIds(new Set());
+                        showToast("Cambio masivo", `${n} tarea(s) cambiadas a ${STATUS_LABEL[bulkTarget]}.`, "success");
+                    }}
+                />
+            )}
 
             {/* Content Scroller */}
             <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar bg-background">
@@ -462,11 +535,20 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                 key={task.id}
                                                 // [NEW] OnClick to Open ABM
                                                 onClick={() => {
+                                                    if (bulkMode) { toggleSelected(task.id); return; }
                                                     setModalTaskId(task.id);
                                                     setIsModalOpen(true);
                                                 }}
-                                                className="flex items-start gap-4 p-3 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-primary/20 transition-all group relative overflow-hidden cursor-pointer"
+                                                className={cn("flex items-start gap-4 p-3 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-primary/20 transition-all group relative overflow-hidden cursor-pointer",
+                                                    bulkMode && selectedIds.has(task.id) && "border-red-500/60 bg-red-500/5")}
                                             >
+                                                {bulkMode && (
+                                                    <input type="checkbox" className="mt-1.5 ml-2 w-4 h-4 accent-red-600 shrink-0 cursor-pointer"
+                                                        checked={selectedIds.has(task.id)}
+                                                        onClick={e => e.stopPropagation()}
+                                                        onChange={() => toggleSelected(task.id)}
+                                                        aria-label={`Seleccionar ${task.friendlyId}`} />
+                                                )}
                                                 {/* Left Status Stripe */}
                                                  <div className={cn("absolute left-0 top-0 bottom-0 w-1",
                                                      task.status === 'completed' ? "bg-emerald-500" :
