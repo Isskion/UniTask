@@ -251,7 +251,9 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
             } else {
                 // Update
                 if (selectedProject?.id) {
-                    const { id, ...data } = formData; // Exclude ID
+                    // Excluir ID y los campos que gestiona la pestaña Conexiones: formData es una copia del
+                    // proyecto al abrir el formulario y pisaría entornos guardados después.
+                    const { id, environments: _environments, connections: _connections, ...data } = formData;
                     
                     // [SAM] Recalculate Access Key on update
                     const updatedData = {
@@ -664,7 +666,10 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
                             {/* VIEW 0: CONNECTIONS */}
                             {userTab === 'connections' && !isNew && (
-                                <ProjectConnections project={selectedProject} />
+                                <ProjectConnections key={selectedProject?.id} project={selectedProject} onSaved={(environments) => {
+                                    setSelectedProject(prev => prev ? { ...prev, environments } : prev);
+                                    setProjects(prev => prev.map(p => p.id === selectedProject?.id ? { ...p, environments } : p));
+                                }} />
                             )}
 
 

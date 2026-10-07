@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Server, User, Key, Globe, Save, ExternalLink, Loader2, Database, Copy, Check, Plus, Trash2, Fingerprint } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project, ProjectEnvironment } from "@/types";
@@ -12,6 +12,8 @@ import { doc, updateDoc } from "firebase/firestore";
 
 interface ProjectConnectionsProps {
     project: Project;
+    /** Avisa al padre de lo guardado: si no, al volver a la pestaña se pinta la copia del proyecto cargada al entrar. */
+    onSaved?: (environments: ProjectEnvironment[]) => void;
 }
 
 const FORBIDDEN_EMAIL = "daniel.delamo@unigis.com";
@@ -22,7 +24,7 @@ const maskCredential = (val: string | undefined): string => {
     return val;
 };
 
-export function ProjectConnections({ project }: ProjectConnectionsProps) {
+export function ProjectConnections({ project, onSaved }: ProjectConnectionsProps) {
     const { showToast } = useToast();
     const { theme } = useTheme();
     const { can } = usePermissions();
@@ -33,8 +35,13 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
     
     // Initialize environments from existing data or legacy connections
     const [environments, setEnvironments] = useState<ProjectEnvironment[]>([]);
+    // Cambios sin guardar: no se pisan si el proyecto se refresca mientras se edita
+    const [dirty, setDirty] = useState(false);
+    const dirtyRef = useRef(false);
+    const markDirty = (v: boolean) => { dirtyRef.current = v; setDirty(v); };
 
     useEffect(() => {
+        if (dirtyRef.current) return;
         if (project.environments && project.environments.length > 0) {
             // Apply sanitization mask on load
             const sanitized = project.environments.map(env => ({
@@ -85,10 +92,15 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
             await updateDoc(projectRef, {
                 environments: environments
             });
+            markDirty(false);
+            onSaved?.(environments);
             showToast("Conexión", "Entornos actualizados correctamente", "success");
         } catch (error) {
-            console.error("Error saving environments:", error);
-            showToast("Conexión", "Error al guardar los entornos", "error");
+            console.error("[ProjectConnections] Error guardando entornos del proyecto", project.id, error);
+            const code = (error as { code?: string })?.code;
+            showToast("Conexión", code === "permission-denied"
+                ? "No tienes permiso para modificar este proyecto (fuera de tu región/división). Pide a un administrador que lo guarde. Tus cambios siguen en pantalla."
+                : `No se pudieron guardar los entornos (${error instanceof Error ? error.message : String(error)}). Tus cambios siguen en pantalla: vuelve a pulsar Guardar.`, "error");
         } finally {
             setSaving(false);
         }
@@ -107,7 +119,8 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
             mapiToken: ""
         };
         setEnvironments([...environments, newEnv]);
-        showToast("Entorno", "Nuevo entorno de pruebas añadido", "success");
+        markDirty(true);
+        showToast("Entorno", "Entorno añadido. Rellena sus datos y pulsa «Guardar Cambios» para conservarlo.", "info");
     };
 
     const handleRemoveEnvironment = (id: string) => {
@@ -116,7 +129,8 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
         if (envToRemove?.isProduction) return;
         
         setEnvironments(environments.filter(e => e.id !== id));
-        showToast("Entorno", "Entorno eliminado", "info");
+        markDirty(true);
+        showToast("Entorno", "Entorno quitado. Pulsa «Guardar Cambios» para confirmarlo.", "info");
     };
 
     const handleUpdateField = (id: string, field: keyof ProjectEnvironment, value: any) => {
@@ -130,6 +144,7 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
         setEnvironments(prev => prev.map(env => 
             env.id === id ? { ...env, [field]: finalValue } : env
         ));
+        markDirty(true);
     };
 
     const handleCopy = (text: string, fieldId: string) => {
@@ -184,6 +199,11 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                 </div>
                 {isTechnical && (
                     <div className="flex items-center gap-3">
+                        {dirty && (
+                            <span className="text-xs font-semibold text-amber-500" title="Los cambios no se conservan hasta pulsar Guardar Cambios">
+                                Cambios sin guardar
+                            </span>
+                        )}
                         <button
                             onClick={handleAddEnvironment}
                             className="px-4 py-2.5 bg-zinc-800 text-white rounded-xl flex items-center gap-2 font-bold hover:bg-zinc-700 transition-all border border-zinc-700 shadow-lg"
