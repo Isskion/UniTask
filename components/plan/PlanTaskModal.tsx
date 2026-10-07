@@ -84,7 +84,7 @@ export function PlanTaskModal({ mode, parent, planTasks, project, tenantId, isLi
                     <div className="min-w-0">
                         <h3 className="font-semibold text-lg">{TITLES[mode]}</h3>
                         <p className="text-xs text-zinc-500 truncate">
-                            {mode === "loose" ? `${project.name} · fuera del plan` : `Dentro de: ${parent?.planCode ? parent.planCode + " " : ""}${parent?.title}`}
+                            {mode === "loose" ? `${project.name} · fuera del plan` : `Dentro de: ${parent?.title}`}
                         </p>
                     </div>
                     <button onClick={onClose} disabled={saving} className="p-2 hover:bg-white/5 rounded-lg text-zinc-400" aria-label="Cerrar"><X className="w-5 h-5" /></button>
@@ -149,7 +149,7 @@ export function PlanTaskModal({ mode, parent, planTasks, project, tenantId, isLi
                             <div className="flex flex-wrap gap-1">
                                 {draft.dependencies.map((id) => (
                                     <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-indigo-500/15 text-indigo-500">
-                                        {byId.get(id)?.planCode ? byId.get(id)!.planCode + " " : ""}{byId.get(id)?.title ?? id}
+                                        {byId.get(id)?.title ?? id}
                                         <button onClick={() => set("dependencies", draft.dependencies.filter((d) => d !== id))} aria-label="Quitar"><X className="w-3 h-3" /></button>
                                     </span>
                                 ))}
@@ -164,7 +164,7 @@ export function PlanTaskModal({ mode, parent, planTasks, project, tenantId, isLi
                                 {depCandidates.map((t) => (
                                     <button key={t.id} className="w-full text-left px-2 py-1.5 hover:bg-indigo-500/10 truncate"
                                         onClick={() => { set("dependencies", [...draft.dependencies, t.id]); setDepSearch(""); }}>
-                                        <span className="font-mono text-zinc-500 mr-1">{t.planCode || t.friendlyId}</span>{t.title}
+                                        {!t.planCode && <span className="font-mono text-zinc-500 mr-1">{t.friendlyId}</span>}{t.title}
                                     </button>
                                 ))}
                             </div>

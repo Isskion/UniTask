@@ -15,6 +15,7 @@ import { useToast } from "@/context/ToastContext";
 import { getRoleLevel, RoleLevel, type Project, type Task } from "@/types";
 import { aggregateChildren } from "@/functions/src/planRollupCore";
 import { discardBlock, isWorkable, toIso, type AddMode } from "@/lib/plan/planTasks";
+import { planName } from "@/lib/plan/planTitle";
 import { PlanTree, type PlanTreeRow } from "./PlanTree";
 import { PlanImportWizard } from "./PlanImportWizard";
 import { PlanReimportWizard } from "./PlanReimportWizard";
@@ -75,7 +76,7 @@ export function ProjectPlan({ project }: { project: Project }) {
                     parentKey,
                     level,
                     code: t.planCode || null,
-                    title: t.title,
+                    title: planName(t),
                     role: t.planRole!,
                     status: t.status,
                     progress: kids.length ? (t.computed?.progress ?? 0) : null,
@@ -255,7 +256,7 @@ export function ProjectPlan({ project }: { project: Project }) {
                             <button onClick={() => setDiscarding(null)} disabled={discardBusy} className="text-zinc-400" aria-label="Cerrar"><X className="w-4 h-4" /></button>
                         </div>
                         <p className="text-sm">
-                            Se marcarán <b>{discarding.count}</b> tarea(s) abiertas de <b>{discarding.node.planCode ? discarding.node.planCode + " " : ""}{discarding.node.title}</b> como
+                            Se marcarán <b>{discarding.count}</b> tarea(s) abiertas de <b>{discarding.node.title}</b> como
                             <b> fuera de alcance</b>. El bloque se cerrará solo. Las tareas ya cerradas no cambian.
                         </p>
                         <textarea autoFocus value={discardReason} onChange={(e) => setDiscardReason(e.target.value)} placeholder="Motivo (obligatorio, queda en el historial de cada tarea)"

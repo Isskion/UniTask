@@ -24,6 +24,7 @@ import type { Task, PlanBaseline, PlanRole } from '@/types';
 import { CLOSED_STATUSES, toMillis } from '@/functions/src/planRollupCore';
 import { isCompletedInExcel, normalizeName, type ParsedPlan, type PlanNode } from './planParser';
 import { siblingOrder } from './planInitialState';
+import { buildPlanTrail, composePlanTitle, planName, sameTrail, type TrailSource } from './planTitle';
 
 export const SIMILARITY_THRESHOLD = 0.85;
 
@@ -77,7 +78,7 @@ export interface ReimportDiff {
 // ─── Utilidades ─────────────────────────────────────────────────────────────
 
 const lastSegment = (path?: string) => (path || '').split(' › ').pop()!.replace(/ #\d+$/, '');
-const nameKeys = (t: Task) => new Set([lastSegment(t.planPath), normalizeName(t.title || '')].filter(Boolean));
+const nameKeys = (t: Task) => new Set([lastSegment(t.planPath), normalizeName(planName(t))].filter(Boolean));
 
 /** Coeficiente de Dice sobre bigramas (0–1). */
 export function similarity(a: string, b: string): number {
@@ -195,7 +196,7 @@ export function computeReimportDiff(plan: ParsedPlan, planTasks: Task[], opts: D
 
         const fields: FieldDiff[] = [];
         const candidates: [FieldKey, unknown, unknown][] = [
-            ['title', baseline.title, t.title],
+            ['title', baseline.title, planName(t)],   // el título lleva el código delante; se compara el nombre
             ['planCode', baseline.planCode, t.planCode ?? null],
             ['startDate', baseline.startDate, t.startDate ?? null],
             ['endDate', baseline.endDate, t.endDate ?? null],
@@ -328,7 +329,7 @@ export function buildReimportOps(plan: ParsedPlan, planTasks: Task[], diff: Reim
         const responsible = ctx.responsibleOf?.(n.name) ?? null;
         const completed = c.completed;
         const data: Record<string, unknown> = {
-            title: n.name,
+            title: composePlanTitle(n.code, n.name),
             description: n.notes || '',
             status: completed ? 'completed' : 'pending',
             isActive: true,
@@ -370,15 +371,25 @@ export function buildReimportOps(plan: ParsedPlan, planTasks: Task[], diff: Reim
     }
     stats.created = creates.length;
 
+    // Código, nombre y rol finales de cada tarea (título con código y ubicación en el plan)
+    const info = new Map<string, TrailSource>();
+    for (const t of planTasks) info.set(t.id, { id: t.id, code: t.planCode ?? null, name: planName(t), role: t.planRole! });
+    for (const c of chosenNew) info.set(newIdOf.get(c.node.key)!, { id: newIdOf.get(c.node.key)!, code: c.node.code, name: c.node.name, role: c.node.role });
+
     // 2. Emparejadas
     for (const m of diff.matched) {
         const t = m.task;
+        const final = info.get(t.id)!;
         for (const f of m.fields) {
             if (choiceOf(d, t.id, f) === 'excel') {
-                touch(t, f.field, f.field === 'planCode' ? (f.excel ?? null) : f.excel);
+                if (f.field === 'title') final.name = String(f.excel);
+                else if (f.field === 'planCode') { final.code = (f.excel as string | null) ?? null; touch(t, 'planCode', final.code); }
+                else touch(t, f.field, f.excel);
                 stats.fieldsFromExcel++;
             } else stats.keptUniTask++;
         }
+        const title = composePlanTitle(final.code, final.name);
+        if (title !== t.title) touch(t, 'title', title);
         if (m.close && !d.off.has(`close:${t.id}`)) {
             touch(t, 'status', 'completed');
             const end = m.node.end ? new Date(m.node.end) : null;
@@ -424,10 +435,17 @@ export function buildReimportOps(plan: ParsedPlan, planTasks: Task[], diff: Reim
         while (p && !seen.has(p)) { chain.unshift(p); seen.add(p); p = parentOf.get(p) ?? null; }
         return chain;
     };
-    for (const c of creates) c.data.ancestorIds = ancestorsOf(c.id);
+    const archivedSet = new Set(archivedIds);
+    const trailOf = (id: string) => buildPlanTrail(ancestorsOf(id).map((a) => info.get(a)).filter((a): a is TrailSource => !!a));
+    for (const c of creates) { c.data.ancestorIds = ancestorsOf(c.id); c.data.planTrail = trailOf(c.id); }
     for (const t of planTasks) {
         const next = ancestorsOf(t.id);
         if (JSON.stringify(next) !== JSON.stringify(t.ancestorIds || [])) touch(t, 'ancestorIds', next);
+        // 5. Ubicación en el plan (flujo › … › padre), también para tareas creadas en UniTask
+        if (t.isActive === false && !updates.get(t.id)?.data.isActive) continue;
+        if (archivedSet.has(t.id)) continue;
+        const trail = trailOf(t.id);
+        if (!sameTrail(trail, t.planTrail)) touch(t, 'planTrail', trail);
     }
 
     const updateList: ReimportOps['updates'] = [];

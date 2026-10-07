@@ -8,6 +8,7 @@ import type { Project, Task } from '@/types';
 import { recalculateAncestors } from '@/lib/hierarchy-governance';
 import { createTask } from '@/lib/tasks';
 import { normalizeName } from './planParser';
+import { buildPlanTrail, planName } from './planTitle';
 
 const CLOSED = new Set(['completed', 'discarded', 'out_of_scope']);
 
@@ -133,6 +134,8 @@ export async function createPlanTask({ mode, parent, draft, project, tenantId, u
         planRole: 'leaf',
         planOrigin: 'unitask',
         planPath: (parent?.planPath ? parent.planPath + ' › ' : '') + normalizeName(draft.title),
+        planTrail: buildPlanTrail(ancestorIds.map((id) => planTasks.find((t) => t.id === id)).filter((t): t is Task => !!t)
+            .map((t) => ({ id: t.id, code: t.planCode ?? null, name: planName(t), role: t.planRole! }))),
         startDate: draft.startDate,
         endDate: draft.endDate,
         estimatedEffort: draft.estimatedEffort,

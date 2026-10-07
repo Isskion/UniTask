@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { TaskFilters } from './TaskFilters';
 import { useLanguage } from '@/context/LanguageContext';
 import HighlightText from './ui/HighlightText';
+import { formatPlanTrail } from '@/lib/plan/planTitle';
 import TaskManagement from './TaskManagement';
 import { toPng } from 'html-to-image';
 
@@ -612,6 +613,11 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                     <h4 className={cn("text-sm font-medium leading-snug", task.status === 'completed' ? "text-muted-foreground line-through" : "text-foreground")}>
                                                         <HighlightText text={task.title || task.description || "Sin Título"} highlight={filters.search} />
                                                     </h4>
+                                                    {task.planTrail?.length ? (
+                                                        <div className="text-[10px] text-muted-foreground leading-snug truncate" title={formatPlanTrail(task.planTrail)}>
+                                                            {formatPlanTrail(task.planTrail, { compact: true })}
+                                                        </div>
+                                                    ) : null}
 
 
                                                 </div>

@@ -20,6 +20,7 @@ import { CLOSED_STATUSES, statusProgress } from '@/functions/src/planRollupCore'
 import { inferResponsibleSide, type ParsedPlan, type PlanNode } from './planParser';
 import { computeInitialStates, siblingOrder } from './planInitialState';
 import { baselineOf } from './planReimport';
+import { buildPlanTrail, composePlanTitle } from './planTitle';
 
 const BATCH_SIZE = 400;
 
@@ -71,12 +72,14 @@ export async function importPlan({ project, tenantId, userId, fileName, plan, on
     const idOf = new Map<string, string>();
     for (const n of plan.nodes) idOf.set(n.key, doc(collection(db, 'tasks')).id);
     const byKey = new Map(plan.nodes.map((n) => [n.key, n]));
-    const ancestorsOf = (n: PlanNode): string[] => {
-        const chain: string[] = [];
+    const ancestorNodes = (n: PlanNode): PlanNode[] => {
+        const chain: PlanNode[] = [];
         let p = n.parentKey ? byKey.get(n.parentKey) : undefined;
-        while (p) { chain.unshift(idOf.get(p.key)!); p = p.parentKey ? byKey.get(p.parentKey) : undefined; }
+        while (p) { chain.unshift(p); p = p.parentKey ? byKey.get(p.parentKey) : undefined; }
         return chain;
     };
+    const ancestorsOf = (n: PlanNode): string[] => ancestorNodes(n).map((p) => idOf.get(p.key)!);
+    const trailOf = (n: PlanNode) => buildPlanTrail(ancestorNodes(n).map((p) => ({ id: idOf.get(p.key)!, code: p.code, name: p.name, role: p.role })));
 
     // 4. Estado inicial (mismo cálculo que la vista previa y que planRollup)
     const likeOf = computeInitialStates(plan);
@@ -120,7 +123,7 @@ export async function importPlan({ project, tenantId, userId, fileName, plan, on
                 taskNumber++;
                 const responsible = inferResponsibleSide(n.name, project.clientName);
                 const data: Record<string, unknown> = {
-                    title: n.name,
+                    title: composePlanTitle(n.code, n.name),
                     description: n.notes || '',
                     status: like.status,
                     isActive: true,
@@ -139,6 +142,7 @@ export async function importPlan({ project, tenantId, userId, fileName, plan, on
                     importKind: 'initial',
                     lastImportId: importId,
                     planBaseline: baselineOf(n),
+                    planTrail: trailOf(n),
                     externalSource: { system: 'excel_plan', id: n.path },
                     startDate: n.start,
                     endDate: n.end,

@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import type { Project, Task } from "@/types";
 import { parsePlanRows, type ParsedPlan, type PlanNode } from "@/lib/plan/planParser";
 import {
-    computeReimportDiff, emptyDecisions, choiceOf, archiveChosen, newChosen, FIELD_LABEL,
+    computeReimportDiff, buildReimportOps, emptyDecisions, choiceOf, archiveChosen, newChosen, FIELD_LABEL,
     type ReimportDecisions, type FieldDiff, type MatchedItem,
 } from "@/lib/plan/planReimport";
 import { loadReimportContext, applyReimport, type ReimportContext } from "@/lib/plan/planReimportApply";
@@ -89,6 +89,17 @@ export function PlanReimportWizard({ project, tenantId, userId, isLight, onClose
         const closes = diff.matched.filter((m) => m.close);
         return { toConfirm, conflicts, changes, closes, created: diff.created, archived: diff.archived };
     }, [diff]);
+
+    // Puesta al día de tareas de lotes anteriores: código en el título y ubicación en el plan
+    const refreshCount = useMemo(() => {
+        if (!parsed || !context || !diff) return 0;
+        let n = 0;
+        const ops = buildReimportOps(parsed, context.planTasks, diff, decisions, {
+            project, tenantId, userId, importId: "preview", newId: () => `preview-${n++}`,
+            lastTaskNumber: context.lastTaskNumber, prefix: "TSK", now: null,
+        });
+        return ops.updates.filter((u) => "title" in u.data || "planTrail" in u.data).length;
+    }, [parsed, context, diff, decisions, project, tenantId, userId]);
 
     const pendingConfirm = groups ? groups.toConfirm.filter((m) => !confirmed.has(m.node.key)).length : 0;
 
@@ -335,9 +346,16 @@ export function PlanReimportWizard({ project, tenantId, userId, isLight, onClose
                                 </Section>
                             )}
 
+                            {refreshCount > 0 && (
+                                <div className="p-2 rounded-md text-xs border border-sky-500/20 bg-sky-500/5 flex gap-2">
+                                    <Info className="w-3.5 h-3.5 shrink-0 text-sky-500 mt-0.5" />
+                                    <span>Además, {refreshCount} tarea(s) se pondrán al día con el <b>código del plan delante del título</b> y su <b>ubicación</b> (flujo › hito). No cambia nada más; lo que hayas renombrado en UniTask se respeta.</span>
+                                </div>
+                            )}
+
                             {diff.unchanged === diff.matched.length && !diff.created.length && !diff.archived.length && (
                                 <div className="py-8 text-center text-sm text-zinc-500 flex items-center justify-center gap-2">
-                                    <Info className="w-4 h-4" /> El Excel no trae cambios respecto al plan de UniTask.
+                                    <Info className="w-4 h-4" /> El Excel no trae cambios respecto al plan de UniTask.{refreshCount > 0 ? " Pulsa “Aplicar cambios” para la puesta al día." : ""}
                                 </div>
                             )}
                         </>

@@ -10,7 +10,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useAccessScopes } from "@/hooks/useAccessScopes";
 import { filterBySAMScope } from "@/lib/projects";
 import { useTheme } from "@/hooks/useTheme";
-import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText, History, Clock, List, Timer, Share2, Fingerprint } from "lucide-react";
+import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText, History, Clock, List, Timer, Share2, Fingerprint, MapPin } from "lucide-react";
 import { getShareUrl, copyToClipboard } from "@/lib/share";
 import { cn } from "@/lib/utils";
 import { Task, Project, UserProfile, AttributeDefinition, MasterDataItem, getRoleLevel, RoleLevel } from "@/types";
@@ -35,6 +35,7 @@ import { ProjectMindMapModal } from "./ProjectMindMapModal";
 import { Network } from "lucide-react";
 
 import { createTask } from "@/lib/tasks";
+import { formatPlanTrail } from "@/lib/plan/planTitle";
 
 // Local MasterDataItem definition removed in favor of types.ts
 
@@ -1453,6 +1454,12 @@ export default function TaskManagement({
                                         onChange={e => setFormData({ ...formData, title: e.target.value })}
                                         placeholder="Escribe el título de la tarea..."
                                     />
+                                    {selectedTask?.planTrail?.length ? (
+                                        <div className={cn("ml-2 mt-1 text-xs flex items-start gap-1.5", isLight ? "text-zinc-500" : "text-zinc-400")} title="Ubicación en el plan del proyecto: flujo › … › hito">
+                                            <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5 text-indigo-500" />
+                                            <span className="min-w-0 break-words">{formatPlanTrail(selectedTask.planTrail)}</span>
+                                        </div>
+                                    ) : null}
                                 </div>
                             </div>
                         </div>

@@ -368,6 +368,14 @@ export interface PlanComputed {
     updatedAt: any;
 }
 
+/** [Plan] Un nivel de la ubicación de una tarea en el plan (desde el flujo hasta su padre). */
+export interface PlanTrailItem {
+    id: string;
+    code: string | null;
+    title: string;      // nombre sin código
+    role: PlanRole;
+}
+
 /** [Plan] Valores del Excel en el último lote, para distinguir "cambió el Excel" de "se editó en UniTask". */
 export interface PlanBaseline {
     title: string;
@@ -471,6 +479,8 @@ export interface Task {
     importKind?: 'initial' | 'reimport';
     /** Lo que decía el Excel la última vez (importación o reimportación): base de la comparación a tres bandas. */
     planBaseline?: PlanBaseline;
+    /** Ubicación en el plan: flujo › … › padre (el código EDT se repite; flujo e hito no). */
+    planTrail?: PlanTrailItem[];
     /** Nº de hijos vivos (no archivados). Lo mantiene la Cloud Function planRollup. */
     planChildCount?: number;
     /** Valores agregados de los hijos. Solo los escribe planRollup. */
