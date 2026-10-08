@@ -2,11 +2,11 @@
 /**
  * [Plan] Pestaña "Plan" del proyecto: árbol de tareas del plan en vivo (estados calculados por la
  * Cloud Function planRollup), alta de tareas desde el árbol (§6), "Descartar bloque" (§5) y acceso
- * al asistente de importación. Importar y descartar: PM y superiores (D8).
+ * al asistente de importación, y exportación a Excel (§7). Importar y descartar: PM y superiores (D8).
  */
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { Upload, Loader2, Search, AlertTriangle, Plus, ExternalLink, Ban, X } from "lucide-react";
+import { Upload, Download, Loader2, Search, AlertTriangle, Plus, ExternalLink, Ban, X } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -16,6 +16,8 @@ import { getRoleLevel, RoleLevel, type Project, type Task } from "@/types";
 import { aggregateChildren } from "@/functions/src/planRollupCore";
 import { discardBlock, isWorkable, toIso, type AddMode } from "@/lib/plan/planTasks";
 import { planName } from "@/lib/plan/planTitle";
+import { buildPlanExport, planExportFileName } from "@/lib/plan/planExport";
+import { downloadBlob, writePlanWorkbook } from "./writePlanFile";
 import { PlanTree, type PlanTreeRow } from "./PlanTree";
 import { PlanImportWizard } from "./PlanImportWizard";
 import { PlanReimportWizard } from "./PlanReimportWizard";
@@ -33,7 +35,9 @@ export function ProjectPlan({ project }: { project: Project }) {
     const roleLevel = Number(identity?.realRole ?? getRoleLevel(userRole));
     const isPM = roleLevel >= RoleLevel.PM;
 
-    const [tasks, setTasks] = useState<Task[] | null>(null);
+    const [allTasks, setAllTasks] = useState<Task[] | null>(null); // incluye archivadas (solo para exportar)
+    const [exporting, setExporting] = useState(false);
+    const [exportArchived, setExportArchived] = useState(false);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [showWizard, setShowWizard] = useState(false);
     const [showReimport, setShowReimport] = useState(false);
@@ -47,10 +51,33 @@ export function ProjectPlan({ project }: { project: Project }) {
     useEffect(() => {
         const q = query(collection(db, "tasks"), where("projectId", "==", project.id), where("tenantId", "==", tenantId));
         return onSnapshot(q,
-            (snap) => { setTasks(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Task)).filter((t) => !!t.planRole && t.planStatus !== "archived")); setLoadError(null); },
-            (err) => { console.error("[ProjectPlan] Error cargando tareas del plan", project.id, err); setLoadError(err.message); setTasks([]); },
+            (snap) => { setAllTasks(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Task)).filter((t) => !!t.planRole)); setLoadError(null); },
+            (err) => { console.error("[ProjectPlan] Error cargando tareas del plan", project.id, err); setLoadError(err.message); setAllTasks([]); },
         );
     }, [project.id, tenantId]);
+
+    const tasks = useMemo(() => (allTasks ? allTasks.filter((t) => t.planStatus !== "archived") : null), [allTasks]);
+    const archivedCount = (allTasks?.length ?? 0) - (tasks?.length ?? 0);
+
+    const handleExport = async () => {
+        if (!allTasks) return;
+        setExporting(true);
+        try {
+            const result = buildPlanExport(allTasks, { includeArchived: exportArchived });
+            const blob = await writePlanWorkbook(result, { projectName: project.name, exportedBy: user?.displayName || user?.email || "" });
+            downloadBlob(blob, planExportFileName(project.name));
+            const extra = [
+                result.counts.unitask ? `${result.counts.unitask} creadas en UniTask (en amarillo)` : "",
+                result.counts.skippedDependencies ? `${result.counts.skippedDependencies} predecesora(s) fuera del plan omitidas` : "",
+            ].filter(Boolean).join("; ");
+            showToast("Plan", `Exportadas ${result.counts.total} filas${extra ? ` — ${extra}` : ""}.`, "success");
+        } catch (err) {
+            console.error("[ProjectPlan] Error exportando el plan", project.id, err);
+            showToast("Plan", `No se pudo exportar el plan: ${err instanceof Error ? err.message : String(err)}`, "error");
+        } finally {
+            setExporting(false);
+        }
+    };
 
     const byId = useMemo(() => new Map((tasks || []).map((t) => [t.id, t])), [tasks]);
 
@@ -208,6 +235,16 @@ export function ProjectPlan({ project }: { project: Project }) {
                             <button onClick={() => setAdding({ mode: "loose", parent: null })}
                                 className={cn("inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border", isLight ? "border-zinc-300 hover:bg-zinc-100" : "border-white/15 hover:bg-white/5")}>
                                 <Plus className="w-3.5 h-3.5" /> Tarea suelta
+                            </button>
+                            {archivedCount > 0 && (
+                                <label className="flex items-center gap-1.5 text-xs cursor-pointer" title="Incluir en la exportación las tareas archivadas (en gris)">
+                                    <input type="checkbox" checked={exportArchived} onChange={(e) => setExportArchived(e.target.checked)} /> Exportar archivadas ({archivedCount})
+                                </label>
+                            )}
+                            <button onClick={handleExport} disabled={exporting}
+                                className={cn("inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border disabled:opacity-50", isLight ? "border-zinc-300 hover:bg-zinc-100" : "border-white/15 hover:bg-white/5")}
+                                title="Excel con el formato de MS Project: % por estado, tareas creadas en UniTask resaltadas. Se puede reimportar.">
+                                {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} Exportar Excel
                             </button>
                             {isPM && (
                                 <button onClick={() => setShowReimport(true)}
