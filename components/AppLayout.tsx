@@ -53,15 +53,15 @@ import { Sparkles as GeminiIcon } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import FirebaseDiagnostic from "@/components/FirebaseDiagnostic";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, TrendingDown } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import ProfileSettingsModal from "@/components/ProfileSettingsModal";
 import TaskManagement from "@/components/TaskManagement";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'discovery' | 'admin-task-control';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'discovery' | 'admin-task-control') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'discovery' | 'admin-task-control' | 'project-dashboard';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'discovery' | 'admin-task-control' | 'project-dashboard') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -314,6 +314,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                         <div className="space-y-1">
                             <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.workspace')}</p>
                             <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
+                            <NavItem mode="project-dashboard" icon={TrendingDown} label="Dashboard de proyecto" />
                             <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
                             <NavItem mode="relevamiento" icon={ClipboardCheck} label={t('nav.relevamiento') || "Relevamiento Proyectos"} />
                             <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
@@ -581,6 +582,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <div className="space-y-1">
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.workspace')}</p>
                                 <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
+                            <NavItem mode="project-dashboard" icon={TrendingDown} label="Dashboard de proyecto" />
                                 <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
                                 <NavItem mode="relevamiento" icon={ClipboardCheck} label={t('nav.relevamiento') || "Relevamiento Proyectos"} />
                                 <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />

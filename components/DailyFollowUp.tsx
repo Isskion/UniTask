@@ -26,6 +26,7 @@ import { summarizeNotesWithAI, reformatNotesWithAI } from "@/app/actions/unidocs
 import UserManagement from "./UserManagement";
 import UserRoleManagement from "./UserRoleManagement";
 import Dashboard from "./Dashboard";
+import ProjectDashboard from "./ProjectDashboard";
 import FirebaseDiagnostic from "./FirebaseDiagnostic";
 import { subscribeToProjectTasks, subscribeToOpenTasks, toggleTaskBlock, updateTaskStatus, createTask } from "@/lib/tasks";
 import { getActiveProjects, filterBySAMScope } from "@/lib/projects";
@@ -89,7 +90,7 @@ function getFriendlyAuthError(code?: string): string {
     }
 }
 
-type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'discovery' | 'admin-task-control';
+type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'discovery' | 'admin-task-control' | 'project-dashboard';
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
@@ -195,7 +196,7 @@ export default function DailyFollowUp() {
             // 2. Load View Mode (Priority: URL > LocalStorage > Default)
             const urlMode = (searchParams.get('mode') || searchParams.get('view')) as ViewMode;
             const savedView = localStorage.getItem('daily_view_mode') as ViewMode;
-            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'availability-registry', 'uniflux', 'unidocs', 'inbox', 'relevamiento', 'discovery', 'admin-task-control'];
+            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'availability-registry', 'uniflux', 'unidocs', 'inbox', 'relevamiento', 'discovery', 'admin-task-control', 'project-dashboard'];
 
             if (urlMode && allowedViews.includes(urlMode)) {
                 setViewMode(urlMode);
@@ -2471,6 +2472,10 @@ export default function DailyFollowUp() {
                                     userProfile={userProfile}
                                     userRole={userRole}
                                 />
+                            </div>
+                        ) : viewMode === 'project-dashboard' ? (
+                            <div className="flex-1 h-full overflow-y-auto custom-scrollbar p-6">
+                                <ProjectDashboard globalProjects={globalProjects} />
                             </div>
                         ) : viewMode === 'admin-task-master' ? (
                             <TaskMasterDataManagement />

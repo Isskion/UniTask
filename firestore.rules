@@ -372,6 +372,13 @@ service cloud.firestore {
         allow delete: if isSuperAdmin();
     }
 
+    // [Seguimiento] Foto diaria del avance por proyecto (docs/project-dashboard-design.md §4).
+    // La escribe solo la Cloud Function projectSnapshots (admin SDK); el cliente solo lee su tenant.
+    match /project_snapshots/{snapshotId} {
+        allow read: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(resource.data));
+        allow write: if false;
+    }
+
     // --- [HARDENED] AUDIT LOGS ---
     // [SECURITY FIX] Antes: isAuthenticated() sin filtro de tenant exponía el
     // audit log de TODOS los tenants y permitía inyectar entradas falsas en cualquiera.

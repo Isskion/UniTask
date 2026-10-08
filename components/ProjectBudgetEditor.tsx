@@ -112,7 +112,7 @@ export default function ProjectBudgetEditor({ formData, setFormData, isLight, ca
                 <div className={cn("px-4 pb-4 space-y-5 border-t", isLight ? "border-zinc-200" : "border-white/5")}>
 
                     {/* Fechas opcionales */}
-                    <div className="grid grid-cols-2 gap-4 pt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
                         <div className="space-y-1.5">
                             <label className={labelCls}>Fecha inicio</label>
                             <input
@@ -124,13 +124,23 @@ export default function ProjectBudgetEditor({ formData, setFormData, isLight, ca
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className={labelCls}>Fecha fin</label>
+                            <label className={labelCls} title="La fecha fin con la que se trabaja ahora; se puede replanificar">Fecha fin prevista</label>
                             <input
                                 type="date"
                                 disabled={!canEdit}
                                 className={cn(inputCls, "w-full")}
                                 value={formData.endDate || ""}
                                 onChange={e => setFormData({ ...formData, endDate: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className={labelCls} title="Fecha fin firmada con el cliente. No se mueve al replanificar: el Dashboard de proyecto mide la desviación contra ella">Fecha fin comprometida</label>
+                            <input
+                                type="date"
+                                disabled={!canEdit}
+                                className={cn(inputCls, "w-full")}
+                                value={formData.committedEndDate || ""}
+                                onChange={e => setFormData({ ...formData, committedEndDate: e.target.value })}
                             />
                         </div>
                     </div>

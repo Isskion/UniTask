@@ -68,6 +68,7 @@ const COLLECTIONS = [
     'interfaces',
     'project_hierarchy',
     'plan_imports',
+    'project_snapshots',
     'project_interfaces',
     'support_tickets',
     'tenant_dictionary',

@@ -73,7 +73,7 @@ const COLLECTIONS = [
     'document_types', 'ai_pricing', 'tenant_ai_config', 'usage_shards',
     'monthly_summary', 'ai_executions',
     'unileaks', 'unidocs_templates', 'product_proposals', 'uniswaggerCache',
-    'plan_imports'
+    'plan_imports', 'project_snapshots'
 ];
 
 async function backupDatabase() {

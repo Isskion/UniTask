@@ -23,3 +23,4 @@ export * from "./syncUserClaims";
 export * from "./unigis";
 export * from "./aggregateCounters";
 export { planRollup } from "./planRollup";
+export { projectSnapshots } from "./projectSnapshots";

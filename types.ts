@@ -64,7 +64,9 @@ export interface Project {
     budgetHours?: number;          // total presupuestado (normalmente = suma de fases, override manual posible)
     budgetPhases?: ProjectPhase[]; // desglose por fase/actividad
     startDate?: any;               // opcional: para ritmo esperado / proyección (burn rate)
-    endDate?: any;                 // opcional
+    endDate?: any;                 // opcional. Fecha fin prevista (la que se replanifica)
+    /** [Seguimiento] Fecha fin comprometida con el cliente (yyyy-MM-dd): referencia fija para medir la desviación. */
+    committedEndDate?: string;
     phaseMapping?: ProjectPhaseMapping; // cómo atribuir lo consumido (planificado/real) a cada fase
 
     // Security & Metadata
