@@ -882,7 +882,10 @@
     "lastUpdate": {
       "_seconds": 1789743103,
       "_nanoseconds": 120000000
-    }
+    },
+    "endDate": "2027-06-30",
+    "committedEndDate": "2027-09-01",
+    "startDate": "2026-09-01"
   },
   {
     "id": "b1jomMQVWkW2EhNDIUch",

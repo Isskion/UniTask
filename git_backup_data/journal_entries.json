@@ -5592,6 +5592,32 @@
     "updatedAt": "2026-10-07T13:45:58.483Z"
   },
   {
+    "id": "3_2026-10-08",
+    "date": "2026-10-08",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "SMSA",
+        "projectId": "c0HRtaCkKXxeiQf897sY",
+        "pmNotes": "SMSA Seguimiento semanal 08-10-26\nMañana desde las 10 PT viernes a avanzar pruebas con motoristas\nConsolidados: ver con Gonzalo y entregar feedback prioridad antes del 16-08\nINT 4: ya entregada por Gonzalo - SMSA a enviar códigos únicos y avanzar pruebas\nSplit: el SOP esta en avance por el desarrollador - a entregar novedad en las próximas horas prioridad antes del 16-08\nCapacitaciones usuarios finales: próxima semana se contará con los usuarios finales - los motoristas lo único que falta son los cambios automáticos de estados (la geocerca no está funcionando siempre entonces se tiene que hay que hacer el cambio manual)\nRevisar cantidad de stock a nivel orden no se rellenan = siguen sin verlo en la pantalla principal (ver correo de Rita hoy)\nVer también en el Word el caso del cambio de flujo a pendiente planificación\nc340.40 en test\nReplanteamiento del día siguiente: cuando no fue cargado en el WMS o entregado al cliente se queda en Entrega Parcial con replanificación al día siguiente pero aún no se consigue ver para replanificar\nLunes 12-10 festivo ESP\nPrioridad secundaria\nReplanificar una jornada: ver el caso de la orden replanificada la orden se duplica pero no se borra en la jornada original (VER) - ver el caso compartido en el word",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "SMSA Seguimiento semanal 08-10-26\nMañana desde las 10 PT viernes a avanzar pruebas con motoristas\nConsolidados: ver con Gonzalo y entregar feedback prioridad antes del 16-08\nINT 4: ya entregada por Gonzalo - SMSA a enviar códigos únicos y avanzar pruebas\nSplit: el SOP esta en avance por el desarrollador - a entregar novedad en las próximas horas prioridad antes del 16-08\nCapacitaciones usuarios finales: próxima semana se contará con los usuarios finales - los motoristas lo único que falta son los cambios automáticos de estados (la geocerca no está funcionando siempre entonces se tiene que hay que hacer el cambio manual)\nRevisar cantidad de stock a nivel orden no se rellenan = siguen sin verlo en la pantalla principal (ver correo de Rita hoy)\nVer también en el Word el caso del cambio de flujo a pendiente planificación\nc340.40 en test\nReplanteamiento del día siguiente: cuando no fue cargado en el WMS o entregado al cliente se queda en Entrega Parcial con replanificación al día siguiente pero aún no se consigue ver para replanificar\nLunes 12-10 festivo ESP\nPrioridad secundaria\nReplanificar una jornada: ver el caso de la orden replanificada la orden se duplica pero no se borra en la jornada original (VER) - ver el caso compartido en el word",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-10-08T14:54:41.309Z",
+    "updatedAt": "2026-10-08T14:54:47.299Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",

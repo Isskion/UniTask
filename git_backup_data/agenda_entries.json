@@ -1006,10 +1006,7 @@
     "comment": "TRANSPAIS | Aplicar transiciones y crear ordenes ",
     "client": "TRANSPAIS | APLICAR TRANSICIONES Y CREAR ORDENES",
     "description": "TRANSPAIS | APLICAR TRANSICIONES Y CREAR ORDENES",
-    "scheduleRaw": "10:00 A 12:00",
-    "scheduleStart": "10:00",
     "scheduleEnd": "12:00",
-    "scheduledHours": 2,
     "jiraRecord": "Tarea: TRANSPAIS | APLICAR TRANSICIONES Y CREAR ORDENES",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "projectName": "TRANSPAIS",
@@ -1023,9 +1020,12 @@
       "_nanoseconds": 419000000
     },
     "result": "Hecho",
+    "scheduleStart": "09:00",
+    "scheduleRaw": "09:00 A 12:00",
+    "scheduledHours": 3,
     "updatedAt": {
-      "_seconds": 1791281418,
-      "_nanoseconds": 426000000
+      "_seconds": 1791473417,
+      "_nanoseconds": 48000000
     }
   },
   {
@@ -10522,6 +10522,51 @@
     "updatedAt": {
       "_seconds": 1784652130,
       "_nanoseconds": 228000000
+    }
+  },
+  {
+    "id": "7IBZ1t0KVicFN8tZ0ORX",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791324000,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Reunión UNIGIS",
+    "comment": "UNIGIS | Producto comunica",
+    "client": "UNIGIS | PRODUCTO COMUNICA",
+    "description": "UNIGIS | PRODUCTO COMUNICA",
+    "scheduleRaw": "10:00 A 11:30",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:30",
+    "scheduledHours": 1.5,
+    "result": "Hecho",
+    "jiraRecord": "Reunión UNIGIS: UNIGIS | PRODUCTO COMUNICA",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791473256,
+      "_nanoseconds": 290000000
+    },
+    "updatedAt": {
+      "_seconds": 1791473256,
+      "_nanoseconds": 290000000
     }
   },
   {
@@ -27791,17 +27836,10 @@
     "consultantName": "DANIEL TENANT ADMIN",
     "consultantOrder": 1,
     "region": "España",
-    "divisionId": "",
-    "divisionName": "",
     "activityType": "Reunión Cliente",
     "comment": "LUIS SIMOES / SEGUIMIENTO DE PROYECTO",
     "client": "LUIS SIMOES",
     "description": "SEGUIMIENTO DE PROYECTO",
-    "scheduleRaw": "11:30 A 12:00",
-    "scheduleStart": "11:30",
-    "scheduleEnd": "12:00",
-    "scheduledHours": 0.5,
-    "result": "Por Hacer",
     "jiraRecord": "Reunión Cliente: LUIS SIMOES->SEGUIMIENTO DE PROYECTO",
     "projectId": "OH4sjML9byhLuzMXSTss",
     "projectName": "LUIS SIMOES Fase II",
@@ -27816,9 +27854,16 @@
       "_seconds": 1791193912,
       "_nanoseconds": 51000000
     },
+    "result": "Hecho",
+    "divisionName": "Consultoría",
+    "divisionId": "Consultoría",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:00",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduledHours": 1,
     "updatedAt": {
-      "_seconds": 1791193912,
-      "_nanoseconds": 51000000
+      "_seconds": 1791473428,
+      "_nanoseconds": 881000000
     }
   },
   {
@@ -31185,6 +31230,51 @@
     "updatedAt": {
       "_seconds": 1784652134,
       "_nanoseconds": 412000000
+    }
+  },
+  {
+    "id": "LIBC6cuX2yejdERcRwjD",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791410400,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Reunión Cliente",
+    "comment": "TRANSPAIS | Validación de interfaces con aitana",
+    "client": "TRANSPAIS | VALIDACIÓN DE INTERFACES CON AITANA",
+    "description": "TRANSPAIS | VALIDACIÓN DE INTERFACES CON AITANA",
+    "scheduleRaw": "10:00 A 12:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 2,
+    "result": "Por Hacer",
+    "jiraRecord": "Reunión Cliente: TRANSPAIS | VALIDACIÓN DE INTERFACES CON AITANA",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "projectCode": "TSP",
+    "projectColor": "#3b82f6",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791472919,
+      "_nanoseconds": 65000000
+    },
+    "updatedAt": {
+      "_seconds": 1791472919,
+      "_nanoseconds": 65000000
     }
   },
   {
@@ -36116,17 +36206,11 @@
     "consultantName": "DANIEL TENANT ADMIN",
     "consultantOrder": 1,
     "region": "España",
-    "divisionId": "",
-    "divisionName": "",
     "activityType": "Reunión Cliente",
     "comment": "LUIS SIMOES / Sesión de trabajo con cliente",
     "client": "LUIS SIMOES",
     "description": "SESIÓN DE TRABAJO CON CLIENTE",
-    "scheduleRaw": "10:30 A 12:00",
-    "scheduleStart": "10:30",
     "scheduleEnd": "12:00",
-    "scheduledHours": 1.5,
-    "result": "Por Hacer",
     "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE",
     "projectId": "OH4sjML9byhLuzMXSTss",
     "projectName": "LUIS SIMOES Fase II",
@@ -36141,9 +36225,15 @@
       "_seconds": 1791193912,
       "_nanoseconds": 51000000
     },
+    "result": "Hecho",
+    "divisionName": "Consultoría",
+    "divisionId": "Consultoría",
+    "scheduleStart": "10:00",
+    "scheduleRaw": "10:00 A 12:00",
+    "scheduledHours": 2,
     "updatedAt": {
-      "_seconds": 1791193912,
-      "_nanoseconds": 51000000
+      "_seconds": 1791473171,
+      "_nanoseconds": 705000000
     }
   },
   {
@@ -47506,6 +47596,51 @@
     "updatedAt": {
       "_seconds": 1788430235,
       "_nanoseconds": 447000000
+    }
+  },
+  {
+    "id": "Wc372QqiP04UzjYHhSzr",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791324000,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Tareas a Realizar",
+    "comment": "UNIGIS | Parametrizar DeCa Primagas -- Añadir remolque",
+    "client": "UNIGIS | PARAMETRIZAR DECA PRIMAGAS -- AÑADIR REMOLQUE",
+    "description": "UNIGIS | PARAMETRIZAR DECA PRIMAGAS -- AÑADIR REMOLQUE",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:00",
+    "scheduledHours": 1,
+    "jiraRecord": "Tarea: UNIGIS | PARAMETRIZAR DECA PRIMAGAS -- AÑADIR REMOLQUE",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791473304,
+      "_nanoseconds": 237000000
+    },
+    "result": "Hecho",
+    "updatedAt": {
+      "_seconds": 1791473390,
+      "_nanoseconds": 274000000
     }
   },
   {
@@ -69774,6 +69909,51 @@
     }
   },
   {
+    "id": "lqtpTlf2ayCaMWVeU9N0",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791324000,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 1",
+    "weekMonth": "Semana 1-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Tareas a Realizar",
+    "comment": "TRANSPAIS | Construcción - Flujos de internacional",
+    "client": "TRANSPAIS | CONSTRUCCIÓN - FLUJOS DE INTERNACIONAL",
+    "description": "TRANSPAIS | CONSTRUCCIÓN - FLUJOS DE INTERNACIONAL",
+    "jiraRecord": "Tarea: TRANSPAIS | CONSTRUCCIÓN - FLUJOS DE INTERNACIONAL",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "projectCode": "TSP",
+    "projectColor": "#3b82f6",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791473335,
+      "_nanoseconds": 296000000
+    },
+    "scheduleStart": "09:00",
+    "scheduleEnd": "12:30",
+    "scheduleRaw": "09:00 A 12:30",
+    "scheduledHours": 3.5,
+    "result": "Hecho",
+    "updatedAt": {
+      "_seconds": 1791473385,
+      "_nanoseconds": 834000000
+    }
+  },
+  {
     "id": "lvrYsWBGVymsQuAwk8gx",
     "tenantId": "3",
     "date": {
@@ -79519,18 +79699,9 @@
     "consultantName": "DANIEL TENANT ADMIN",
     "consultantOrder": 1,
     "region": "España",
-    "divisionId": "",
-    "divisionName": "",
     "activityType": "Reunión Cliente",
-    "comment": "LUIS SIMOES / Sesión de trabajo con cliente",
     "client": "LUIS SIMOES",
-    "description": "SESIÓN DE TRABAJO CON CLIENTE",
-    "scheduleRaw": "10:30 A 12:00",
-    "scheduleStart": "10:30",
     "scheduleEnd": "12:00",
-    "scheduledHours": 1.5,
-    "result": "Por Hacer",
-    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE",
     "projectId": "OH4sjML9byhLuzMXSTss",
     "projectName": "LUIS SIMOES Fase II",
     "projectCode": "LSM",
@@ -79544,9 +79715,18 @@
       "_seconds": 1791193912,
       "_nanoseconds": 51000000
     },
+    "result": "Hecho",
+    "scheduleStart": "10:00",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES->SESIÓN DE TRABAJO CON CLIENTE TARIFAS",
+    "divisionName": "Consultoría",
+    "description": "SESIÓN DE TRABAJO CON CLIENTE TARIFAS",
+    "comment": "LUIS SIMOES / Sesión de trabajo con cliente TARIFAS",
+    "divisionId": "Consultoría",
+    "scheduleRaw": "10:00 A 12:00",
+    "scheduledHours": 2,
     "updatedAt": {
-      "_seconds": 1791193912,
-      "_nanoseconds": 51000000
+      "_seconds": 1791473221,
+      "_nanoseconds": 217000000
     }
   },
   {
@@ -79641,6 +79821,51 @@
     "updatedAt": {
       "_seconds": 1784287666,
       "_nanoseconds": 87000000
+    }
+  },
+  {
+    "id": "sYB6hhdF8gdvCcdH90g3",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791410400,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Tareas a Realizar",
+    "comment": "TRANSPAIS | Validación de flujo Internacional + Traspaso de tareas a EN CURSO y remitir solicitud de información a cliente.",
+    "client": "TRANSPAIS | VALIDACIÓN DE FLUJO INTERNACIONAL + TRASPASO DE TAREAS A EN CURSO Y REMITIR SOLICITUD DE INFORMACIÓN A CLIENTE.",
+    "description": "TRANSPAIS | VALIDACIÓN DE FLUJO INTERNACIONAL + TRASPASO DE TAREAS A EN CURSO Y REMITIR SOLICITUD DE INFORMACIÓN A CLIENTE.",
+    "scheduleRaw": "14:00 A 18:00",
+    "scheduleStart": "14:00",
+    "scheduleEnd": "18:00",
+    "scheduledHours": 4,
+    "result": "Por Hacer",
+    "jiraRecord": "Tarea: TRANSPAIS | VALIDACIÓN DE FLUJO INTERNACIONAL + TRASPASO DE TAREAS A EN CURSO Y REMITIR SOLICITUD DE INFORMACIÓN A CLIENTE.",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "projectCode": "TSP",
+    "projectColor": "#3b82f6",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791473149,
+      "_nanoseconds": 938000000
+    },
+    "updatedAt": {
+      "_seconds": 1791473149,
+      "_nanoseconds": 938000000
     }
   },
   {

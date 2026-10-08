@@ -2867,7 +2867,6 @@
   {
     "id": "2V6iL6ToK72KjBNIjlho",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -2949,9 +2948,21 @@
       }
     ],
     "title": "III.1.4.7.2 Configurar y cargar Grupos y Usuarios",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "acceptanceCriteria": [],
+    "progress": 0,
+    "attributes": {},
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791469165,
+      "_nanoseconds": 241000000
     }
   },
   {
@@ -3630,7 +3641,6 @@
   {
     "id": "2rwCjoPRi8fgBRurMW7P",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -3713,9 +3723,15 @@
       }
     ],
     "title": "III.1.4.1.24 Transpais compilar y compartir credenciales para configurar login TMS SSO",
+    "acceptanceCriteria": [],
+    "progress": 0,
+    "attributes": {},
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791469333,
+      "_nanoseconds": 412000000
     }
   },
   {
@@ -6570,26 +6586,26 @@
     "status": "in_progress",
     "computed": {
       "status": "in_progress",
-      "progress": 15,
+      "progress": 20,
       "estimatedEffort": 20,
-      "actualEffort": 0,
+      "actualEffort": 80,
       "startDate": "2027-02-18T23:00:00.000Z",
       "endDate": "2027-02-21T23:00:00.000Z",
       "childCount": 10,
-      "doneCount": 0,
+      "doneCount": 2,
       "updatedAt": {
-        "_seconds": 1791460141,
-        "_nanoseconds": 762000000
+        "_seconds": 1791471499,
+        "_nanoseconds": 179000000
       }
     },
     "progressV13": {
-      "actual": 15,
+      "actual": 20,
       "planned": 0,
-      "aggregated": 15
+      "aggregated": 20
     },
     "updatedAt": {
-      "_seconds": 1791460141,
-      "_nanoseconds": 762000000
+      "_seconds": 1791471499,
+      "_nanoseconds": 179000000
     }
   },
   {
@@ -7160,10 +7176,16 @@
     "attributes": {},
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "dependencies": [],
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 40,
+    "closedAt": {
+      "_seconds": 1791471484,
+      "_nanoseconds": 940000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1791459810,
-      "_nanoseconds": 205000000
+      "_seconds": 1791471484,
+      "_nanoseconds": 940000000
     }
   },
   {
@@ -7941,28 +7963,28 @@
       "estimatedEffort": null,
       "percent": 10
     },
+    "progressV13": {
+      "actual": 13.9,
+      "planned": 0,
+      "aggregated": 13.9
+    },
     "computed": {
       "status": "in_progress",
-      "progress": 13.3,
+      "progress": 13.9,
       "estimatedEffort": 1412,
-      "actualEffort": 80,
+      "actualEffort": 200,
       "startDate": "2026-09-06T22:00:00.000Z",
       "endDate": "2027-09-06T22:00:00.000Z",
       "childCount": 1,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791460144,
-        "_nanoseconds": 178000000
+        "_seconds": 1791471513,
+        "_nanoseconds": 763000000
       }
     },
-    "progressV13": {
-      "actual": 13.3,
-      "planned": 0,
-      "aggregated": 13.3
-    },
     "updatedAt": {
-      "_seconds": 1791460144,
-      "_nanoseconds": 178000000
+      "_seconds": 1791471513,
+      "_nanoseconds": 763000000
     }
   },
   {
@@ -8419,7 +8441,6 @@
   {
     "id": "8ayMLm4aDmnjlKBRaXgW",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -8448,7 +8469,6 @@
       "id": "transpais › fase i  rtm y tarifacion › etapa iii  construccion › flujo logistico internacional › mapear interfaces › realizar sesiones de mapeo de interfaces › sesiones bussiness central maestros  creartransportes"
     },
     "startDate": "2026-09-16T22:00:00.000Z",
-    "endDate": "2026-09-17T22:00:00.000Z",
     "priority": "medium",
     "progressV13": {
       "actual": 0,
@@ -8494,9 +8514,22 @@
       }
     ],
     "title": "III.1.1.1.5 Sesiones Bussiness Central Maestros - CrearTransportes",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "acceptanceCriteria": [],
+    "endDate": "2026-10-21T22:00:00.000Z",
+    "progress": 0,
+    "attributes": {},
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791470749,
+      "_nanoseconds": 916000000
     }
   },
   {
@@ -18693,10 +18726,16 @@
     "progress": 0,
     "attributes": {},
     "dependencies": [],
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 40,
+    "closedAt": {
+      "_seconds": 1791471498,
+      "_nanoseconds": 883000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1791460141,
-      "_nanoseconds": 284000000
+      "_seconds": 1791471498,
+      "_nanoseconds": 883000000
     }
   },
   {
@@ -19572,7 +19611,6 @@
   {
     "id": "ImeVmcOMHsorKX6YgLv9",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -19603,10 +19641,6 @@
     "startDate": "2027-01-19T23:00:00.000Z",
     "endDate": "2027-01-21T23:00:00.000Z",
     "priority": "medium",
-    "progressV13": {
-      "actual": 0,
-      "planned": 0
-    },
     "friendlyId": "TRA-244",
     "taskNumber": 244,
     "creationSource": "import",
@@ -19616,20 +19650,6 @@
     "createdAt": {
       "_seconds": 1791356969,
       "_nanoseconds": 506000000
-    },
-    "computed": {
-      "status": "pending",
-      "progress": 0,
-      "estimatedEffort": 3,
-      "actualEffort": 0,
-      "startDate": "2027-01-19T23:00:00.000Z",
-      "endDate": "2027-01-21T23:00:00.000Z",
-      "childCount": 3,
-      "doneCount": 0,
-      "updatedAt": {
-        "_seconds": 1791356969,
-        "_nanoseconds": 506000000
-      }
     },
     "lastImportId": "EUCtGuBN4VQTFb9kFYEQ",
     "planBaseline": {
@@ -19661,9 +19681,29 @@
       }
     ],
     "title": "III.1.4.7 Configurar y realizar pruebas unitarias de grupos de usuarios y permisos",
+    "computed": {
+      "status": "in_progress",
+      "progress": 16.7,
+      "estimatedEffort": 3,
+      "actualEffort": 0,
+      "startDate": "2027-01-19T23:00:00.000Z",
+      "endDate": "2027-01-21T23:00:00.000Z",
+      "childCount": 3,
+      "doneCount": 0,
+      "updatedAt": {
+        "_seconds": 1791469168,
+        "_nanoseconds": 375000000
+      }
+    },
+    "progressV13": {
+      "actual": 16.7,
+      "planned": 0,
+      "aggregated": 16.7
+    },
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791469168,
+      "_nanoseconds": 375000000
     }
   },
   {
@@ -21928,10 +21968,16 @@
     "attributes": {},
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "dependencies": [],
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 40,
+    "closedAt": {
+      "_seconds": 1791471508,
+      "_nanoseconds": 369000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1791459849,
-      "_nanoseconds": 258000000
+      "_seconds": 1791471508,
+      "_nanoseconds": 369000000
     }
   },
   {
@@ -24228,26 +24274,26 @@
     "status": "in_progress",
     "computed": {
       "status": "in_progress",
-      "progress": 15.5,
+      "progress": 15.7,
       "estimatedEffort": 548,
-      "actualEffort": 0,
+      "actualEffort": 80,
       "startDate": "2026-09-30T22:00:00.000Z",
       "endDate": "2027-05-19T22:00:00.000Z",
       "childCount": 7,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791460143,
-        "_nanoseconds": 441000000
+        "_seconds": 1791471499,
+        "_nanoseconds": 866000000
       }
     },
     "progressV13": {
-      "actual": 15.5,
+      "actual": 15.7,
       "planned": 0,
-      "aggregated": 15.5
+      "aggregated": 15.7
     },
     "updatedAt": {
-      "_seconds": 1791460143,
-      "_nanoseconds": 441000000
+      "_seconds": 1791471499,
+      "_nanoseconds": 866000000
     }
   },
   {
@@ -28932,26 +28978,26 @@
     "title": "III.1 Flujo logístico INTERNACIONAL",
     "computed": {
       "status": "in_progress",
-      "progress": 21.3,
+      "progress": 22.7,
       "estimatedEffort": 486,
-      "actualEffort": 80,
+      "actualEffort": 120,
       "startDate": "2026-09-06T22:00:00.000Z",
       "endDate": "2027-06-06T22:00:00.000Z",
       "childCount": 7,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791459855,
-        "_nanoseconds": 64000000
+        "_seconds": 1791471512,
+        "_nanoseconds": 767000000
       }
     },
     "progressV13": {
-      "actual": 21.3,
+      "actual": 22.7,
       "planned": 0,
-      "aggregated": 21.3
+      "aggregated": 22.7
     },
     "updatedAt": {
-      "_seconds": 1791459855,
-      "_nanoseconds": 64000000
+      "_seconds": 1791471512,
+      "_nanoseconds": 767000000
     }
   },
   {
@@ -29254,26 +29300,26 @@
     "title": "III.1.4 Configurar la solución y realizar pruebas unitarias",
     "computed": {
       "status": "in_progress",
-      "progress": 24.5,
+      "progress": 25,
       "estimatedEffort": 381,
-      "actualEffort": 80,
+      "actualEffort": 120,
       "startDate": "2026-09-09T22:00:00.000Z",
       "endDate": "2027-06-06T22:00:00.000Z",
       "childCount": 6,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791459854,
-        "_nanoseconds": 662000000
+        "_seconds": 1791471512,
+        "_nanoseconds": 520000000
       }
     },
     "progressV13": {
-      "actual": 24.5,
+      "actual": 25,
       "planned": 0,
-      "aggregated": 24.5
+      "aggregated": 25
     },
     "updatedAt": {
-      "_seconds": 1791459854,
-      "_nanoseconds": 662000000
+      "_seconds": 1791471512,
+      "_nanoseconds": 520000000
     }
   },
   {
@@ -31659,10 +31705,10 @@
     "attributes": {},
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "dependencies": [],
-    "endDate": "2026-10-08T22:00:00.000Z",
+    "endDate": "2026-10-15T22:00:00.000Z",
     "updatedAt": {
-      "_seconds": 1791459878,
-      "_nanoseconds": 460000000
+      "_seconds": 1791471291,
+      "_nanoseconds": 252000000
     }
   },
   {
@@ -34125,28 +34171,28 @@
       "estimatedEffort": null,
       "percent": 10
     },
+    "progressV13": {
+      "actual": 13.9,
+      "planned": 0,
+      "aggregated": 13.9
+    },
     "computed": {
       "status": "in_progress",
-      "progress": 13.3,
+      "progress": 13.9,
       "estimatedEffort": 1412,
-      "actualEffort": 80,
+      "actualEffort": 200,
       "startDate": "2026-09-06T22:00:00.000Z",
       "endDate": "2027-09-06T22:00:00.000Z",
       "childCount": 4,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791460143,
-        "_nanoseconds": 950000000
+        "_seconds": 1791471513,
+        "_nanoseconds": 31000000
       }
     },
-    "progressV13": {
-      "actual": 13.3,
-      "planned": 0,
-      "aggregated": 13.3
-    },
     "updatedAt": {
-      "_seconds": 1791460143,
-      "_nanoseconds": 950000000
+      "_seconds": 1791471513,
+      "_nanoseconds": 31000000
     }
   },
   {
@@ -39073,7 +39119,6 @@
   {
     "id": "a2fZEloFacEfIZgZDEAi",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -39102,7 +39147,6 @@
       "id": "transpais › fase i  rtm y tarifacion › etapa iii  construccion › flujo logistico internacional › mapear interfaces › realizar sesiones de mapeo de interfaces › sesiones bussiness central maestros  crearclientesdadores"
     },
     "startDate": "2026-09-10T22:00:00.000Z",
-    "endDate": "2026-09-13T22:00:00.000Z",
     "priority": "medium",
     "progressV13": {
       "actual": 0,
@@ -39148,9 +39192,22 @@
       }
     ],
     "title": "III.1.1.1.3 Sesiones Bussiness Central Maestros - CrearClientesDadores",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "acceptanceCriteria": [],
+    "endDate": "2026-10-21T22:00:00.000Z",
+    "progress": 0,
+    "attributes": {},
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791470788,
+      "_nanoseconds": 259000000
     }
   },
   {
@@ -42261,29 +42318,29 @@
       }
     ],
     "title": "III.1.1.1 Realizar sesiones de mapeo de interfaces",
+    "status": "in_progress",
     "computed": {
       "status": "in_progress",
-      "progress": 22.2,
+      "progress": 50,
       "estimatedEffort": 18,
       "actualEffort": 0,
       "startDate": "2026-09-06T22:00:00.000Z",
-      "endDate": "2026-09-29T22:00:00.000Z",
+      "endDate": "2026-10-21T22:00:00.000Z",
       "childCount": 9,
       "doneCount": 2,
       "updatedAt": {
-        "_seconds": 1791367979,
-        "_nanoseconds": 381000000
+        "_seconds": 1791470871,
+        "_nanoseconds": 183000000
       }
     },
     "progressV13": {
-      "actual": 22.2,
+      "actual": 50,
       "planned": 0,
-      "aggregated": 22.2
+      "aggregated": 50
     },
-    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367979,
-      "_nanoseconds": 381000000
+      "_seconds": 1791470871,
+      "_nanoseconds": 183000000
     }
   },
   {
@@ -43186,7 +43243,6 @@
   {
     "id": "dJRJV1iQGNVeuMD3xcjn",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -43215,7 +43271,6 @@
       "id": "transpais › fase i  rtm y tarifacion › etapa iii  construccion › flujo logistico internacional › mapear interfaces › realizar sesiones de mapeo de interfaces › sesiones bussiness central maestros  crearclientesorden"
     },
     "startDate": "2026-09-14T22:00:00.000Z",
-    "endDate": "2026-09-15T22:00:00.000Z",
     "priority": "medium",
     "progressV13": {
       "actual": 0,
@@ -43261,9 +43316,22 @@
       }
     ],
     "title": "III.1.1.1.4 Sesiones Bussiness Central Maestros - CrearClientesOrden",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "acceptanceCriteria": [],
+    "endDate": "2026-10-21T22:00:00.000Z",
+    "progress": 0,
+    "attributes": {},
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791470814,
+      "_nanoseconds": 607000000
     }
   },
   {
@@ -44928,7 +44996,6 @@
   {
     "id": "eokTYbQSjf9rDYVxtDaj",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -44957,7 +45024,6 @@
       "id": "transpais › fase i  rtm y tarifacion › etapa iii  construccion › flujo logistico internacional › mapear interfaces › realizar sesiones de mapeo de interfaces › sesiones bussiness central maestros  crearconductores  validar"
     },
     "startDate": "2026-09-22T22:00:00.000Z",
-    "endDate": "2026-09-23T22:00:00.000Z",
     "priority": "medium",
     "progressV13": {
       "actual": 0,
@@ -45003,9 +45069,23 @@
       }
     ],
     "title": "III.1.1.1.7 Sesiones Bussiness Central Maestros - CrearConductores - VALIDAR",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "acceptanceCriteria": [],
+    "techDescription": "Finalmente se hace con excel Mapi, estoy probando el modelo de gonzalo pero es viejo.",
+    "endDate": "2026-10-21T22:00:00.000Z",
+    "progress": 0,
+    "attributes": {},
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791470870,
+      "_nanoseconds": 942000000
     }
   },
   {
@@ -49168,7 +49248,6 @@
   {
     "id": "ihPZOvJ7GfzowxQlOW17",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -49197,7 +49276,6 @@
       "id": "transpais › fase i  rtm y tarifacion › etapa iii  construccion › flujo logistico internacional › mapear interfaces › realizar sesiones de mapeo de interfaces › sesiones bussiness central maestros  crearvehiculos"
     },
     "startDate": "2026-09-20T22:00:00.000Z",
-    "endDate": "2026-09-21T22:00:00.000Z",
     "priority": "medium",
     "progressV13": {
       "actual": 0,
@@ -49243,9 +49321,22 @@
       }
     ],
     "title": "III.1.1.1.6 Sesiones Bussiness Central Maestros - CrearVehiculos",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "acceptanceCriteria": [],
+    "endDate": "2026-10-21T22:00:00.000Z",
+    "progress": 0,
+    "attributes": {},
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791470831,
+      "_nanoseconds": 83000000
     }
   },
   {
@@ -51318,26 +51409,26 @@
     "status": "in_progress",
     "computed": {
       "status": "in_progress",
-      "progress": 55.9,
+      "progress": 56.8,
       "estimatedEffort": 148,
-      "actualEffort": 0,
+      "actualEffort": 40,
       "startDate": "2026-09-09T22:00:00.000Z",
       "endDate": "2027-06-06T22:00:00.000Z",
       "childCount": 27,
-      "doneCount": 9,
+      "doneCount": 10,
       "updatedAt": {
-        "_seconds": 1791459853,
-        "_nanoseconds": 664000000
+        "_seconds": 1791471508,
+        "_nanoseconds": 784000000
       }
     },
     "progressV13": {
-      "actual": 55.9,
+      "actual": 56.8,
       "planned": 0,
-      "aggregated": 55.9
+      "aggregated": 56.8
     },
     "updatedAt": {
-      "_seconds": 1791459853,
-      "_nanoseconds": 664000000
+      "_seconds": 1791471508,
+      "_nanoseconds": 784000000
     }
   },
   {
@@ -54037,26 +54128,26 @@
     "status": "in_progress",
     "computed": {
       "status": "in_progress",
-      "progress": 1.8,
+      "progress": 2.4,
       "estimatedEffort": 167,
-      "actualEffort": 0,
+      "actualEffort": 80,
       "startDate": "2026-11-19T23:00:00.000Z",
       "endDate": "2027-04-06T22:00:00.000Z",
       "childCount": 9,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791460142,
-        "_nanoseconds": 857000000
+        "_seconds": 1791471499,
+        "_nanoseconds": 462000000
       }
     },
     "progressV13": {
-      "actual": 1.8,
+      "actual": 2.4,
       "planned": 0,
-      "aggregated": 1.8
+      "aggregated": 2.4
     },
     "updatedAt": {
-      "_seconds": 1791460142,
-      "_nanoseconds": 857000000
+      "_seconds": 1791471499,
+      "_nanoseconds": 462000000
     }
   },
   {
@@ -56204,29 +56295,29 @@
       }
     ],
     "title": "III.1.1 Mapear Interfaces",
+    "status": "in_progress",
     "computed": {
       "status": "in_progress",
-      "progress": 20,
+      "progress": 45,
       "estimatedEffort": 20,
       "actualEffort": 0,
       "startDate": "2026-09-06T22:00:00.000Z",
-      "endDate": "2026-10-01T22:00:00.000Z",
+      "endDate": "2026-10-21T22:00:00.000Z",
       "childCount": 3,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791367983,
-        "_nanoseconds": 329000000
+        "_seconds": 1791470871,
+        "_nanoseconds": 457000000
       }
     },
     "progressV13": {
-      "actual": 20,
+      "actual": 45,
       "planned": 0,
-      "aggregated": 20
+      "aggregated": 45
     },
-    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367983,
-      "_nanoseconds": 329000000
+      "_seconds": 1791470871,
+      "_nanoseconds": 457000000
     }
   },
   {
@@ -58877,28 +58968,28 @@
         "role": "group"
       }
     ],
+    "progressV13": {
+      "actual": 15.5,
+      "planned": 0,
+      "aggregated": 15.5
+    },
     "computed": {
       "status": "in_progress",
-      "progress": 14.9,
+      "progress": 15.5,
       "estimatedEffort": 1263,
-      "actualEffort": 80,
+      "actualEffort": 200,
       "startDate": "2026-09-06T22:00:00.000Z",
       "endDate": "2027-08-30T22:00:00.000Z",
       "childCount": 3,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791460143,
-        "_nanoseconds": 762000000
+        "_seconds": 1791471512,
+        "_nanoseconds": 898000000
       }
     },
-    "progressV13": {
-      "actual": 14.9,
-      "planned": 0,
-      "aggregated": 14.9
-    },
     "updatedAt": {
-      "_seconds": 1791460143,
-      "_nanoseconds": 762000000
+      "_seconds": 1791471512,
+      "_nanoseconds": 898000000
     }
   },
   {
@@ -59195,7 +59286,6 @@
   {
     "id": "s8RdUvwn5227vyEXa2Bi",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -59225,10 +59315,6 @@
     "startDate": "2027-01-19T23:00:00.000Z",
     "endDate": "2027-01-25T23:00:00.000Z",
     "priority": "medium",
-    "progressV13": {
-      "actual": 0,
-      "planned": 0
-    },
     "friendlyId": "TRA-239",
     "taskNumber": 239,
     "creationSource": "import",
@@ -59246,20 +59332,6 @@
     "createdAt": {
       "_seconds": 1791356969,
       "_nanoseconds": 506000000
-    },
-    "computed": {
-      "status": "pending",
-      "progress": 0,
-      "estimatedEffort": 8,
-      "actualEffort": 0,
-      "startDate": "2027-01-19T23:00:00.000Z",
-      "endDate": "2027-01-25T23:00:00.000Z",
-      "childCount": 4,
-      "doneCount": 0,
-      "updatedAt": {
-        "_seconds": 1791356969,
-        "_nanoseconds": 506000000
-      }
     },
     "lastImportId": "EUCtGuBN4VQTFb9kFYEQ",
     "planBaseline": {
@@ -59285,9 +59357,29 @@
       }
     ],
     "title": "III.1.4.6 Transpais realizar pruebas unitarias de reportes en TEST",
+    "computed": {
+      "status": "in_progress",
+      "progress": 6.3,
+      "estimatedEffort": 8,
+      "actualEffort": 0,
+      "startDate": "2027-01-19T23:00:00.000Z",
+      "endDate": "2027-01-25T23:00:00.000Z",
+      "childCount": 4,
+      "doneCount": 0,
+      "updatedAt": {
+        "_seconds": 1791469169,
+        "_nanoseconds": 481000000
+      }
+    },
+    "progressV13": {
+      "actual": 6.3,
+      "planned": 0,
+      "aggregated": 6.3
+    },
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791469169,
+      "_nanoseconds": 481000000
     }
   },
   {
@@ -61590,26 +61682,26 @@
     "status": "in_progress",
     "computed": {
       "status": "in_progress",
-      "progress": 1.5,
+      "progress": 2,
       "estimatedEffort": 197,
-      "actualEffort": 0,
+      "actualEffort": 80,
       "startDate": "2026-11-19T23:00:00.000Z",
       "endDate": "2027-04-29T22:00:00.000Z",
       "childCount": 6,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791460143,
-        "_nanoseconds": 169000000
+        "_seconds": 1791471499,
+        "_nanoseconds": 673000000
       }
     },
     "progressV13": {
-      "actual": 1.5,
+      "actual": 2,
       "planned": 0,
-      "aggregated": 1.5
+      "aggregated": 2
     },
     "updatedAt": {
-      "_seconds": 1791460143,
-      "_nanoseconds": 169000000
+      "_seconds": 1791471499,
+      "_nanoseconds": 673000000
     }
   },
   {
@@ -64179,9 +64271,20 @@
       }
     ],
     "title": "III.2.2.3.1 Interfaz #24 Arkas consumir API estándar Unigis ConsultarOrdenesPedido",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "acceptanceCriteria": [],
+    "progress": 0,
+    "attributes": {},
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791469870,
+      "_nanoseconds": 679000000
     }
   },
   {
