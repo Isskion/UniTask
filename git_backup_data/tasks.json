@@ -6497,7 +6497,6 @@
   {
     "id": "6HtioQnr3tRmdvP7Nknk",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -6528,10 +6527,6 @@
     "startDate": "2027-02-18T23:00:00.000Z",
     "endDate": "2027-02-21T23:00:00.000Z",
     "priority": "medium",
-    "progressV13": {
-      "actual": 0,
-      "planned": 0
-    },
     "friendlyId": "TRA-357",
     "taskNumber": 357,
     "creationSource": "import",
@@ -6541,20 +6536,6 @@
     "createdAt": {
       "_seconds": 1791356969,
       "_nanoseconds": 506000000
-    },
-    "computed": {
-      "status": "pending",
-      "progress": 0,
-      "estimatedEffort": 20,
-      "actualEffort": 0,
-      "startDate": "2027-02-18T23:00:00.000Z",
-      "endDate": "2027-02-21T23:00:00.000Z",
-      "childCount": 10,
-      "doneCount": 0,
-      "updatedAt": {
-        "_seconds": 1791356969,
-        "_nanoseconds": 506000000
-      }
     },
     "lastImportId": "EUCtGuBN4VQTFb9kFYEQ",
     "planBaseline": {
@@ -6586,9 +6567,29 @@
       }
     ],
     "title": "III.2.4.2.1 Configurar y realizar pruebas unitarias de Workflows",
+    "status": "in_progress",
+    "computed": {
+      "status": "in_progress",
+      "progress": 15,
+      "estimatedEffort": 20,
+      "actualEffort": 0,
+      "startDate": "2027-02-18T23:00:00.000Z",
+      "endDate": "2027-02-21T23:00:00.000Z",
+      "childCount": 10,
+      "doneCount": 0,
+      "updatedAt": {
+        "_seconds": 1791460141,
+        "_nanoseconds": 762000000
+      }
+    },
+    "progressV13": {
+      "actual": 15,
+      "planned": 0,
+      "aggregated": 15
+    },
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791460141,
+      "_nanoseconds": 762000000
     }
   },
   {
@@ -7067,7 +7068,6 @@
   {
     "id": "6pRi3XdNUA5QZEpguNMJ",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -7149,9 +7149,21 @@
       }
     ],
     "title": "III.2.4.2.1.1 Configurar Estados de Pedidos-Ordenes-Paradas",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "acceptanceCriteria": [],
+    "progress": 0,
+    "attributes": {},
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
+    "status": "review",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791459810,
+      "_nanoseconds": 205000000
     }
   },
   {
@@ -7931,7 +7943,7 @@
     },
     "computed": {
       "status": "in_progress",
-      "progress": 13.1,
+      "progress": 13.3,
       "estimatedEffort": 1412,
       "actualEffort": 80,
       "startDate": "2026-09-06T22:00:00.000Z",
@@ -7939,18 +7951,18 @@
       "childCount": 1,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791374463,
-        "_nanoseconds": 548000000
+        "_seconds": 1791460144,
+        "_nanoseconds": 178000000
       }
     },
     "progressV13": {
-      "actual": 13.1,
+      "actual": 13.3,
       "planned": 0,
-      "aggregated": 13.1
+      "aggregated": 13.3
     },
     "updatedAt": {
-      "_seconds": 1791374463,
-      "_nanoseconds": 548000000
+      "_seconds": 1791460144,
+      "_nanoseconds": 178000000
     }
   },
   {
@@ -18590,7 +18602,6 @@
   {
     "id": "HuT8X8iuNpomW5j8zcVR",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -18672,9 +18683,20 @@
       }
     ],
     "title": "III.2.4.2.1.5 Configuración transiciones de estado de Pedido-Ordenes-Paradas",
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "acceptanceCriteria": [],
+    "progress": 0,
+    "attributes": {},
+    "dependencies": [],
+    "status": "review",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791460141,
+      "_nanoseconds": 284000000
     }
   },
   {
@@ -21819,7 +21841,6 @@
   {
     "id": "L0c7f7aAW32J3t1SCYEK",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -21902,9 +21923,15 @@
       }
     ],
     "title": "III.1.4.1.21 UNI Crear y configurar transiciones de estados de Ordenes",
+    "acceptanceCriteria": [],
+    "progress": 0,
+    "attributes": {},
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "dependencies": [],
+    "status": "review",
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791459849,
+      "_nanoseconds": 258000000
     }
   },
   {
@@ -24201,7 +24228,7 @@
     "status": "in_progress",
     "computed": {
       "status": "in_progress",
-      "progress": 15,
+      "progress": 15.5,
       "estimatedEffort": 548,
       "actualEffort": 0,
       "startDate": "2026-09-30T22:00:00.000Z",
@@ -24209,18 +24236,18 @@
       "childCount": 7,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791374462,
-        "_nanoseconds": 772000000
+        "_seconds": 1791460143,
+        "_nanoseconds": 441000000
       }
     },
     "progressV13": {
-      "actual": 15,
+      "actual": 15.5,
       "planned": 0,
-      "aggregated": 15
+      "aggregated": 15.5
     },
     "updatedAt": {
-      "_seconds": 1791374462,
-      "_nanoseconds": 772000000
+      "_seconds": 1791460143,
+      "_nanoseconds": 441000000
     }
   },
   {
@@ -28905,7 +28932,7 @@
     "title": "III.1 Flujo logístico INTERNACIONAL",
     "computed": {
       "status": "in_progress",
-      "progress": 21.1,
+      "progress": 21.3,
       "estimatedEffort": 486,
       "actualEffort": 80,
       "startDate": "2026-09-06T22:00:00.000Z",
@@ -28913,18 +28940,18 @@
       "childCount": 7,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791370903,
-        "_nanoseconds": 387000000
+        "_seconds": 1791459855,
+        "_nanoseconds": 64000000
       }
     },
     "progressV13": {
-      "actual": 21.1,
+      "actual": 21.3,
       "planned": 0,
-      "aggregated": 21.1
+      "aggregated": 21.3
     },
     "updatedAt": {
-      "_seconds": 1791370903,
-      "_nanoseconds": 387000000
+      "_seconds": 1791459855,
+      "_nanoseconds": 64000000
     }
   },
   {
@@ -29227,7 +29254,7 @@
     "title": "III.1.4 Configurar la solución y realizar pruebas unitarias",
     "computed": {
       "status": "in_progress",
-      "progress": 24.3,
+      "progress": 24.5,
       "estimatedEffort": 381,
       "actualEffort": 80,
       "startDate": "2026-09-09T22:00:00.000Z",
@@ -29235,18 +29262,18 @@
       "childCount": 6,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791370748,
-        "_nanoseconds": 263000000
+        "_seconds": 1791459854,
+        "_nanoseconds": 662000000
       }
     },
     "progressV13": {
-      "actual": 24.3,
+      "actual": 24.5,
       "planned": 0,
-      "aggregated": 24.3
+      "aggregated": 24.5
     },
     "updatedAt": {
-      "_seconds": 1791370748,
-      "_nanoseconds": 263000000
+      "_seconds": 1791459854,
+      "_nanoseconds": 662000000
     }
   },
   {
@@ -31573,7 +31600,6 @@
       "id": "transpais › fase i  rtm y tarifacion › etapa iii  construccion › flujo logistico internacional › disponibilizar desarrollos requeridos para el proyecto"
     },
     "startDate": "2026-09-10T22:00:00.000Z",
-    "endDate": "2026-10-05T22:00:00.000Z",
     "priority": "medium",
     "friendlyId": "TRA-248",
     "taskNumber": 248,
@@ -31633,9 +31659,10 @@
     "attributes": {},
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "dependencies": [],
+    "endDate": "2026-10-08T22:00:00.000Z",
     "updatedAt": {
-      "_seconds": 1791369248,
-      "_nanoseconds": 50000000
+      "_seconds": 1791459878,
+      "_nanoseconds": 460000000
     }
   },
   {
@@ -34100,7 +34127,7 @@
     },
     "computed": {
       "status": "in_progress",
-      "progress": 13.1,
+      "progress": 13.3,
       "estimatedEffort": 1412,
       "actualEffort": 80,
       "startDate": "2026-09-06T22:00:00.000Z",
@@ -34108,18 +34135,18 @@
       "childCount": 4,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791374463,
-        "_nanoseconds": 287000000
+        "_seconds": 1791460143,
+        "_nanoseconds": 950000000
       }
     },
     "progressV13": {
-      "actual": 13.1,
+      "actual": 13.3,
       "planned": 0,
-      "aggregated": 13.1
+      "aggregated": 13.3
     },
     "updatedAt": {
-      "_seconds": 1791374463,
-      "_nanoseconds": 287000000
+      "_seconds": 1791460143,
+      "_nanoseconds": 950000000
     }
   },
   {
@@ -51288,9 +51315,10 @@
       }
     ],
     "title": "III.1.4.1 Preparar y cargar datos maestros básicos para configuración",
+    "status": "in_progress",
     "computed": {
       "status": "in_progress",
-      "progress": 55.4,
+      "progress": 55.9,
       "estimatedEffort": 148,
       "actualEffort": 0,
       "startDate": "2026-09-09T22:00:00.000Z",
@@ -51298,19 +51326,18 @@
       "childCount": 27,
       "doneCount": 9,
       "updatedAt": {
-        "_seconds": 1791367978,
-        "_nanoseconds": 819000000
+        "_seconds": 1791459853,
+        "_nanoseconds": 664000000
       }
     },
     "progressV13": {
-      "actual": 55.4,
+      "actual": 55.9,
       "planned": 0,
-      "aggregated": 55.4
+      "aggregated": 55.9
     },
-    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1791367978,
-      "_nanoseconds": 819000000
+      "_seconds": 1791459853,
+      "_nanoseconds": 664000000
     }
   },
   {
@@ -53944,7 +53971,6 @@
   {
     "id": "n48655RsayjmPvCzxz8n",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -53974,10 +54000,6 @@
     "startDate": "2026-11-19T23:00:00.000Z",
     "endDate": "2027-04-06T22:00:00.000Z",
     "priority": "medium",
-    "progressV13": {
-      "actual": 0,
-      "planned": 0
-    },
     "friendlyId": "TRA-356",
     "taskNumber": 356,
     "creationSource": "import",
@@ -53987,20 +54009,6 @@
     "createdAt": {
       "_seconds": 1791356969,
       "_nanoseconds": 506000000
-    },
-    "computed": {
-      "status": "pending",
-      "progress": 0,
-      "estimatedEffort": 167,
-      "actualEffort": 0,
-      "startDate": "2026-11-19T23:00:00.000Z",
-      "endDate": "2027-04-06T22:00:00.000Z",
-      "childCount": 9,
-      "doneCount": 0,
-      "updatedAt": {
-        "_seconds": 1791356969,
-        "_nanoseconds": 506000000
-      }
     },
     "lastImportId": "EUCtGuBN4VQTFb9kFYEQ",
     "planBaseline": {
@@ -54026,9 +54034,29 @@
       }
     ],
     "title": "III.2.4.2 Configurar y probar flujos logísticos",
+    "status": "in_progress",
+    "computed": {
+      "status": "in_progress",
+      "progress": 1.8,
+      "estimatedEffort": 167,
+      "actualEffort": 0,
+      "startDate": "2026-11-19T23:00:00.000Z",
+      "endDate": "2027-04-06T22:00:00.000Z",
+      "childCount": 9,
+      "doneCount": 0,
+      "updatedAt": {
+        "_seconds": 1791460142,
+        "_nanoseconds": 857000000
+      }
+    },
+    "progressV13": {
+      "actual": 1.8,
+      "planned": 0,
+      "aggregated": 1.8
+    },
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791460142,
+      "_nanoseconds": 857000000
     }
   },
   {
@@ -58851,7 +58879,7 @@
     ],
     "computed": {
       "status": "in_progress",
-      "progress": 14.6,
+      "progress": 14.9,
       "estimatedEffort": 1263,
       "actualEffort": 80,
       "startDate": "2026-09-06T22:00:00.000Z",
@@ -58859,18 +58887,18 @@
       "childCount": 3,
       "doneCount": 0,
       "updatedAt": {
-        "_seconds": 1791374463,
-        "_nanoseconds": 59000000
+        "_seconds": 1791460143,
+        "_nanoseconds": 762000000
       }
     },
     "progressV13": {
-      "actual": 14.6,
+      "actual": 14.9,
       "planned": 0,
-      "aggregated": 14.6
+      "aggregated": 14.9
     },
     "updatedAt": {
-      "_seconds": 1791374463,
-      "_nanoseconds": 59000000
+      "_seconds": 1791460143,
+      "_nanoseconds": 762000000
     }
   },
   {
@@ -61503,7 +61531,6 @@
   {
     "id": "te5OH0oYDivsntKvUMB5",
     "description": "",
-    "status": "pending",
     "isActive": true,
     "tenantId": "3",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
@@ -61532,10 +61559,6 @@
     "startDate": "2026-11-19T23:00:00.000Z",
     "endDate": "2027-04-29T22:00:00.000Z",
     "priority": "medium",
-    "progressV13": {
-      "actual": 0,
-      "planned": 0
-    },
     "friendlyId": "TRA-344",
     "taskNumber": 344,
     "creationSource": "import",
@@ -61545,20 +61568,6 @@
     "createdAt": {
       "_seconds": 1791356969,
       "_nanoseconds": 506000000
-    },
-    "computed": {
-      "status": "pending",
-      "progress": 0,
-      "estimatedEffort": 197,
-      "actualEffort": 0,
-      "startDate": "2026-11-19T23:00:00.000Z",
-      "endDate": "2027-04-29T22:00:00.000Z",
-      "childCount": 6,
-      "doneCount": 0,
-      "updatedAt": {
-        "_seconds": 1791356969,
-        "_nanoseconds": 506000000
-      }
     },
     "lastImportId": "EUCtGuBN4VQTFb9kFYEQ",
     "planBaseline": {
@@ -61578,9 +61587,29 @@
       }
     ],
     "title": "III.2.4 Configurar la solución y realizar pruebas unitarias",
+    "status": "in_progress",
+    "computed": {
+      "status": "in_progress",
+      "progress": 1.5,
+      "estimatedEffort": 197,
+      "actualEffort": 0,
+      "startDate": "2026-11-19T23:00:00.000Z",
+      "endDate": "2027-04-29T22:00:00.000Z",
+      "childCount": 6,
+      "doneCount": 0,
+      "updatedAt": {
+        "_seconds": 1791460143,
+        "_nanoseconds": 169000000
+      }
+    },
+    "progressV13": {
+      "actual": 1.5,
+      "planned": 0,
+      "aggregated": 1.5
+    },
     "updatedAt": {
-      "_seconds": 1791367970,
-      "_nanoseconds": 86000000
+      "_seconds": 1791460143,
+      "_nanoseconds": 169000000
     }
   },
   {

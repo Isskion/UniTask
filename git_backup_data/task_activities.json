@@ -602,6 +602,20 @@
     }
   },
   {
+    "id": "3BBGzKoyk6XTL2xFIF2M",
+    "taskId": "HuT8X8iuNpomW5j8zcVR",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userEmail": "daniel.delamo@unigis.com",
+    "userName": "Daniel Tenant Admin",
+    "type": "status_change",
+    "details": "Estado cambiado de Pendiente a Revisión",
+    "createdAt": {
+      "_seconds": 1791460141,
+      "_nanoseconds": 632000000
+    }
+  },
+  {
     "id": "3DNSd2saquDwcQnXXqFD",
     "taskId": "YGu0Nz5jcseFmFgUjW6k",
     "tenantId": "3",
@@ -2520,6 +2534,20 @@
     }
   },
   {
+    "id": "DVXYSC00L6FzvYGNoF0g",
+    "taskId": "6pRi3XdNUA5QZEpguNMJ",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userEmail": "daniel.delamo@unigis.com",
+    "userName": "Daniel Tenant Admin",
+    "type": "status_change",
+    "details": "Estado cambiado de Pendiente a Revisión",
+    "createdAt": {
+      "_seconds": 1791459810,
+      "_nanoseconds": 687000000
+    }
+  },
+  {
     "id": "DnEdtIOJFlucWWEzarh8",
     "taskId": "317NAmdAhUO5uYgQUMgs",
     "tenantId": "3",
@@ -2867,6 +2895,20 @@
     "createdAt": {
       "_seconds": 1770214649,
       "_nanoseconds": 206000000
+    }
+  },
+  {
+    "id": "FoZEy3AarEN6j6N8naD6",
+    "taskId": "T1GVW7gpcA37CU4CkuhQ",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userEmail": "daniel.delamo@unigis.com",
+    "userName": "Daniel Tenant Admin",
+    "type": "deadline_change",
+    "details": "Deadline cambiado de 06/10/26 a 09/10/26",
+    "createdAt": {
+      "_seconds": 1791459878,
+      "_nanoseconds": 835000000
     }
   },
   {
@@ -3934,6 +3976,20 @@
     }
   },
   {
+    "id": "MMpphnwXTZiD7OQyfJKT",
+    "taskId": "6pRi3XdNUA5QZEpguNMJ",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userEmail": "daniel.delamo@unigis.com",
+    "userName": "Daniel Tenant Admin",
+    "type": "assignment_change",
+    "details": "Responsable cambiado de Sin asignar a daniel.delamo@unigis.com",
+    "createdAt": {
+      "_seconds": 1791459810,
+      "_nanoseconds": 739000000
+    }
+  },
+  {
     "id": "MNwu0N97uNBHetNT0F8z",
     "taskId": "KNgIt3kmOKI0PLU6FTjN",
     "tenantId": "3",
@@ -4267,6 +4323,20 @@
     "createdAt": {
       "_seconds": 1784281306,
       "_nanoseconds": 121000000
+    }
+  },
+  {
+    "id": "OJzu2UWuC1ojUJN9fUUa",
+    "taskId": "L0c7f7aAW32J3t1SCYEK",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userEmail": "daniel.delamo@unigis.com",
+    "userName": "Daniel Tenant Admin",
+    "type": "status_change",
+    "details": "Estado cambiado de Pendiente a Revisión",
+    "createdAt": {
+      "_seconds": 1791459849,
+      "_nanoseconds": 610000000
     }
   },
   {
@@ -8061,6 +8131,20 @@
     "createdAt": {
       "_seconds": 1770210643,
       "_nanoseconds": 852000000
+    }
+  },
+  {
+    "id": "l88IfjPATIKbpHVfsxQP",
+    "taskId": "L0c7f7aAW32J3t1SCYEK",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userEmail": "daniel.delamo@unigis.com",
+    "userName": "Daniel Tenant Admin",
+    "type": "assignment_change",
+    "details": "Responsable cambiado de Sin asignar a daniel.delamo@unigis.com",
+    "createdAt": {
+      "_seconds": 1791459849,
+      "_nanoseconds": 669000000
     }
   },
   {
