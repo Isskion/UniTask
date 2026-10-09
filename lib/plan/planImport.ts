@@ -61,7 +61,7 @@ export async function importPlan({ project, tenantId, userId, fileName, plan, on
     ));
     const existing = projectTasksSnap.docs.map((d) => d.data() as Task);
     if (existing.some((t) => !!t.planRole)) {
-        throw new Error('Este proyecto ya tiene un plan importado. La reimportación con comparación de cambios llegará en el siguiente paso; de momento no se puede importar otro encima.');
+        throw new Error('Este proyecto ya tiene un plan importado. Para actualizarlo usa "Reimportar Excel"; para sustituirlo por otro distinto, primero "Vaciar plan".');
     }
 
     // 2. Numeración de tareas: continúa la del proyecto (mismo esquema que lib/tasks.ts)

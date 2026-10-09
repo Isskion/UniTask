@@ -2,11 +2,12 @@
 /**
  * [Plan] Pestaña "Plan" del proyecto: árbol de tareas del plan en vivo (estados calculados por la
  * Cloud Function planRollup), alta de tareas desde el árbol (§6), "Descartar bloque" (§5) y acceso
- * al asistente de importación, y exportación a Excel (§7). Importar y descartar: PM y superiores (D8).
+ * al asistente de importación, exportación a Excel (§7) y "Vaciar plan" (§3). Importar, descartar y
+ * vaciar: PM y superiores (D8).
  */
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { Upload, Download, Loader2, Search, AlertTriangle, Plus, ExternalLink, Ban, X } from "lucide-react";
+import { Upload, Download, Loader2, Search, AlertTriangle, Plus, ExternalLink, Ban, X, Trash2 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -22,6 +23,7 @@ import { PlanTree, type PlanTreeRow } from "./PlanTree";
 import { PlanImportWizard } from "./PlanImportWizard";
 import { PlanReimportWizard } from "./PlanReimportWizard";
 import { PlanTaskModal } from "./PlanTaskModal";
+import { PlanClearDialog } from "./PlanClearDialog";
 
 const CLOSED = new Set(["completed", "discarded", "out_of_scope"]);
 const LOOSE_KEY = "__loose__";
@@ -41,6 +43,7 @@ export function ProjectPlan({ project }: { project: Project }) {
     const [loadError, setLoadError] = useState<string | null>(null);
     const [showWizard, setShowWizard] = useState(false);
     const [showReimport, setShowReimport] = useState(false);
+    const [showClear, setShowClear] = useState(false);
     const [search, setSearch] = useState("");
     const [onlyOverdue, setOnlyOverdue] = useState(false);
     const [adding, setAdding] = useState<{ mode: AddMode; parent: Task | null } | null>(null);
@@ -203,7 +206,14 @@ export function ProjectPlan({ project }: { project: Project }) {
                 <div className={cn("rounded-xl border-2 border-dashed p-10 text-center space-y-3", isLight ? "border-zinc-300" : "border-white/15")}>
                     <p className="font-semibold">Este proyecto no tiene plan importado.</p>
                     <p className="text-sm text-zinc-500">Importa el Excel de MS Project: se crearán hitos, tareas padre y tareas del proyecto. Los hitos se cierran solos al cerrar sus tareas.</p>
-                    {isPM ? (
+                    {isPM && archivedCount > 0 ? (
+                        <div className="space-y-2">
+                            <p className="text-sm text-amber-600">Quedan {archivedCount} tarea(s) archivadas del plan anterior: vacíalo antes de importar uno nuevo.</p>
+                            <button onClick={() => setShowClear(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-rose-600 text-white text-sm font-semibold hover:bg-rose-500">
+                                <Trash2 className="w-4 h-4" /> Vaciar plan
+                            </button>
+                        </div>
+                    ) : isPM ? (
                         <button onClick={() => setShowWizard(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-500">
                             <Upload className="w-4 h-4" /> Importar plan (Excel)
                         </button>
@@ -253,6 +263,13 @@ export function ProjectPlan({ project }: { project: Project }) {
                                     <Upload className="w-3.5 h-3.5" /> Reimportar Excel
                                 </button>
                             )}
+                            {isPM && (
+                                <button onClick={() => setShowClear(true)}
+                                    className={cn("inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border text-rose-600", isLight ? "border-rose-300 hover:bg-rose-50" : "border-rose-500/30 hover:bg-rose-500/10")}
+                                    title="Borrar todo el plan del proyecto para importar otro desde cero (p. ej. si se importó un Excel equivocado)">
+                                    <Trash2 className="w-3.5 h-3.5" /> Vaciar plan
+                                </button>
+                            )}
                         </div>
                     )}
                     <p className="text-[11px] text-zinc-500">
@@ -270,6 +287,11 @@ export function ProjectPlan({ project }: { project: Project }) {
             {showReimport && user && (
                 <PlanReimportWizard project={project} tenantId={tenantId} userId={user.uid} isLight={isLight}
                     onClose={() => setShowReimport(false)} />
+            )}
+
+            {showClear && user && allTasks && (
+                <PlanClearDialog projectId={project.id} projectName={project.name} tenantId={tenantId} userId={user.uid}
+                    planTasks={allTasks} isLight={isLight} onClose={() => setShowClear(false)} />
             )}
 
             {adding && (
