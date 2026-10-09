@@ -31252,29 +31252,29 @@
     "divisionId": "Consultoría",
     "divisionName": "Consultoría",
     "activityType": "Reunión Cliente",
-    "comment": "TRANSPAIS | Validación de interfaces con aitana",
-    "client": "TRANSPAIS | VALIDACIÓN DE INTERFACES CON AITANA",
-    "description": "TRANSPAIS | VALIDACIÓN DE INTERFACES CON AITANA",
-    "scheduleRaw": "10:00 A 12:00",
     "scheduleStart": "10:00",
-    "scheduleEnd": "12:00",
-    "scheduledHours": 2,
-    "result": "Por Hacer",
-    "jiraRecord": "Reunión Cliente: TRANSPAIS | VALIDACIÓN DE INTERFACES CON AITANA",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "projectName": "TRANSPAIS",
     "projectCode": "TSP",
     "projectColor": "#3b82f6",
     "linkedTaskId": null,
     "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "isActive": true,
     "createdAt": {
       "_seconds": 1791472919,
       "_nanoseconds": 65000000
     },
+    "result": "Hecho",
+    "jiraRecord": "Reunión Cliente: TRANSPAIS | CONSTRUCCIÓN -- INTEGRAR CATALOGO DE KM DE PUERTOS - ANALIZAR CON JORGE EL ENCADENAMIENTO DE TRANSCIONES Y COMO AFECTA LA POSTERIOR ASIGNACNIÓN DE ESTADOS DE LOS CHOFERES.",
+    "description": "TRANSPAIS | CONSTRUCCIÓN -- INTEGRAR CATALOGO DE KM DE PUERTOS - ANALIZAR CON JORGE EL ENCADENAMIENTO DE TRANSCIONES Y COMO AFECTA LA POSTERIOR ASIGNACNIÓN DE ESTADOS DE LOS CHOFERES.",
+    "client": "TRANSPAIS | CONSTRUCCIÓN -- INTEGRAR CATALOGO DE KM DE PUERTOS - ANALIZAR CON JORGE EL ENCADENAMIENTO DE TRANSCIONES Y COMO AFECTA LA POSTERIOR ASIGNACNIÓN DE ESTADOS DE LOS CHOFERES.",
+    "scheduleEnd": "11:30",
+    "comment": "TRANSPAIS | Construcción -- Integrar catalogo de KM de puertos - Analizar con Jorge el encadenamiento de transciones y como afecta la posterior asignacnión de estados de los choferes.",
+    "scheduleRaw": "10:00 A 11:30",
+    "scheduledHours": 1.5,
+    "isActive": false,
     "updatedAt": {
-      "_seconds": 1791472919,
-      "_nanoseconds": 65000000
+      "_seconds": 1791533860,
+      "_nanoseconds": 750000000
     }
   },
   {
@@ -36560,6 +36560,51 @@
     "updatedAt": {
       "_seconds": 1779792157,
       "_nanoseconds": 359000000
+    }
+  },
+  {
+    "id": "OtfqYTonuupdh7HK2TTm",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791496800,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Reunión Interna",
+    "comment": "LUIS SIMOES | Revisar documentación de estados de liquidación ",
+    "client": "LUIS SIMOES | REVISAR DOCUMENTACIÓN DE ESTADOS DE LIQUIDACIÓN",
+    "description": "LUIS SIMOES | REVISAR DOCUMENTACIÓN DE ESTADOS DE LIQUIDACIÓN",
+    "scheduleRaw": "10:00 A 11:30",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:30",
+    "scheduledHours": 1.5,
+    "result": "Hecho",
+    "jiraRecord": "Reunión Interna: LUIS SIMOES | REVISAR DOCUMENTACIÓN DE ESTADOS DE LIQUIDACIÓN",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791543962,
+      "_nanoseconds": 772000000
+    },
+    "updatedAt": {
+      "_seconds": 1791543962,
+      "_nanoseconds": 772000000
     }
   },
   {
@@ -49328,6 +49373,51 @@
     }
   },
   {
+    "id": "XcUvVeJRKqXuwIzPsPU0",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791496800,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Reunión Cliente",
+    "comment": "TRANSPAIS | TMS - Unigis: Reunión de avance semanal",
+    "client": "TRANSPAIS | TMS - UNIGIS: REUNIÓN DE AVANCE SEMANAL",
+    "description": "TRANSPAIS | TMS - UNIGIS: REUNIÓN DE AVANCE SEMANAL",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:00",
+    "scheduledHours": 1,
+    "jiraRecord": "Reunión Cliente: TRANSPAIS | TMS - UNIGIS: REUNIÓN DE AVANCE SEMANAL",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "projectCode": "TSP",
+    "projectColor": "#3b82f6",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791533711,
+      "_nanoseconds": 620000000
+    },
+    "result": "Cancelado",
+    "updatedAt": {
+      "_seconds": 1791543919,
+      "_nanoseconds": 706000000
+    }
+  },
+  {
     "id": "XcUxDTZPhtBoUWyCa5Ki",
     "tenantId": "3",
     "date": {
@@ -50588,6 +50678,51 @@
     "updatedAt": {
       "_seconds": 1788430235,
       "_nanoseconds": 447000000
+    }
+  },
+  {
+    "id": "YavaYdH6Z9p2N9Q9h0fc",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791496800,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Reunión Interna",
+    "comment": "UNIGIS | PRODUCTO CAPACITA : METODOS MAPI 2",
+    "client": "UNIGIS | PRODUCTO CAPACITA : METODOS MAPI 2",
+    "description": "UNIGIS | PRODUCTO CAPACITA : METODOS MAPI 2",
+    "scheduleRaw": "10:00 A 11:30",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:30",
+    "scheduledHours": 1.5,
+    "result": "Hecho",
+    "jiraRecord": "Reunión Interna: UNIGIS | PRODUCTO CAPACITA : METODOS MAPI 2",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791533740,
+      "_nanoseconds": 561000000
+    },
+    "updatedAt": {
+      "_seconds": 1791533740,
+      "_nanoseconds": 561000000
     }
   },
   {
@@ -73738,6 +73873,51 @@
     }
   },
   {
+    "id": "ojPrhFlOLEFS5ZjMdCKa",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791496800,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Reunión Cliente",
+    "comment": "LUIS SIMOES | LS FASE II: Diseño de Tarifación TMS Unigis COSTES",
+    "client": "LUIS SIMOES | LS FASE II: DISEÑO DE TARIFACIÓN TMS UNIGIS COSTES",
+    "description": "LUIS SIMOES | LS FASE II: DISEÑO DE TARIFACIÓN TMS UNIGIS COSTES",
+    "scheduleRaw": "10:00 A 12:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "12:00",
+    "scheduledHours": 2,
+    "result": "Hecho",
+    "jiraRecord": "Reunión Cliente: LUIS SIMOES | LS FASE II: DISEÑO DE TARIFACIÓN TMS UNIGIS COSTES",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "projectCode": "LSM",
+    "projectColor": "#10b981",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791533676,
+      "_nanoseconds": 674000000
+    },
+    "updatedAt": {
+      "_seconds": 1791533676,
+      "_nanoseconds": 674000000
+    }
+  },
+  {
     "id": "ojl8mF9IuSOIm5wBpQY2",
     "tenantId": "3",
     "date": {
@@ -74860,6 +75040,51 @@
     "updatedAt": {
       "_seconds": 1788427799,
       "_nanoseconds": 572000000
+    }
+  },
+  {
+    "id": "pSGU64pWAQtZEgNYZIp5",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791496800,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Reunión Cliente",
+    "comment": "TRANSPAIS | Construcción -- Integrar catalogo de KM de puertos - Analizar con Jorge el encadenamiento de transciones y como afecta la posterior asignacnión de estados de los choferes.",
+    "client": "TRANSPAIS | CONSTRUCCIÓN -- INTEGRAR CATALOGO DE KM DE PUERTOS - ANALIZAR CON JORGE EL ENCADENAMIENTO DE TRANSCIONES Y COMO AFECTA LA POSTERIOR ASIGNACNIÓN DE ESTADOS DE LOS CHOFERES.",
+    "description": "TRANSPAIS | CONSTRUCCIÓN -- INTEGRAR CATALOGO DE KM DE PUERTOS - ANALIZAR CON JORGE EL ENCADENAMIENTO DE TRANSCIONES Y COMO AFECTA LA POSTERIOR ASIGNACNIÓN DE ESTADOS DE LOS CHOFERES.",
+    "scheduleRaw": "10:00 A 11:30",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:30",
+    "scheduledHours": 1.5,
+    "result": "Hecho",
+    "jiraRecord": "Reunión Cliente: TRANSPAIS | CONSTRUCCIÓN -- INTEGRAR CATALOGO DE KM DE PUERTOS - ANALIZAR CON JORGE EL ENCADENAMIENTO DE TRANSCIONES Y COMO AFECTA LA POSTERIOR ASIGNACNIÓN DE ESTADOS DE LOS CHOFERES.",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "projectCode": "TSP",
+    "projectColor": "#3b82f6",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791533854,
+      "_nanoseconds": 715000000
+    },
+    "updatedAt": {
+      "_seconds": 1791533854,
+      "_nanoseconds": 715000000
     }
   },
   {
@@ -76170,6 +76395,51 @@
     "updatedAt": {
       "_seconds": 1788428044,
       "_nanoseconds": 265000000
+    }
+  },
+  {
+    "id": "q7tqxrwGBNKDm6HMmPWS",
+    "tenantId": "3",
+    "date": {
+      "_seconds": 1791496800,
+      "_nanoseconds": 0
+    },
+    "weekStart": "2026-10-05",
+    "weekLabel": "Semana 2",
+    "weekMonth": "Semana 2-OCT 2026",
+    "weekNumber": 41,
+    "yearMonth": "2026-10",
+    "dayType": "DH",
+    "consultantId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "consultantName": "DANIEL TENANT ADMIN",
+    "consultantOrder": 1,
+    "region": "España",
+    "divisionId": "Consultoría",
+    "divisionName": "Consultoría",
+    "activityType": "Reunión Cliente",
+    "comment": "UNIGIS | UNI-ES: Planning semanal proyectos IB",
+    "client": "UNIGIS | UNI-ES: PLANNING SEMANAL PROYECTOS IB",
+    "description": "UNIGIS | UNI-ES: PLANNING SEMANAL PROYECTOS IB",
+    "scheduleRaw": "10:00 A 11:00",
+    "scheduleStart": "10:00",
+    "scheduleEnd": "11:00",
+    "scheduledHours": 1,
+    "result": "Hecho",
+    "jiraRecord": "Reunión Cliente: UNIGIS | UNI-ES: PLANNING SEMANAL PROYECTOS IB",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "projectCode": "UNI",
+    "projectColor": "#ef4444",
+    "linkedTaskId": null,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1791533634,
+      "_nanoseconds": 864000000
+    },
+    "updatedAt": {
+      "_seconds": 1791533634,
+      "_nanoseconds": 864000000
     }
   },
   {
