@@ -120,7 +120,7 @@ const isWorkable = (t: Task) => t.planRole === 'leaf' || (t.planRole === 'milest
 export function baselineOf(n: PlanNode): PlanBaseline {
     return {
         title: n.name, planCode: n.code, startDate: n.start, endDate: n.end,
-        estimatedEffort: n.children.length ? null : (n.effortDays ?? n.durationDays ?? null),
+        estimatedEffort: n.children.length ? null : (n.leafEffortDays ?? null),
         percent: n.percent,
     };
 }
@@ -360,7 +360,7 @@ export function buildReimportOps(plan: ParsedPlan, planTasks: Task[], diff: Reim
             updatedAt: ctx.now,
         };
         if (parentId) data.parentId = parentId;
-        if (!n.children.length) data.estimatedEffort = n.effortDays ?? n.durationDays ?? null;
+        if (!n.children.length) data.estimatedEffort = n.leafEffortDays ?? null;
         if (completed) {
             const end = n.end ? new Date(n.end) : null;
             data.closedAt = end && !Number.isNaN(end.getTime()) ? end : ctx.now;

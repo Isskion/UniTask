@@ -41,7 +41,7 @@ export function computeInitialStates(plan: ParsedPlan): Map<string, PlanNodeLike
             status: isCompletedInExcel(n) ? 'completed' : 'pending',
             planRole: n.role,
             order: order.get(n.key),
-            estimatedEffort: n.children.length ? null : (n.effortDays ?? n.durationDays ?? null),
+            estimatedEffort: n.children.length ? null : (n.leafEffortDays ?? null),
             startDate: n.start,
             endDate: n.end,
             planChildCount: n.children.length,

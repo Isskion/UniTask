@@ -10,6 +10,8 @@
  * Días como "yyyy-MM-dd" en la zona del negocio (Europe/Madrid), igual en navegador y servidor.
  */
 
+import { addWorkdays, workdaysBetween } from './workCalendar';
+
 export const BUSINESS_TZ = 'Europe/Madrid';
 export const CLOSED: ReadonlySet<string> = new Set(['completed', 'discarded', 'out_of_scope']);
 const DROPPED: ReadonlySet<string> = new Set(['discarded', 'out_of_scope']);
@@ -69,8 +71,6 @@ export function dayKey(v: unknown): string | null {
 const keyToUtc = (k: string) => { const [y, m, d] = k.split('-').map(Number); return Date.UTC(y, m - 1, d); };
 const utcToKey = (t: number) => new Date(t).toISOString().slice(0, 10);
 export const addDays = (k: string, n: number) => utcToKey(keyToUtc(k) + n * 86400000);
-export const isWorkday = (k: string) => { const wd = new Date(keyToUtc(k)).getUTCDay(); return wd !== 0 && wd !== 6; };
-
 /** Días entre a y b, ambos incluidos (a ≤ b). */
 export function daysBetween(a: string, b: string): string[] {
     const out: string[] = [];
@@ -78,24 +78,8 @@ export function daysBetween(a: string, b: string): string[] {
     return out;
 }
 
-/** Días laborables (lun–vie) entre a y b, ambos incluidos. 0 si b < a. */
-export function workdaysBetween(a: string, b: string): number {
-    if (b < a) return 0;
-    const start = keyToUtc(a);
-    const days = Math.round((keyToUtc(b) - start) / 86400000) + 1;
-    let n = Math.floor(days / 7) * 5;
-    const startWd = new Date(start).getUTCDay();
-    for (let i = 0; i < days % 7; i++) { const wd = (startWd + i) % 7; if (wd !== 0 && wd !== 6) n++; }
-    return n;
-}
-
-/** Suma n días laborables a partir del día siguiente a `from`. */
-export function addWorkdays(from: string, n: number): string {
-    let k = from;
-    let left = Math.ceil(n);
-    while (left > 0) { k = addDays(k, 1); if (isWorkday(k)) left--; }
-    return k;
-}
+// Laborables = lun–vie sin festivos de Madrid (estatales, autonómicos y locales): workCalendar.ts
+export { isWorkday, workdaysBetween, addWorkdays } from './workCalendar';
 
 // ─── Tareas que cuentan y su esfuerzo ───────────────────────────────────────
 
@@ -260,12 +244,24 @@ export function workdayDelta(target: string, actual: string): number {
 }
 
 /**
- * Retraso frente a la planificación de cada tarea: día en que la curva planificada alcanzaba lo ganado hoy,
- * comparado con hoy (+ = retraso, − = adelanto). null si no hay tareas con fechas.
+ * Retraso frente a la planificación de cada tarea (earned schedule): último día en que la curva
+ * planificada no superaba lo ganado hoy, comparado con hoy (+ = retraso, − = adelanto).
+ * Si lo ganado coincide con lo planificado a hoy, 0 (también antes de que el plan exija trabajo).
+ * null si no hay tareas con fechas.
  */
 export function scheduleDelay(days: string[], planned: number[], earnedDated: number, today: string): { reachedOn: string | null; delay: number | null } {
     if (!days.length || planned[planned.length - 1] <= 0) return { reachedOn: null, delay: null };
-    const i = planned.findIndex((p) => p >= earnedDated - 0.01);
-    const reachedOn = i === -1 ? days[days.length - 1] : days[i];
+    const ti = days.indexOf(today);
+    const plannedToday = ti === -1 ? (today < days[0] ? 0 : planned[planned.length - 1]) : planned[ti];
+    if (Math.abs(earnedDated - plannedToday) <= 0.01) return { reachedOn: today, delay: 0 };
+    let i = -1;
+    for (let k = 0; k < planned.length; k++) if (planned[k] <= earnedDated + 0.01) i = k;
+    const reachedOn = i === -1 ? addDays(days[0], -1) : days[i];
     return { reachedOn, delay: workdayDelta(reachedOn, today) };
+}
+
+/** Fin previsto por calendario: fin del plan desplazado el retraso (o adelanto) actual en días laborables. */
+export function scheduleForecast(planEnd: string | null, delay: number | null): string | null {
+    if (!planEnd || delay === null) return null;
+    return addWorkdays(planEnd, delay);
 }

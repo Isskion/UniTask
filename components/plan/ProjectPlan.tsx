@@ -17,6 +17,7 @@ import { getRoleLevel, RoleLevel, type Project, type Task } from "@/types";
 import { aggregateChildren } from "@/functions/src/planRollupCore";
 import { discardBlock, isWorkable, toIso, type AddMode } from "@/lib/plan/planTasks";
 import { planName } from "@/lib/plan/planTitle";
+import { planSpanDays, daysToHours } from "@/lib/plan/planSchedule";
 import { buildPlanExport, planExportFileName } from "@/lib/plan/planExport";
 import { downloadBlob, writePlanWorkbook } from "./writePlanFile";
 import { PlanTree, type PlanTreeRow } from "./PlanTree";
@@ -111,7 +112,8 @@ export function ProjectPlan({ project }: { project: Project }) {
                     status: t.status,
                     progress: kids.length ? (t.computed?.progress ?? 0) : null,
                     end: toIso(kids.length ? t.computed?.endDate ?? t.endDate : t.endDate),
-                    effortDays: kids.length ? t.computed?.estimatedEffort ?? null : (typeof t.estimatedEffort === "number" ? t.estimatedEffort : null),
+                    durationDays: planSpanDays(kids.length ? t.computed?.startDate ?? t.startDate : t.startDate, kids.length ? t.computed?.endDate ?? t.endDate : t.endDate),
+                    effortHours: daysToHours(kids.length ? t.computed?.estimatedEffort : t.estimatedEffort),
                     responsible: t.raci?.responsible?.[0] ?? null,
                     childCount: kids.length,
                 });
@@ -134,7 +136,11 @@ export function ProjectPlan({ project }: { project: Project }) {
         const work = tasks.filter(isWorkable);
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const overdue = work.filter((t) => !CLOSED.has(t.status) && toIso(t.endDate) && Date.parse(toIso(t.endDate)!) < today.getTime()).length;
-        return { progress: agg?.progress ?? 0, work: work.length, closed: work.filter((t) => CLOSED.has(t.status)).length, overdue };
+        // Plazo del plan: del comienzo más temprano al fin más tardío (no suma de duraciones)
+        const span = planSpanDays(agg?.startDate ?? null, agg?.endDate ?? null);
+        const hours = daysToHours(work.filter((t) => !CLOSED.has(t.status) || t.status === "completed")
+            .reduce((s, t) => s + (typeof t.estimatedEffort === "number" ? t.estimatedEffort : 0), 0));
+        return { progress: agg?.progress ?? 0, work: work.length, closed: work.filter((t) => CLOSED.has(t.status)).length, overdue, span, hours };
     }, [tasks]);
 
     const filter = useMemo(() => {
@@ -233,6 +239,11 @@ export function ProjectPlan({ project }: { project: Project }) {
                                 <span className="text-sm tabular-nums">{summary.progress}%</span>
                             </div>
                             <span className="text-xs text-zinc-500">{summary.closed} / {summary.work} tareas cerradas</span>
+                            {summary.span != null && (
+                                <span className="text-xs text-zinc-500" title="Plazo: días laborables (sin fines de semana ni festivos de Madrid) del comienzo más temprano al fin más tardío. Esfuerzo: horas de trabajo (8 h = 1 día), con las tareas en paralelo compartiendo esfuerzo.">
+                                    Plazo <b>{summary.span} d</b>{summary.hours ? <> · Esfuerzo <b>{summary.hours.toLocaleString("es-ES")} h</b></> : null}
+                                </span>
+                            )}
                             {summary.overdue > 0 && <span className="text-xs text-rose-500 font-semibold">{summary.overdue} vencidas</span>}
                             <div className="flex-1" />
                             <label className="flex items-center gap-1.5 text-xs cursor-pointer">

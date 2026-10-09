@@ -10,6 +10,7 @@ import type { Project } from "@/types";
 import { parsePlanRows, inferResponsibleSide, type ParsedPlan } from "@/lib/plan/planParser";
 import { importPlan } from "@/lib/plan/planImport";
 import { computeInitialStates } from "@/lib/plan/planInitialState";
+import { planSpanDays, daysToHours } from "@/lib/plan/planSchedule";
 import { PlanTree, ROLE_META, type PlanTreeRow } from "./PlanTree";
 import { readPlanFile } from "./readPlanFile";
 
@@ -63,7 +64,8 @@ export function PlanImportWizard({ project, tenantId, userId, isLight, onClose, 
         status: initialStates?.get(n.key)?.status,
         progress: initialStates?.get(n.key)?.computed?.progress ?? null,
         end: n.end,
-        effortDays: n.children.length ? null : (n.effortDays ?? n.durationDays),
+        durationDays: planSpanDays(n.start, n.end),
+        effortHours: daysToHours(n.children.length ? initialStates?.get(n.key)?.computed?.estimatedEffort : n.leafEffortDays),
         responsible: inferResponsibleSide(n.name, project.clientName),
         childCount: n.children.length,
         highlight: warningRows.has(n.rowNumber),

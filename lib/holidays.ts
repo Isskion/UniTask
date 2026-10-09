@@ -1,57 +1,10 @@
-// Madrid Public Holidays Configuration
-// Format: YYYY-MM-DD
+// Festivos de Madrid (estatales, Comunidad de Madrid y locales de Madrid capital).
+// Fuente única: functions/src/workCalendar.ts (la comparten la app y las Cloud Functions).
+import { format } from 'date-fns';
+import { MADRID_HOLIDAYS, isHoliday } from '@/functions/src/workCalendar';
 
-export const MADRID_HOLIDAYS = [
-    // --- 2025 ---
-    "2025-01-01", // Año Nuevo
-    "2025-01-06", // Epifanía del Señor
-    "2025-04-17", // Jueves Santo
-    "2025-04-18", // Viernes Santo
-    "2025-05-01", // Fiesta del Trabajo
-    "2025-05-02", // Fiesta de la Comunidad de Madrid
-    "2025-05-15", // San Isidro
-    "2025-07-25", // Santiago Apóstol
-    "2025-08-15", // Asunción de la Virgen
-    "2025-11-01", // Todos los Santos
-    "2025-11-09", // La Almudena (Local Madrid Capital - usually included)
-    "2025-12-06", // Día de la Constitución Española
-    "2025-12-08", // Inmaculada Concepción
-    "2025-12-25", // Natividad del Señor
+export { MADRID_HOLIDAYS };
+export { holidayName, holidayCoverage, isWorkday, workdaysBetween, addWorkdays } from '@/functions/src/workCalendar';
 
-    // --- 2026 ---
-    "2026-01-01", // Año Nuevo
-    "2026-01-06", // Epifanía del Señor
-    "2026-04-02", // Jueves Santo (Estimated)
-    "2026-04-03", // Viernes Santo (Estimated)
-    "2026-05-01", // Fiesta del Trabajo
-    "2026-05-02", // Fiesta de la Comunidad de Madrid
-    "2026-05-15", // San Isidro
-    "2026-08-15", // Asunción de la Virgen
-    "2026-10-12", // Fiesta Nacional de España
-    "2026-11-02", // Traslado de Todos los Santos
-    "2026-11-09", // La Almudena
-    "2026-12-07", // Traslado del Día de la Constitución
-    "2026-12-08", // Inmaculada Concepción
-    "2026-12-25", // Natividad del Señor
-
-    // --- 2027 ---
-    "2027-01-01", // Año Nuevo
-    "2027-01-06", // Epifanía del Señor
-    "2027-03-25", // Jueves Santo
-    "2027-03-26", // Viernes Santo
-    "2027-05-01", // Fiesta del Trabajo
-    "2027-05-03", // Traslado Comunidad de Madrid (May 2 is Sun)
-    "2027-05-15", // San Isidro
-    "2027-08-16", // Traslado Asunción (Aug 15 is Sun)
-    "2027-10-12", // Fiesta Nacional de España
-    "2027-11-01", // Todos los Santos
-    "2027-11-09", // La Almudena
-    "2027-12-06", // Día de la Constitución Española
-    "2027-12-08", // Inmaculada Concepción
-    "2027-12-25", // Natividad del Señor
-];
-
-export const isMadridHoliday = (date: Date): boolean => {
-    const dateString = date.toISOString().split('T')[0];
-    return MADRID_HOLIDAYS.includes(dateString);
-};
+/** Día en hora local (no toISOString: en UTC una medianoche local puede caer el día anterior). */
+export const isMadridHoliday = (date: Date): boolean => isHoliday(format(date, 'yyyy-MM-dd'));

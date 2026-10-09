@@ -14,7 +14,7 @@ import type { PlanRole } from '@/types';
 export interface PlanWarning {
     code:
         | 'duplicate_codes' | 'no_code' | 'milestone_without_children' | 'summary_without_detail'
-        | 'above_milestone_without_children' | 'level_jump' | 'predecessors_ignored'
+        | 'above_milestone_without_children' | 'level_jump' | 'predecessors_ignored' | 'parallel_effort'
         | 'percent_ignored' | 'completed_from_excel' | 'overdue' | 'duplicate_path' | 'no_milestones';
     severity: 'info' | 'warning';
     message: string;
@@ -29,6 +29,11 @@ export interface PlanNode {
     name: string;              // nombre sin código
     durationDays: number | null;
     effortDays: number | null; // columna Esfuerzo/Trabajo convertida a días (8 h = 1 día)
+    predecessors: string | null; // columna Predecesoras normalizada ("12;15"); agrupa tareas en paralelo
+    /** Esfuerzo de la hoja en días: Esfuerzo del Excel; si no hay, su Duración, repartida si va en paralelo. */
+    leafEffortDays: number | null;
+    /** Nº de tareas del grupo paralelo con el que comparte esfuerzo (≥ 2), o null. */
+    parallelGroupSize: number | null;
     start: string | null;      // ISO de medianoche local (mismo formato que el selector de fechas de tareas)
     end: string | null;
     notes: string | null;
@@ -198,7 +203,7 @@ export function parsePlanRows(rows: unknown[][], opts: ParseOptions = {}): Parse
     const warnings: PlanWarning[] = [];
 
     // 1. Filas planas
-    type Flat = Omit<PlanNode, 'level' | 'parentKey' | 'children' | 'role' | 'path'> & {
+    type Flat = Omit<PlanNode, 'level' | 'parentKey' | 'children' | 'role' | 'path' | 'leafEffortDays' | 'parallelGroupSize'> & {
         indent: number; explicitLevel: number | null; wbsSegments: number; hasPredecessors: boolean;
     };
     const flat: Flat[] = [];
@@ -219,6 +224,7 @@ export function parsePlanRows(rows: unknown[][], opts: ParseOptions = {}): Parse
             name: split.name,
             durationDays: cols.duration !== undefined ? parseDurationDays(row[cols.duration]) : null,
             effortDays: cols.effort !== undefined ? parseEffortDays(row[cols.effort]) : null,
+            predecessors: cols.predecessors !== undefined ? normalizePredecessors(row[cols.predecessors]) : null,
             start: cols.start !== undefined ? parsePlanDate(row[cols.start]) : null,
             end: cols.end !== undefined ? parsePlanDate(row[cols.end]) : null,
             notes: cols.notes !== undefined && row[cols.notes] != null && String(row[cols.notes]).trim() !== '' ? String(row[cols.notes]).trim() : null,
@@ -263,7 +269,7 @@ export function parsePlanRows(rows: unknown[][], opts: ParseOptions = {}): Parse
         if (parent && level > parent.level + 1) { jumps.push(f.rowNumber); level = parent.level + 1; }
         if (!parent && level > 0) { level = 0; }
         const { indent: _i, explicitLevel: _e, wbsSegments: _w, hasPredecessors: _p, ...rest } = f;
-        const node: PlanNode = { ...rest, level, parentKey: parent?.key ?? null, children: [], role: 'leaf', path: '' };
+        const node: PlanNode = { ...rest, level, parentKey: parent?.key ?? null, children: [], role: 'leaf', path: '', leafEffortDays: null, parallelGroupSize: null };
         if (parent) parent.children.push(node); else roots.push(node);
         nodes.push(node);
         stack.push(node);
@@ -321,6 +327,15 @@ export function parsePlanRows(rows: unknown[][], opts: ParseOptions = {}): Parse
     if (aboveNoChildren.length) warnings.push({ code: 'above_milestone_without_children', severity: 'warning', rows: aboveNoChildren, message: `${aboveNoChildren.length} fila(s) por encima del nivel de hito no tienen hijos: se importan como tareas sueltas del agrupador.` });
     if (summaryNoDetail.length) warnings.push({ code: 'summary_without_detail', severity: 'warning', rows: summaryNoDetail, message: `${summaryNoDetail.length} tarea(s) resumen (negrita en MS Project) llegan sin detalle: pendientes de desglosar.` });
 
+    // 5b. Esfuerzo de las hojas. Tareas hermanas con la misma predecesora arrancan juntas y las hace
+    // el mismo equipo a la vez: comparten el esfuerzo (4 tareas de 4 d = 4 d entre las cuatro, no 16).
+    // Con duraciones distintas, el grupo vale la mayor y se reparte en proporción a cada duración.
+    const parallel = assignLeafEffort(nodes);
+    if (parallel.groups) warnings.push({
+        code: 'parallel_effort', severity: 'info', rows: parallel.rows,
+        message: `${parallel.rows.length} tarea(s) en ${parallel.groups} grupo(s) en paralelo (misma predecesora bajo el mismo padre) comparten el esfuerzo: ${fmtDays(parallel.before)} d → ${fmtDays(parallel.after)} d.`,
+    });
+
     // 6. Rutas de emparejamiento
     const byKey = new Map(nodes.map((n) => [n.key, n]));
     const seenPaths = new Map<string, number>();
@@ -346,7 +361,7 @@ export function parsePlanRows(rows: unknown[][], opts: ParseOptions = {}): Parse
     const firstCodedLevel = Math.min(...nodes.filter((n) => n.code).map((n) => n.level), Infinity);
     const noCode = nodes.filter((n) => !n.code && n.level >= firstCodedLevel).map((n) => n.rowNumber);
     if (noCode.length) warnings.push({ code: 'no_code', severity: 'info', rows: noCode, message: `${noCode.length} fila(s) sin código EDT; se colocan por su sangría.` });
-    if (flat.some((f) => f.hasPredecessors)) warnings.push({ code: 'predecessors_ignored', severity: 'info', message: 'Las predecesoras referencian IDs internos de MS Project que no vienen en el Excel: no se importan. Las dependencias se definen en UniTask.' });
+    if (flat.some((f) => f.hasPredecessors)) warnings.push({ code: 'predecessors_ignored', severity: 'info', message: 'Las predecesoras solo se usan para agrupar tareas en paralelo (esfuerzo compartido); todavía no se importan como dependencias entre tareas.' });
     const hasPercentColumn = cols.percent !== undefined;
     const doneRows = nodes.filter(isCompletedInExcel).map((n) => n.rowNumber);
     if (doneRows.length) warnings.push({ code: 'completed_from_excel', severity: 'info', rows: doneRows, message: `${doneRows.length} tarea(s) al 100 % en el Excel entran en Aprobación Final (fecha de cierre = su Fin). Sus hitos y padres se calculan a partir de ellas.` });
@@ -358,6 +373,47 @@ export function parsePlanRows(rows: unknown[][], opts: ParseOptions = {}): Parse
     if (overdue.length) warnings.push({ code: 'overdue', severity: 'info', rows: overdue, message: `${overdue.length} tarea(s) tienen fecha de fin ya pasada; entran como pendientes y aparecerán vencidas.` });
 
     return { roots, nodes, warnings, levels, flowMode, milestoneLevel, suggestedMilestoneLevel: suggested, roleCounts, hasPercentColumn };
+}
+
+/** "12;15" ordenado y sin espacios; tipos y desfases de MS Project se conservan ("479FF"). */
+export function normalizePredecessors(v: unknown): string | null {
+    if (v == null) return null;
+    const parts = String(v).split(/[;,]/).map((p) => p.trim().toUpperCase().replace(/\s+/g, '')).filter(Boolean);
+    return parts.length ? [...new Set(parts)].sort().join(';') : null;
+}
+
+const fmtDays = (n: number) => (Math.round(n * 10) / 10).toLocaleString('es-ES');
+
+/**
+ * Fija `leafEffortDays` y `parallelGroupSize` en las hojas trabajables (sin hijos y no gate).
+ * Grupo paralelo = hojas hermanas (mismo padre) con las mismas predecesoras y sin Esfuerzo propio.
+ */
+export function assignLeafEffort(nodes: PlanNode[]): { groups: number; rows: number[]; before: number; after: number } {
+    const groups = new Map<string, PlanNode[]>();
+    for (const n of nodes) {
+        if (n.children.length) continue;
+        if (n.role === 'gate') { n.leafEffortDays = n.effortDays ?? n.durationDays; continue; }
+        if (n.effortDays != null) { n.leafEffortDays = n.effortDays; continue; }
+        n.leafEffortDays = n.durationDays;
+        if (!n.predecessors || !(n.durationDays && n.durationDays > 0)) continue;
+        const k = `${n.parentKey ?? ''}|${n.predecessors}`;
+        groups.set(k, [...(groups.get(k) ?? []), n]);
+    }
+    const out = { groups: 0, rows: [] as number[], before: 0, after: 0 };
+    for (const list of groups.values()) {
+        if (list.length < 2) continue;
+        const sum = list.reduce((s, n) => s + n.durationDays!, 0);
+        const max = Math.max(...list.map((n) => n.durationDays!));
+        out.groups++;
+        out.before += sum;
+        out.after += max;
+        for (const n of list) {
+            n.leafEffortDays = Math.round((n.durationDays! * max / sum) * 1000) / 1000;
+            n.parallelGroupSize = list.length;
+            out.rows.push(n.rowNumber);
+        }
+    }
+    return out;
 }
 
 /** Responsable deducido del prefijo del nombre ("Transpais …" → cliente, "UNI …" → Unigis). */

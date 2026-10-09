@@ -18,11 +18,14 @@ export interface PlanTreeRow {
     status?: string;
     progress?: number | null; // solo nodos calculados
     end?: string | null;      // ISO
-    effortDays?: number | null;
+    durationDays?: number | null; // plazo: días laborables entre comienzo y fin (calendario de Madrid)
+    effortHours?: number | null;  // esfuerzo en horas (8 h = 1 día); en los nodos, suma de sus tareas
     responsible?: string | null;
     childCount: number;
     highlight?: boolean;      // p. ej. fila con aviso
 }
+
+const fmtHours = (h: number) => (Math.round(h * 10) / 10).toLocaleString("es-ES");
 
 export const ROLE_META: Record<PlanRole, { label: string; className: string; icon: typeof Flag }> = {
     group: { label: "Agrupador", className: "bg-zinc-500/15 text-zinc-500", icon: Folder },
@@ -144,7 +147,12 @@ export function PlanTree({ rows, isLight, initialExpandLevel = Infinity, showSta
                             </span>
                         )}
                         {showStatus && status && <span className={cn("text-[10px] font-medium shrink-0 w-24 text-right whitespace-nowrap", status.className)}>{status.label}</span>}
-                        {r.effortDays != null && r.effortDays > 0 && <span className="text-[10px] text-zinc-500 shrink-0 w-10 text-right">{Math.round(r.effortDays * 10) / 10}d</span>}
+                        <span className="text-[10px] text-zinc-500 shrink-0 w-10 text-right tabular-nums" title="Plazo: días laborables entre comienzo y fin (sin fines de semana ni festivos de Madrid)">
+                            {r.durationDays != null && r.durationDays > 0 ? `${r.durationDays} d` : ""}
+                        </span>
+                        <span className="text-[10px] text-zinc-400 shrink-0 w-12 text-right tabular-nums hidden md:inline" title="Esfuerzo en horas (8 h = 1 día). Las tareas en paralelo con la misma predecesora comparten esfuerzo.">
+                            {r.effortHours != null && r.effortHours > 0 ? `${fmtHours(r.effortHours)} h` : ""}
+                        </span>
                         <span className={cn("text-[10px] shrink-0 w-16 text-right", overdue ? "text-rose-500 font-semibold" : "text-zinc-500")} title={overdue ? "Vencida" : undefined}>
                             {fmtDate(r.end)}
                         </span>

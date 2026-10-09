@@ -14,6 +14,7 @@
 import type { Task } from '@/types';
 import { aggregateChildren, statusProgress, toMillis, toNumber, type PlanNodeLike } from '@/functions/src/planRollupCore';
 import { planName } from './planTitle';
+import { workdaysBetween } from '@/functions/src/workCalendar';
 
 export const PLAN_EXPORT_HEADERS = [
     'Id', 'Nombre de tarea', 'Duración', '% completado', 'Predecesoras', 'Comienzo', 'Fin',
@@ -66,20 +67,10 @@ export function dayOf(v: unknown): string | null {
     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
-/** Días laborables (lun–vie) entre dos días, ambos incluidos. */
+/** Días laborables (lun–vie sin festivos de Madrid) entre dos días, ambos incluidos. */
 export function workingDays(start: string | null, end: string | null): number | null {
-    if (!start || !end) return null;
-    const [ys, ms, ds] = start.split('-').map(Number);
-    const [ye, me, de] = end.split('-').map(Number);
-    const a = Date.UTC(ys, ms - 1, ds);
-    const b = Date.UTC(ye, me - 1, de);
-    if (b < a) return null;
-    let n = 0;
-    for (let t = a; t <= b; t += 86400000) {
-        const wd = new Date(t).getUTCDay();
-        if (wd !== 0 && wd !== 6) n++;
-    }
-    return n;
+    if (!start || !end || end < start) return null;
+    return workdaysBetween(start, end);
 }
 
 /** Siguiente código libre bajo un padre: "III.1.4.2.1" + hermanos ".1…7" → "III.1.4.2.1.8". */

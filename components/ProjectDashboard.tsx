@@ -1,7 +1,7 @@
 "use client";
 /**
  * [Seguimiento] Dashboard de un proyecto (docs/project-dashboard-design.md): tareas creadas, activas,
- * cerradas por día/semana/mes, burndown / burn-up en días de esfuerzo contra la fecha fin comprometida,
+ * cerradas por día/semana/mes, burndown / burn-up en horas de esfuerzo (8 h = 1 día) contra la fecha fin comprometida,
  * avance frente a las fechas de cada tarea y previsión al ritmo actual.
  */
 import { useEffect, useMemo, useState } from "react";
@@ -156,11 +156,11 @@ export default function ProjectDashboard({ globalProjects = [] }: { globalProjec
 
                     {/* KPIs: lo que pidió el usuario (1-3) */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <Kpi label="Tareas creadas" value={fmtNum(model.now.counts.created, 0)} hint={`${fmtNum(model.now.scope)} días de esfuerzo en alcance${model.now.counts.dropped ? ` · ${model.now.counts.dropped} descartadas` : ""}`} />
+                        <Kpi label="Tareas creadas" value={fmtNum(model.now.counts.created, 0)} hint={`${fmtNum(model.now.scope, 0)} h de esfuerzo en alcance${model.now.counts.dropped ? ` · ${model.now.counts.dropped} descartadas` : ""}`} />
                         <Kpi label="Tareas activas" value={fmtNum(model.now.counts.active, 0)}
                             hint={`Pendientes ${model.now.counts.pending} · En curso ${model.now.counts.inProgress} · Revisión ${model.now.counts.review}`} />
                         <Kpi label="Cerradas" value={`${closedCounts.day} · ${closedCounts.week} · ${closedCounts.month}`} hint="hoy · esta semana · este mes (Aprobación Final)" />
-                        <Kpi label="Pendiente" value={`${fmtNum(model.now.remaining)} d`} hint={`${model.now.counts.completed} cerradas · ritmo ${fmtNum(model.velocityPerWeek)} d/semana (4 últimas)`} />
+                        <Kpi label="Pendiente" value={`${fmtNum(model.now.remaining, 0)} h`} hint={`${model.now.counts.completed} cerradas · ritmo ${fmtNum(model.velocityPerWeek, 0)} h/semana (4 últimas)`} />
                     </div>
 
                     {/* KPIs de plazo (4) */}
@@ -173,18 +173,23 @@ export default function ProjectDashboard({ globalProjects = [] }: { globalProjec
                             value={model.scheduleDelay === null ? "—" : delayText(model.scheduleDelay)}
                             tone={toneOf(model.scheduleDelay)}
                             hint={model.scheduleReachedOn ? `vas donde el plan decía el ${fmtDate(model.scheduleReachedOn)}` : "sin tareas con fechas"} />
-                        <Kpi label="Fin previsto al ritmo actual"
+                        <Kpi label={model.forecastKind === "velocity" ? "Fin previsto al ritmo actual" : "Fin previsto (plan + desviación)"}
                             value={model.forecast ? fmtDate(model.forecast) : "—"}
                             tone={toneOf(model.forecastDelay)}
-                            hint={!model.forecast ? "sin cierres en las 4 últimas semanas"
-                                : model.forecastDelay === null ? "sin fecha fin para comparar"
-                                : `${delayText(model.forecastDelay)} vs fin ${model.targetKind === "committed" ? "comprometida" : "prevista"}${model.workdaysLeft !== null ? ` · quedan ${plural(model.workdaysLeft, "día lab.", "días lab.")}` : ""}`} />
+                            hint={!model.forecast ? "las tareas no tienen fechas y no hay cierres en las 4 últimas semanas"
+                                : [
+                                    model.forecastKind === "schedule" && model.planEnd ? `fin del plan ${fmtDate(model.planEnd)}` : "",
+                                    model.forecastDelay === null ? "sin fecha fin para comparar"
+                                        : `${delayText(model.forecastDelay)} vs fin ${model.targetKind === "committed" ? "comprometida" : "prevista"}`,
+                                    model.workdaysLeft !== null ? `quedan ${plural(model.workdaysLeft, "día lab.", "días lab.")}` : "",
+                                    model.forecastKind === "schedule" && model.velocityForecast ? `al ritmo de cierre: ${fmtDate(model.velocityForecast)}` : "",
+                                ].filter(Boolean).join(" · ")} />
                     </div>
 
                     {/* Burndown / burn-up */}
                     <div className={card}>
                         <div className="flex flex-wrap items-center gap-2 mb-3">
-                            <h3 className="font-semibold">{mode === "burndown" ? "Burndown: días de esfuerzo pendientes" : "Burn-up: alcance y hecho (días de esfuerzo)"}</h3>
+                            <h3 className="font-semibold">{mode === "burndown" ? "Burndown: horas de esfuerzo pendientes" : "Burn-up: alcance y hecho (horas de esfuerzo)"}</h3>
                             <div className="flex-1" />
                             <Segmented value={mode} onChange={setMode} options={[["burndown", "Burndown"], ["burnup", "Burn-up"]]} />
                         </div>
@@ -206,7 +211,7 @@ export default function ProjectDashboard({ globalProjects = [] }: { globalProjec
                                             <Line dataKey="ideal" name="Ideal (hasta la fecha fin)" stroke={colors.ideal} strokeDasharray="6 4" strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
                                             <Line dataKey="planRemaining" name="Según fechas de las tareas" stroke={colors.plan} strokeWidth={2} dot={false} isAnimationActive={false} />
                                             <Line dataKey="remaining" name="Pendiente real" stroke={colors.real} strokeWidth={2.5} dot={false} isAnimationActive={false} />
-                                            <Line dataKey="forecast" name="Previsión al ritmo actual" stroke={colors.forecast} strokeDasharray="6 4" strokeWidth={2} dot={false} isAnimationActive={false} />
+                                            <Line dataKey="forecast" name={model.forecastKind === "velocity" ? "Previsión al ritmo actual" : "Previsión (plan + desviación)"} stroke={colors.forecast} strokeDasharray="6 4" strokeWidth={2} dot={false} isAnimationActive={false} />
                                         </>
                                     ) : (
                                         <>
@@ -244,13 +249,13 @@ export default function ProjectDashboard({ globalProjects = [] }: { globalProjec
                         {/* Fiabilidad de los datos */}
                         <div className={cn(card, "space-y-2 text-xs")}>
                             <h3 className="font-semibold text-sm flex items-center gap-1.5"><Gauge className="w-4 h-4" /> Fiabilidad de los datos</h3>
-                            <p className="text-muted-foreground">De dónde salen los días de esfuerzo de las {model.now.counts.created} tareas:</p>
+                            <p className="text-muted-foreground">De dónde sale el esfuerzo (8 h = 1 día) de las {model.now.counts.created} tareas:</p>
                             <ul className="space-y-1">
                                 <SourceRow label="Estimación de la tarea" n={model.now.effortSources.estimate} total={model.now.counts.created} />
                                 <SourceRow label="Duración en el Excel del plan" n={model.now.effortSources.plan} total={model.now.counts.created} />
                                 <SourceRow label="Talla XS–XL" n={model.now.effortSources.size} total={model.now.counts.created} />
                                 <SourceRow label="Días lab. entre sus fechas" n={model.now.effortSources.dates} total={model.now.counts.created} />
-                                <SourceRow label="Sin datos (cuenta 1 día)" n={model.now.effortSources.default} total={model.now.counts.created} warn />
+                                <SourceRow label="Sin datos (cuenta 8 h)" n={model.now.effortSources.default} total={model.now.counts.created} warn />
                             </ul>
                             <div className="h-px bg-border my-2" />
                             {model.now.counts.withoutDates > 0 && <p className="flex gap-1.5"><Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-600" />{plural(model.now.counts.withoutDates, "tarea abierta o cerrada sin fecha fin no entra", "tareas sin fecha fin no entran")} en «Planificado a hoy».</p>}
@@ -327,7 +332,7 @@ function ChartTooltip({ active, label, payload }: TooltipProps) {
                 <div key={p.name} className="flex items-center gap-2">
                     <span className="w-2.5 h-0.5 rounded" style={{ background: p.color }} />
                     <span className="flex-1">{p.name}</span>
-                    <b className="tabular-nums">{fmtNum(p.value)} d</b>
+                    <b className="tabular-nums">{fmtNum(p.value, 0)} h</b>
                 </div>
             ))}
         </div>
@@ -340,7 +345,7 @@ function ClosureTooltip({ active, payload }: TooltipProps) {
     return (
         <div className="rounded-lg border border-border bg-popover text-popover-foreground shadow-md px-3 py-2 text-xs">
             <div className="font-semibold">{b.label}</div>
-            <div>{plural(b.tasks, "tarea cerrada", "tareas cerradas")} · {fmtNum(b.effort)} días de esfuerzo</div>
+            <div>{plural(b.tasks, "tarea cerrada", "tareas cerradas")} · {fmtNum(b.effort, 0)} h de esfuerzo</div>
         </div>
     );
 }
