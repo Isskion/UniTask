@@ -133,6 +133,8 @@ export async function createPlanTask({ mode, parent, draft, project, tenantId, u
         order,
         planRole: 'leaf',
         planOrigin: 'unitask',
+        // Bajo un bloque de espera externa, la tarea nueva también es espera
+        ...(parent?.planWait ? { planWait: true } : {}),
         planPath: (parent?.planPath ? parent.planPath + ' › ' : '') + normalizeName(draft.title),
         planTrail: buildPlanTrail(ancestorIds.map((id) => planTasks.find((t) => t.id === id)).filter((t): t is Task => !!t)
             .map((t) => ({ id: t.id, code: t.planCode ?? null, name: planName(t), role: t.planRole! }))),
@@ -183,6 +185,43 @@ export async function discardBlock({ node, planTasks, reason, tenantId, user }: 
                 userName: user.displayName || 'Usuario',
                 type: 'status_change',
                 details: `Fuera de alcance por descarte del bloque "${node.title}": ${reason.trim()}`,
+                createdAt: serverTimestamp(),
+            });
+        }
+        await batch.commit();
+    }
+    return targets.length;
+}
+
+export interface SetPlanWaitParams {
+    node: Task;
+    planTasks: Task[];
+    wait: boolean;
+    tenantId: string;
+    user: { uid: string; email?: string | null; displayName?: string | null };
+}
+
+/**
+ * Marca (o desmarca) un nodo y todo lo que cuelga de él como espera externa (entregas de producto…):
+ * sin esfuerzo ni peso en el avance, pero sus fechas siguen fijando el plazo. Queda en el historial.
+ */
+export async function setPlanWait({ node, planTasks, wait, tenantId, user }: SetPlanWaitParams): Promise<number> {
+    const targets = [node, ...planTasks.filter((t) => (t.ancestorIds || []).includes(node.id))]
+        .filter((t) => !!t.planWait !== wait);
+    for (let i = 0; i < targets.length; i += 200) {
+        const batch = writeBatch(db);
+        for (const t of targets.slice(i, i + 200)) {
+            batch.update(doc(db, 'tasks', t.id), { planWait: wait, updatedAt: serverTimestamp() });
+            batch.set(doc(collection(db, 'task_activities')), {
+                taskId: t.id,
+                tenantId,
+                userId: user.uid,
+                userEmail: user.email ?? null,
+                userName: user.displayName || 'Usuario',
+                type: 'update',
+                details: wait
+                    ? `Marcada como espera externa (bloque "${node.title}"): no cuenta como esfuerzo del proyecto`
+                    : `Deja de ser espera externa (bloque "${node.title}")`,
                 createdAt: serverTimestamp(),
             });
         }

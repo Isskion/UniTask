@@ -26,7 +26,7 @@ import {
 
 const WATCHED_FIELDS = [
     "status", "parentId", "estimatedEffort", "actualEffort", "startDate", "endDate",
-    "planStatus", "isActive", "planRole", "order", "computed",
+    "planStatus", "isActive", "planRole", "order", "computed", "planWait",
 ];
 
 function fieldChanged(before: admin.firestore.DocumentData, after: admin.firestore.DocumentData, field: string): boolean {

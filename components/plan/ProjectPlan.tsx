@@ -7,7 +7,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { Upload, Download, Loader2, Search, AlertTriangle, Plus, ExternalLink, Ban, X, Trash2 } from "lucide-react";
+import { Upload, Download, Loader2, Search, AlertTriangle, Plus, ExternalLink, Ban, X, Trash2, Hourglass } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -15,7 +15,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/context/ToastContext";
 import { getRoleLevel, RoleLevel, type Project, type Task } from "@/types";
 import { aggregateChildren } from "@/functions/src/planRollupCore";
-import { discardBlock, isWorkable, toIso, type AddMode } from "@/lib/plan/planTasks";
+import { discardBlock, isWorkable, setPlanWait, toIso, type AddMode } from "@/lib/plan/planTasks";
 import { planName } from "@/lib/plan/planTitle";
 import { planSpanDays, daysToHours } from "@/lib/plan/planSchedule";
 import { buildPlanExport, planExportFileName } from "@/lib/plan/planExport";
@@ -85,6 +85,35 @@ export function ProjectPlan({ project }: { project: Project }) {
 
     const byId = useMemo(() => new Map((tasks || []).map((t) => [t.id, t])), [tasks]);
 
+    /** Esfuerzo propio (días) por nodo: suma de sus hojas trabajables que no son espera externa. */
+    const ownEffort = useMemo(() => {
+        const m = new Map<string, number>();
+        for (const t of tasks || []) {
+            if (!isWorkable(t) || t.planWait || ["discarded", "out_of_scope"].includes(t.status)) continue;
+            const e = typeof t.estimatedEffort === "number" ? t.estimatedEffort : 0;
+            for (const id of [t.id, ...(t.ancestorIds || [])]) m.set(id, (m.get(id) ?? 0) + e);
+        }
+        return m;
+    }, [tasks]);
+
+    const [waitBusy, setWaitBusy] = useState<string | null>(null);
+    const handleToggleWait = async (t: Task) => {
+        if (!user) return;
+        const wait = !t.planWait;
+        setWaitBusy(t.id);
+        try {
+            const n = await setPlanWait({ node: t, planTasks: tasks || [], wait, tenantId, user });
+            showToast("Plan", wait
+                ? `"${planName(t)}" y lo que cuelga (${n} tarea(s)) marcadas como espera externa: no cuentan como esfuerzo, sí en el plazo.`
+                : `"${planName(t)}" vuelve a contar como trabajo del proyecto (${n} tarea(s)).`, "success");
+        } catch (err) {
+            console.error("[ProjectPlan] Error cambiando la espera externa", t.id, err);
+            showToast("Plan", `No se pudo cambiar la espera externa: ${err instanceof Error ? err.message : String(err)}`, "error");
+        } finally {
+            setWaitBusy(null);
+        }
+    };
+
     /** Tareas trabajables abiertas bajo un nodo (lo que "Descartar bloque" cerraría). */
     const openWorkUnder = (nodeId: string) => (tasks || []).filter((t) => (t.ancestorIds || []).includes(nodeId) && isWorkable(t) && !CLOSED.has(t.status)).length;
 
@@ -113,7 +142,8 @@ export function ProjectPlan({ project }: { project: Project }) {
                     progress: kids.length ? (t.computed?.progress ?? 0) : null,
                     end: toIso(kids.length ? t.computed?.endDate ?? t.endDate : t.endDate),
                     durationDays: planSpanDays(kids.length ? t.computed?.startDate ?? t.startDate : t.startDate, kids.length ? t.computed?.endDate ?? t.endDate : t.endDate),
-                    effortHours: daysToHours(kids.length ? t.computed?.estimatedEffort : t.estimatedEffort),
+                    effortHours: t.planWait ? null : daysToHours(ownEffort.get(t.id) ?? 0),
+                    wait: !!t.planWait,
                     responsible: t.raci?.responsible?.[0] ?? null,
                     childCount: kids.length,
                 });
@@ -127,7 +157,7 @@ export function ProjectPlan({ project }: { project: Project }) {
             walk(LOOSE_KEY, 1, LOOSE_KEY);
         }
         return out;
-    }, [tasks]);
+    }, [tasks, ownEffort]);
 
     const summary = useMemo(() => {
         if (!tasks || tasks.length === 0) return null;
@@ -135,12 +165,14 @@ export function ProjectPlan({ project }: { project: Project }) {
         const agg = aggregateChildren(roots);
         const work = tasks.filter(isWorkable);
         const today = new Date(); today.setHours(0, 0, 0, 0);
-        const overdue = work.filter((t) => !CLOSED.has(t.status) && toIso(t.endDate) && Date.parse(toIso(t.endDate)!) < today.getTime()).length;
+        const overdue = work.filter((t) => !t.planWait && !CLOSED.has(t.status) && toIso(t.endDate) && Date.parse(toIso(t.endDate)!) < today.getTime()).length;
         // Plazo del plan: del comienzo más temprano al fin más tardío (no suma de duraciones)
         const span = planSpanDays(agg?.startDate ?? null, agg?.endDate ?? null);
-        const hours = daysToHours(work.filter((t) => !CLOSED.has(t.status) || t.status === "completed")
+        const own = work.filter((t) => !t.planWait);
+        const hours = daysToHours(own.filter((t) => !["discarded", "out_of_scope"].includes(t.status))
             .reduce((s, t) => s + (typeof t.estimatedEffort === "number" ? t.estimatedEffort : 0), 0));
-        return { progress: agg?.progress ?? 0, work: work.length, closed: work.filter((t) => CLOSED.has(t.status)).length, overdue, span, hours };
+        return { progress: agg?.progress ?? 0, work: own.length, closed: own.filter((t) => CLOSED.has(t.status)).length, overdue, span, hours, waits: work.length - own.length,
+            waitsOverdue: work.filter((t) => t.planWait && !CLOSED.has(t.status) && toIso(t.endDate) && Date.parse(toIso(t.endDate)!) < today.getTime()).length };
     }, [tasks]);
 
     const filter = useMemo(() => {
@@ -168,6 +200,13 @@ export function ProjectPlan({ project }: { project: Project }) {
                 {canSubtask && (
                     <button className={cn(iconBtn, "text-[10px] font-semibold flex items-center gap-0.5")} title="Añadir subtarea (esta tarea pasará a ser padre)" onClick={() => setAdding({ mode: "subtask", parent: t })}>
                         <Plus className="w-3 h-3" />Sub
+                    </button>
+                )}
+                {isPM && (t.planRole !== "gate") && (
+                    <button className={cn(iconBtn, t.planWait && "text-amber-600")} disabled={waitBusy === t.id}
+                        title={t.planWait ? "Quitar espera externa: vuelve a contar como esfuerzo del proyecto" : "Marcar como espera externa (p. ej. entrega de producto): no cuenta como esfuerzo, sí en el plazo. Se aplica a todo lo que cuelga."}
+                        onClick={() => handleToggleWait(t)}>
+                        {waitBusy === t.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Hourglass className="w-3.5 h-3.5" />}
                     </button>
                 )}
                 {openCount > 0 && (
@@ -242,6 +281,7 @@ export function ProjectPlan({ project }: { project: Project }) {
                             {summary.span != null && (
                                 <span className="text-xs text-zinc-500" title="Plazo: días laborables (sin fines de semana ni festivos de Madrid) del comienzo más temprano al fin más tardío. Esfuerzo: horas de trabajo (8 h = 1 día), con las tareas en paralelo compartiendo esfuerzo.">
                                     Plazo <b>{summary.span} d</b>{summary.hours ? <> · Esfuerzo <b>{summary.hours.toLocaleString("es-ES")} h</b></> : null}
+                                    {summary.waits ? <> · <span className="text-amber-600">{summary.waits} espera(s) externas{summary.waitsOverdue ? `, ${summary.waitsOverdue} vencida(s)` : ""}</span></> : null}
                                 </span>
                             )}
                             {summary.overdue > 0 && <span className="text-xs text-rose-500 font-semibold">{summary.overdue} vencidas</span>}

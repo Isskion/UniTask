@@ -343,6 +343,7 @@ export function buildReimportOps(plan: ParsedPlan, planTasks: Task[], diff: Reim
             planCode: n.code,
             planPath: n.path,
             planOrigin: 'import',
+            ...(parentId && planTasks.find((t) => t.id === parentId)?.planWait ? { planWait: true } : {}),
             importId: ctx.importId,
             importKind: 'reimport',
             lastImportId: ctx.importId,

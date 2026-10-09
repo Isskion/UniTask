@@ -475,6 +475,8 @@ export interface Task {
     planCode?: string;        // Código EDT original ("III.1.4.2.1"); informativo, puede repetirse
     planPath?: string;        // Ruta normalizada de nombres desde la raíz (clave de emparejamiento en reimport)
     planOrigin?: 'import' | 'unitask';
+    /** Espera externa (p. ej. entrega de producto): sin esfuerzo ni avance propio, pero sus fechas cuentan en el plazo. */
+    planWait?: boolean;
     importId?: string;        // Lote de plan_imports que la creó (para deshacer)
     lastImportId?: string;    // Último lote que la modificó
     /** Tipo del lote que la creó: las altas de una reimportación sí disparan planRollup. */

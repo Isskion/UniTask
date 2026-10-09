@@ -12,7 +12,7 @@
  */
 import {
     addDays, closedDayOf, currentSnapshot, dayKey, daysBetween, effortOf, forecastEnd, plannedSeries,
-    reconstructSeries, scheduleDelay, scheduleForecast, velocity, workableTasks, workdayDelta, workdaysBetween,
+    externalWaits, reconstructSeries, scheduleDelay, scheduleForecast, velocity, workableTasks, workdayDelta, workdaysBetween,
     type ProgressSnapshot, type ProgressTask,
 } from '@/functions/src/projectProgressCore';
 
@@ -52,6 +52,7 @@ export interface ProjectDashboardModel {
     forecast: string | null;        // previsión principal
     forecastKind: 'schedule' | 'velocity' | null;
     velocityForecast: string | null; // al ritmo de cierre actual (secundaria)
+    waits: { total: number; open: number; overdue: number; lastEnd: string | null }; // esperas externas (riesgo, no trabajo)
     forecastDelay: number | null;   // días lab. de la previsión respecto al objetivo (+ = retraso)
     scheduleDelay: number | null;   // días lab. de retraso frente a las fechas de las tareas
     scheduleReachedOn: string | null;
@@ -77,9 +78,12 @@ export function buildProjectDashboard(tasks: ProgressTask[], dates: ProjectDates
 
     const vel = velocity(tasks, today);
     const velocityForecast = forecastEnd(now.remaining, vel.perWorkday, today);
+    const waits = externalWaits(tasks, today);
+    // Fin del plan: el más tardío del trabajo propio y de las esperas externas (también fijan el plazo)
     const planEnds = work
         .filter((t) => !['discarded', 'out_of_scope'].includes(String(t.status || '')))
-        .map((t) => dayKey(t.endDate)).filter((d): d is string => !!d).sort();
+        .map((t) => dayKey(t.endDate)).filter((d): d is string => !!d)
+        .concat(waits.lastEnd ? [waits.lastEnd] : []).sort();
     const planEnd = planEnds.length ? planEnds[planEnds.length - 1] : null;
 
     // Retraso frente al plan, medido sobre todo el horizonte del plan (no depende del eje del gráfico)
@@ -144,6 +148,7 @@ export function buildProjectDashboard(tasks: ProgressTask[], dates: ProjectDates
         forecast,
         forecastKind,
         velocityForecast,
+        waits,
         forecastDelay: forecast && target ? workdayDelta(target, forecast) : null,
         scheduleDelay: sched.delay,
         scheduleReachedOn: sched.reachedOn,

@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { collection, doc, getDocs, onSnapshot, query, updateDoc, where } from "firebase/firestore";
 import { ComposedChart, BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ResponsiveContainer } from "recharts";
-import { AlertTriangle, CalendarClock, CheckCircle2, Gauge, Info, Loader2, Pencil, TrendingDown, X } from "lucide-react";
+import { AlertTriangle, CalendarClock, CheckCircle2, Gauge, Hourglass, Info, Loader2, Pencil, TrendingDown, X } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -185,6 +185,18 @@ export default function ProjectDashboard({ globalProjects = [] }: { globalProjec
                                     model.forecastKind === "schedule" && model.velocityForecast ? `al ritmo de cierre: ${fmtDate(model.velocityForecast)}` : "",
                                 ].filter(Boolean).join(" · ")} />
                     </div>
+
+                    {model.waits.total > 0 && (
+                        <div className={cn("p-3 rounded-lg border text-sm flex gap-2", model.waits.overdue > 0 ? "border-amber-500/40 bg-amber-500/10" : "border-border")}>
+                            <Hourglass className={cn("w-4 h-4 shrink-0 mt-0.5", model.waits.overdue > 0 ? "text-amber-600" : "text-muted-foreground")} />
+                            <span>
+                                <b>Esperas externas</b> (entregas de producto…): {model.waits.open} abiertas de {model.waits.total}
+                                {model.waits.overdue > 0 && <> · <b className="text-amber-600">{plural(model.waits.overdue, "vencida", "vencidas")}</b></>}
+                                {model.waits.lastEnd && <> · última prevista el {fmtDate(model.waits.lastEnd)}</>}.
+                                <span className="text-muted-foreground"> No cuentan como esfuerzo ni en la desviación del equipo, pero si llegan tarde retrasan el fin del proyecto.</span>
+                            </span>
+                        </div>
+                    )}
 
                     {/* Burndown / burn-up */}
                     <div className={card}>

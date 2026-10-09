@@ -14,6 +14,9 @@
  *   (mínimo 1 para que las hojas sin estimar cuenten). Descartadas / fuera de alcance no pesan.
  *   El % "a ojo" del Excel no se usa: cuenta el estado real en UniTask.
  * - Esfuerzo estimado (sin descartadas) y real (todas) = suma; fechas = mín. inicio / máx. fin.
+ * - Esperas externas (`planWait`, p. ej. entregas de producto): esfuerzo 0 y no pesan en el avance
+ *   del padre (salvo que todo el bloque sea espera: entonces pesan igual entre sí). Sus fechas sí
+ *   cuentan: si llegan tarde, retrasan el plazo.
  * - Gates (filas de control de 0 días) se excluyen del cálculo del padre y se cierran solos
  *   cuando están cerrados todos sus hermanos anteriores.
  */
@@ -41,6 +44,7 @@ export interface PlanNodeLike {
     startDate?: unknown;
     endDate?: unknown;
     planChildCount?: number;
+    planWait?: boolean;
     computed?: {
         status?: string;
         progress?: number;
@@ -48,6 +52,7 @@ export interface PlanNodeLike {
         actualEffort?: number;
         startDate?: unknown;
         endDate?: unknown;
+        waitOnly?: boolean;
     } | null;
 }
 
@@ -58,6 +63,7 @@ export interface Aggregate {
     actualEffort: number;
     startDate: unknown | null;
     endDate: unknown | null;
+    waitOnly: boolean;          // todos sus hijos son esperas externas
     childCount: number;
     doneCount: number;
 }
@@ -111,15 +117,17 @@ function effective(c: PlanNodeLike) {
             actual: toNumber(c.computed.actualEffort),
             start: c.computed.startDate ?? null,
             end: c.computed.endDate ?? null,
+            wait: !!c.computed.waitOnly,
         };
     }
     return {
         status,
         progress: statusProgress(status),
-        estimated: toNumber(c.estimatedEffort),
+        estimated: c.planWait ? 0 : toNumber(c.estimatedEffort),
         actual: toNumber(c.actualEffort),
         start: c.startDate ?? null,
         end: c.endDate ?? null,
+        wait: !!c.planWait,
     };
 }
 
@@ -153,14 +161,16 @@ export function aggregateChildren(children: PlanNodeLike[]): Aggregate | null {
     if (weighted.length === 0) {
         progress = status === 'completed' ? 100 : 0;
     } else {
+        // Las esperas no pesan si hay trabajo propio en el bloque; si todo es espera, pesan igual.
+        const allWait = weighted.every((e) => e.wait);
         let wSum = 0;
         let pSum = 0;
         for (const e of weighted) {
-            const w = e.estimated > 0 ? e.estimated : 1;
+            const w = e.wait && !allWait ? 0 : e.estimated > 0 ? e.estimated : 1;
             wSum += w;
             pSum += w * e.progress;
         }
-        progress = Math.round((pSum / wSum) * 10) / 10;
+        progress = wSum > 0 ? Math.round((pSum / wSum) * 10) / 10 : 0;
     }
 
     let startDate: unknown | null = null;
@@ -184,6 +194,7 @@ export function aggregateChildren(children: PlanNodeLike[]): Aggregate | null {
         endDate,
         childCount: counted.length,
         doneCount: closed.length,
+        waitOnly: eff.every((e) => e.wait),
     };
 }
 
@@ -211,6 +222,7 @@ export function sameAggregate(a: (NonNullable<PlanNodeLike["computed"]> & { chil
         a.actualEffort === b.actualEffort &&
         a.childCount === b.childCount &&
         a.doneCount === b.doneCount &&
+        !!a.waitOnly === b.waitOnly &&
         toMillis(a.startDate) === toMillis(b.startDate) &&
         toMillis(a.endDate) === toMillis(b.endDate);
 }

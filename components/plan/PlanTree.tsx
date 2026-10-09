@@ -23,6 +23,7 @@ export interface PlanTreeRow {
     responsible?: string | null;
     childCount: number;
     highlight?: boolean;      // p. ej. fila con aviso
+    wait?: boolean;           // espera externa (sin esfuerzo propio)
 }
 
 const fmtHours = (h: number) => (Math.round(h * 10) / 10).toLocaleString("es-ES");
@@ -134,6 +135,7 @@ export function PlanTree({ rows, isLight, initialExpandLevel = Infinity, showSta
                             <Icon className="w-3 h-3" />{meta.label}
                         </span>
                         {r.code && <span className="font-mono text-[10px] text-zinc-500 shrink-0">{r.code}</span>}
+                        {r.wait && <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold shrink-0 bg-amber-500/15 text-amber-600" title="Espera externa (p. ej. entrega de producto): no cuenta como esfuerzo, pero sus fechas sí cuentan en el plazo">Espera</span>}
                         <span className={cn("truncate min-w-0 flex-1", r.role === "group" || r.role === "milestone" ? "font-semibold" : "", closed && "line-through opacity-60")} title={r.title}>
                             {r.title}
                         </span>

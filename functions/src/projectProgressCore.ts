@@ -6,7 +6,8 @@
  *
  * Unidad: días de esfuerzo (8 h = 1 día). Cuenta solo el trabajo real: se excluyen las tareas
  * con hijas (padres, hitos y agrupadores del plan, épicas con subtareas), los controles del plan
- * (gate), las archivadas y las inactivas.
+ * (gate), las esperas externas (`planWait`: entregas de producto, ver externalWaits), las
+ * archivadas y las inactivas.
  * Días como "yyyy-MM-dd" en la zona del negocio (Europe/Madrid), igual en navegador y servidor.
  */
 
@@ -28,6 +29,7 @@ export interface ProgressTask {
     type?: string;
     planRole?: string;
     planStatus?: string;
+    planWait?: boolean;
     isActive?: boolean;
     createdAt?: unknown;
     closedAt?: unknown;
@@ -89,11 +91,29 @@ const num = (v: unknown): number => {
     return 0;
 };
 
-/** Trabajo real del proyecto: sin padres (tienen hijas vivas), controles, agrupadores, archivadas ni inactivas. */
-export function workableTasks<T extends ProgressTask>(tasks: T[]): T[] {
+/** Hojas vivas: sin padres (tienen hijas vivas), controles, agrupadores, archivadas ni inactivas. */
+function liveLeaves<T extends ProgressTask>(tasks: T[]): T[] {
     const live = tasks.filter((t) => t.planStatus !== 'archived' && t.isActive !== false);
     const parents = new Set(live.map((t) => t.parentId).filter((p): p is string => !!p));
     return live.filter((t) => !parents.has(t.id) && t.planRole !== 'gate' && t.planRole !== 'group');
+}
+
+/** Trabajo real del proyecto: hojas vivas que no son esperas externas. */
+export function workableTasks<T extends ProgressTask>(tasks: T[]): T[] {
+    return liveLeaves(tasks).filter((t) => !t.planWait);
+}
+
+/** Esperas externas (no son trabajo nuestro, pero si llegan tarde retrasan el proyecto). */
+export function externalWaits<T extends ProgressTask>(tasks: T[], today: string): { total: number; open: number; overdue: number; lastEnd: string | null } {
+    const waits = liveLeaves(tasks).filter((t) => t.planWait && !DROPPED.has(String(t.status || '')));
+    const open = waits.filter((t) => !CLOSED.has(String(t.status || '')));
+    const ends = waits.map((t) => dayKey(t.endDate)).filter((d): d is string => !!d).sort();
+    return {
+        total: waits.length,
+        open: open.length,
+        overdue: open.filter((t) => { const e = dayKey(t.endDate); return !!e && e < today; }).length,
+        lastEnd: ends.length ? ends[ends.length - 1] : null,
+    };
 }
 
 /** Días de esfuerzo de una tarea, recuperándolos de donde se pueda. */
