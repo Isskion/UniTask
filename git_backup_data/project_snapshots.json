@@ -35,6 +35,41 @@
     }
   },
   {
+    "id": "1UEthBAXfAOmknsGmG80_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 0,
+    "done": 0,
+    "remaining": 0,
+    "earned": 0,
+    "plannedToDate": 0,
+    "plannedTotal": 0,
+    "earnedDated": 0,
+    "counts": {
+      "created": 0,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 0,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 0
+    },
+    "projectId": "1UEthBAXfAOmknsGmG80",
+    "tenantId": "1",
+    "createdAt": {
+      "_seconds": 1791582904,
+      "_nanoseconds": 705000000
+    }
+  },
+  {
     "id": "3Mb6nctLYF4ni6cS0jMu_2026-10-08",
     "day": "2026-10-08",
     "scope": 0,
@@ -67,6 +102,41 @@
     "createdAt": {
       "_seconds": 1791496505,
       "_nanoseconds": 269000000
+    }
+  },
+  {
+    "id": "3Mb6nctLYF4ni6cS0jMu_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 0,
+    "done": 0,
+    "remaining": 0,
+    "earned": 0,
+    "plannedToDate": 0,
+    "plannedTotal": 0,
+    "earnedDated": 0,
+    "counts": {
+      "created": 0,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 0,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 0
+    },
+    "projectId": "3Mb6nctLYF4ni6cS0jMu",
+    "tenantId": "2",
+    "createdAt": {
+      "_seconds": 1791582904,
+      "_nanoseconds": 853000000
     }
   },
   {
@@ -105,6 +175,41 @@
     }
   },
   {
+    "id": "9iqygviz3AGJnbJOLc8E_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 0,
+    "done": 0,
+    "remaining": 0,
+    "earned": 0,
+    "plannedToDate": 0,
+    "plannedTotal": 0,
+    "earnedDated": 0,
+    "counts": {
+      "created": 0,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 0,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 0
+    },
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1791582905,
+      "_nanoseconds": 81000000
+    }
+  },
+  {
     "id": "Au1xfXgivgl6VYj2zscs_2026-10-08",
     "day": "2026-10-08",
     "scope": 9,
@@ -137,6 +242,41 @@
     "createdAt": {
       "_seconds": 1791496505,
       "_nanoseconds": 641000000
+    }
+  },
+  {
+    "id": "Au1xfXgivgl6VYj2zscs_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 0,
+    "done": 0,
+    "remaining": 0,
+    "earned": 0,
+    "plannedToDate": 0,
+    "plannedTotal": 0,
+    "earnedDated": 0,
+    "counts": {
+      "created": 9,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 0,
+      "dropped": 9,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 9
+    },
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1791582905,
+      "_nanoseconds": 174000000
     }
   },
   {
@@ -175,6 +315,41 @@
     }
   },
   {
+    "id": "DWXtB3YW0vii8A55ZQYR_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 0,
+    "done": 0,
+    "remaining": 0,
+    "earned": 0,
+    "plannedToDate": 0,
+    "plannedTotal": 0,
+    "earnedDated": 0,
+    "counts": {
+      "created": 0,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 0,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 0
+    },
+    "projectId": "DWXtB3YW0vii8A55ZQYR",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1791582905,
+      "_nanoseconds": 248000000
+    }
+  },
+  {
     "id": "HKnZypXlGdM0VjRLOysB_2026-10-08",
     "day": "2026-10-08",
     "scope": 2,
@@ -207,6 +382,41 @@
     "createdAt": {
       "_seconds": 1791496505,
       "_nanoseconds": 919000000
+    }
+  },
+  {
+    "id": "HKnZypXlGdM0VjRLOysB_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 2,
+    "done": 0,
+    "remaining": 2,
+    "earned": 1,
+    "plannedToDate": 2,
+    "plannedTotal": 2,
+    "earnedDated": 1,
+    "counts": {
+      "created": 2,
+      "active": 2,
+      "pending": 0,
+      "inProgress": 2,
+      "review": 0,
+      "completed": 0,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 2
+    },
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1791582905,
+      "_nanoseconds": 390000000
     }
   },
   {
@@ -245,6 +455,41 @@
     }
   },
   {
+    "id": "OH4sjML9byhLuzMXSTss_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 787.77,
+    "done": 24.75,
+    "remaining": 763.02,
+    "earned": 24.75,
+    "plannedToDate": 133.76,
+    "plannedTotal": 787.77,
+    "earnedDated": 24.75,
+    "counts": {
+      "created": 378,
+      "active": 353,
+      "pending": 353,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 19,
+      "dropped": 6,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 371,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 7
+    },
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1791582905,
+      "_nanoseconds": 676000000
+    }
+  },
+  {
     "id": "UiULU3NTlapjSlFcejvd_2026-10-08",
     "day": "2026-10-08",
     "scope": 0,
@@ -277,6 +522,41 @@
     "createdAt": {
       "_seconds": 1791496506,
       "_nanoseconds": 213000000
+    }
+  },
+  {
+    "id": "UiULU3NTlapjSlFcejvd_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 0,
+    "done": 0,
+    "remaining": 0,
+    "earned": 0,
+    "plannedToDate": 0,
+    "plannedTotal": 0,
+    "earnedDated": 0,
+    "counts": {
+      "created": 0,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 0,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 0
+    },
+    "projectId": "UiULU3NTlapjSlFcejvd",
+    "tenantId": "15",
+    "createdAt": {
+      "_seconds": 1791582905,
+      "_nanoseconds": 821000000
     }
   },
   {
@@ -315,6 +595,41 @@
     }
   },
   {
+    "id": "WcF8wTccm1LkaFBfWvug_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 0,
+    "done": 0,
+    "remaining": 0,
+    "earned": 0,
+    "plannedToDate": 0,
+    "plannedTotal": 0,
+    "earnedDated": 0,
+    "counts": {
+      "created": 0,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 0,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 0
+    },
+    "projectId": "WcF8wTccm1LkaFBfWvug",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1791582905,
+      "_nanoseconds": 904000000
+    }
+  },
+  {
     "id": "aAb2HIajQVhXnLAzmVo8_2026-10-08",
     "day": "2026-10-08",
     "scope": 1450.63,
@@ -347,6 +662,41 @@
     "createdAt": {
       "_seconds": 1791496506,
       "_nanoseconds": 956000000
+    }
+  },
+  {
+    "id": "aAb2HIajQVhXnLAzmVo8_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 1450.63,
+    "done": 134.63,
+    "remaining": 1316,
+    "earned": 254.13,
+    "plannedToDate": 449.83,
+    "plannedTotal": 1450.63,
+    "earnedDated": 254.13,
+    "counts": {
+      "created": 488,
+      "active": 450,
+      "pending": 379,
+      "inProgress": 71,
+      "review": 0,
+      "completed": 36,
+      "dropped": 2,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 466,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 22
+    },
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1791582906,
+      "_nanoseconds": 212000000
     }
   },
   {
@@ -385,6 +735,41 @@
     }
   },
   {
+    "id": "c0HRtaCkKXxeiQf897sY_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 0,
+    "done": 0,
+    "remaining": 0,
+    "earned": 0,
+    "plannedToDate": 0,
+    "plannedTotal": 0,
+    "earnedDated": 0,
+    "counts": {
+      "created": 0,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 0,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 0
+    },
+    "projectId": "c0HRtaCkKXxeiQf897sY",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1791582906,
+      "_nanoseconds": 369000000
+    }
+  },
+  {
     "id": "gCqxaXvEWYGdqBmKzwPg_2026-10-08",
     "day": "2026-10-08",
     "scope": 0,
@@ -417,6 +802,41 @@
     "createdAt": {
       "_seconds": 1791496507,
       "_nanoseconds": 169000000
+    }
+  },
+  {
+    "id": "gCqxaXvEWYGdqBmKzwPg_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 0,
+    "done": 0,
+    "remaining": 0,
+    "earned": 0,
+    "plannedToDate": 0,
+    "plannedTotal": 0,
+    "earnedDated": 0,
+    "counts": {
+      "created": 0,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 0,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 0
+    },
+    "projectId": "gCqxaXvEWYGdqBmKzwPg",
+    "tenantId": "2",
+    "createdAt": {
+      "_seconds": 1791582906,
+      "_nanoseconds": 457000000
     }
   },
   {
@@ -455,6 +875,41 @@
     }
   },
   {
+    "id": "glrTnd36wdAsI0U0TxLf_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 0,
+    "done": 0,
+    "remaining": 0,
+    "earned": 0,
+    "plannedToDate": 0,
+    "plannedTotal": 0,
+    "earnedDated": 0,
+    "counts": {
+      "created": 0,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 0,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 0
+    },
+    "projectId": "glrTnd36wdAsI0U0TxLf",
+    "tenantId": "12",
+    "createdAt": {
+      "_seconds": 1791582906,
+      "_nanoseconds": 515000000
+    }
+  },
+  {
     "id": "mockup-product-2026_2026-10-08",
     "day": "2026-10-08",
     "scope": 0,
@@ -487,6 +942,41 @@
     "createdAt": {
       "_seconds": 1791496507,
       "_nanoseconds": 358000000
+    }
+  },
+  {
+    "id": "mockup-product-2026_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 0,
+    "done": 0,
+    "remaining": 0,
+    "earned": 0,
+    "plannedToDate": 0,
+    "plannedTotal": 0,
+    "earnedDated": 0,
+    "counts": {
+      "created": 0,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 0,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 0
+    },
+    "projectId": "mockup-product-2026",
+    "tenantId": "2",
+    "createdAt": {
+      "_seconds": 1791582906,
+      "_nanoseconds": 595000000
     }
   },
   {
@@ -525,6 +1015,41 @@
     }
   },
   {
+    "id": "sZDav2CndgdmhfYc8BTt_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 1,
+    "done": 1,
+    "remaining": 0,
+    "earned": 1,
+    "plannedToDate": 1,
+    "plannedTotal": 1,
+    "earnedDated": 1,
+    "counts": {
+      "created": 1,
+      "active": 0,
+      "pending": 0,
+      "inProgress": 0,
+      "review": 0,
+      "completed": 1,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 1
+    },
+    "projectId": "sZDav2CndgdmhfYc8BTt",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1791582906,
+      "_nanoseconds": 670000000
+    }
+  },
+  {
     "id": "wRKrnv7OK4xgyRt5ejJ6_2026-10-08",
     "day": "2026-10-08",
     "scope": 10,
@@ -557,6 +1082,41 @@
     "createdAt": {
       "_seconds": 1791496507,
       "_nanoseconds": 557000000
+    }
+  },
+  {
+    "id": "wRKrnv7OK4xgyRt5ejJ6_2026-10-09",
+    "day": "2026-10-09",
+    "scope": 10,
+    "done": 4,
+    "remaining": 6,
+    "earned": 5,
+    "plannedToDate": 7,
+    "plannedTotal": 10,
+    "earnedDated": 5,
+    "counts": {
+      "created": 10,
+      "active": 6,
+      "pending": 4,
+      "inProgress": 2,
+      "review": 0,
+      "completed": 4,
+      "dropped": 0,
+      "approxClosed": 0,
+      "withoutDates": 0
+    },
+    "effortSources": {
+      "estimate": 0,
+      "plan": 0,
+      "size": 0,
+      "dates": 0,
+      "default": 10
+    },
+    "projectId": "wRKrnv7OK4xgyRt5ejJ6",
+    "tenantId": "18",
+    "createdAt": {
+      "_seconds": 1791582906,
+      "_nanoseconds": 749000000
     }
   }
 ]
